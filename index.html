@@ -180,6 +180,89 @@ tbody tr:last-child td{border-bottom:none;}
 .em-breve .eb-ic{font-size:48px;margin-bottom:16px;opacity:.4;}
 .em-breve h3{font-size:17px;color:var(--text2);margin-bottom:6px;}
 .em-breve p{font-size:13px;}
+
+/* ETIQUETAS */
+.tags-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.tag-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:600;color:var(--white);}
+.tag-chip .tc-x{cursor:pointer;opacity:.7;font-size:13px;line-height:1;}
+.tag-chip .tc-x:hover{opacity:1;}
+.tags-input-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.tags-input-row select{padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:12.5px;font-family:inherit;}
+.tags-input-row input{flex:1;min-width:160px;padding:7px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:12.5px;font-family:inherit;}
+.tags-input-row input:focus,.tags-input-row select:focus{outline:none;border-color:#8aabf5;}
+
+/* ===== PERFIL DO CLIENTE ===== */
+.perfil-header{
+  background:linear-gradient(135deg,#1D3461 0%,#2A4A80 100%);
+  border-radius:12px;padding:20px 24px;margin-bottom:0;color:var(--white);
+}
+.perfil-top{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
+.perfil-av{
+  width:52px;height:52px;border-radius:12px;
+  background:rgba(255,255,255,.2);display:flex;align-items:center;
+  justify-content:center;font-size:22px;font-weight:700;color:var(--white);
+  flex-shrink:0;border:2px solid rgba(255,255,255,.3);
+}
+.perfil-info{flex:1;}
+.perfil-info h2{font-size:18px;font-weight:700;color:var(--white);line-height:1.2;}
+.perfil-info .pi-sub{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap;}
+.badge-pf{background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);padding:2px 9px;border-radius:5px;font-size:11px;font-weight:600;}
+.badge-cpf{color:rgba(255,255,255,.6);font-size:12px;}
+.badge-ativo{background:#27ae60;color:var(--white);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.perfil-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;}
+.btn-perfil{padding:7px 14px;border:1.5px solid rgba(255,255,255,.3);border-radius:7px;background:rgba(255,255,255,.1);color:var(--white);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+.btn-perfil:hover{background:rgba(255,255,255,.2);}
+.btn-perfil.bp-green{background:#27ae60;border-color:#27ae60;}
+.btn-perfil.bp-green:hover{background:#229954;}
+.perfil-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:rgba(255,255,255,.12);border-radius:8px;overflow:hidden;margin-top:4px;
+}
+.ps-item{background:rgba(255,255,255,.06);padding:12px 16px;text-align:center;}
+.ps-item .ps-icon{font-size:16px;margin-bottom:3px;}
+.ps-item .ps-num{font-size:20px;font-weight:700;color:var(--white);line-height:1;}
+.ps-item .ps-label{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.ps-item .ps-val{font-size:13px;font-weight:600;color:var(--white);}
+.perfil-success{
+  display:flex;align-items:center;gap:8px;padding:10px 16px;
+  background:#d4edda;border-radius:8px;color:#155724;font-size:13px;
+  margin:12px 0;border:1px solid #c3e6cb;
+}
+/* PERFIL TABS */
+.perfil-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px;background:var(--white);border-radius:0;overflow-x:auto;}
+.ptab{padding:11px 18px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;transition:all .15s;}
+.ptab:hover{color:var(--navy);}
+.ptab.active{color:var(--navy);border-bottom:2px solid var(--navy);font-weight:600;}
+/* PERFIL BODY */
+.perfil-body{display:grid;grid-template-columns:1fr 340px;gap:16px;}
+.perfil-main{display:flex;flex-direction:column;gap:14px;}
+.perfil-side{display:flex;flex-direction:column;gap:14px;}
+.detalhe-panel{background:var(--white);border-radius:10px;border:1px solid var(--border);overflow:hidden;}
+.dp-head{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.dp-head h4{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:7px;}
+.dp-body{padding:16px 18px;}
+.dp-row{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid #f5f7fa;font-size:13px;}
+.dp-row:last-child{border-bottom:none;}
+.dp-row .dr-label{color:var(--text2);min-width:110px;}
+.dp-row .dr-val{color:var(--text);font-weight:500;text-align:right;word-break:break-word;}
+.btn-link{background:none;border:none;color:var(--ai-blue);font-size:12px;cursor:pointer;font-family:inherit;padding:0;}
+.btn-link:hover{text-decoration:underline;}
+.qualif-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.qtag{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;}
+.qtag-green{background:#d4f5e2;color:#1a7a3a;}
+.qtag-blue{background:#d6eaff;color:#1a4a8a;}
+.qtag-gray{background:#f0f2f5;color:var(--text2);}
+/* Pessoas vinculadas */
+.pessoas-empty{text-align:center;padding:14px;color:var(--text2);font-size:12px;}
+/* PTAB CONTENT */
+.ptab-content{display:none;}
+.ptab-content.active{display:block;}
+@media(max-width:900px){
+  .perfil-body{grid-template-columns:1fr;}
+  .perfil-stats{grid-template-columns:repeat(2,1fr);}
+  .perfil-actions{margin-top:10px;}
+  .perfil-top{flex-direction:column;align-items:flex-start;}
+}
 @media(max-width:800px){
   .sidebar{transform:translateX(-100%);}
   .sidebar.open{transform:translateX(0);}
@@ -264,7 +347,7 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="ai-banner">
         <div class="ai-top">
           <div class="ai-ic">🤖</div>
-          <div><h4>Preenchimento automático por IA</h4><p>Anexe RG, CPF, CNH e/ou comprovante de residência (até 6 arquivos) e a IA preenche os campos. Você revisa antes de salvar.</p></div>
+          <div><h4>Preenchimento automático por IA</h4><p>Anexe RG, CPF, CNH e/ou comprovante de residência (até 6 arquivos). <strong style='color:#e07a00'>⚠️ Em breve:</strong> a IA lerá e preencherá os campos automaticamente. Por enquanto, identifique os documentos e preencha manualmente.</p></div>
         </div>
         <div class="ai-drop">
           <input type="file" multiple accept=".jpg,.jpeg,.png,.pdf" onchange="aiFiles(this)">
@@ -334,6 +417,25 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
       </div>
 
+
+      <div class="panel">
+        <div class="panel-head"><h3>🏷️ Etiquetas</h3></div>
+        <div class="panel-body">
+          <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Use etiquetas para organizar e filtrar clientes (matéria, status, parceria, etc.)</p>
+          <div class="tags-input-row">
+            <select id="f-tag-cat">
+              <option value="materia" style="color:#2980b9">📚 Matéria</option>
+              <option value="processual" style="color:#8e44ad">§ Processual</option>
+              <option value="parceria" style="color:#27ae60">P Parceria</option>
+              <option value="geral" style="color:#e67e22">✦ Geral</option>
+            </select>
+            <input type="text" id="f-tag-txt" placeholder="Ex: Civil — Enter ou vírgula para adicionar" onkeydown="tagKeydown(event)">
+            <button class="btn btn-primary btn-sm" onclick="adicionarTag()">Adicionar</button>
+          </div>
+          <div class="tags-wrap" id="f-tags-wrap"></div>
+        </div>
+      </div>
+
       <div class="panel">
         <div class="panel-head"><h3>👥 Clientes cadastrados <span id="total-leads" style="color:var(--text2);font-size:12px;font-weight:400"></span></h3></div>
         <div class="panel-body">
@@ -377,6 +479,142 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="section" id="sec-roteiro">
       <div class="ph"><h2>Roteiro de Follow-up</h2><p>Siga desde o primeiro contato</p></div>
       <div class="rot-list" id="rot-list"></div>
+    </div>
+
+
+    <!-- PERFIL DO CLIENTE -->
+    <div class="section" id="sec-perfil">
+      <button class="ph-back" onclick="irPara('clientes',document.querySelector('[onclick*=clientes]'),\'Clientes\')">← Voltar para clientes</button>
+
+      <div id="perfil-success-msg" class="perfil-success" style="display:none">
+        ✓ Cliente cadastrado com sucesso.
+      </div>
+
+      <div class="perfil-header">
+        <div class="perfil-top">
+          <div class="perfil-av" id="pf-av">P</div>
+          <div class="perfil-info">
+            <h2 id="pf-nome">—</h2>
+            <div class="pi-sub">
+              <span class="badge-pf">Pessoa Física</span>
+              <span class="badge-cpf" id="pf-cpf-sub"></span>
+              <span class="badge-ativo">Ativo</span>
+            </div>
+          </div>
+          <div class="perfil-actions">
+            <button class="btn-perfil" onclick="editarPerfilAtual()">✏️ Editar</button>
+            <button class="btn-perfil">📄 Relatório</button>
+            <button class="btn-perfil bp-green">✍️ Enviar para assinar</button>
+            <button class="btn-perfil">↕ Mudar status</button>
+          </div>
+        </div>
+        <div class="perfil-stats">
+          <div class="ps-item"><div class="ps-icon">📁</div><div class="ps-num">0</div><div class="ps-label">Processos</div></div>
+          <div class="ps-item"><div class="ps-icon">🤝</div><div class="ps-num">0</div><div class="ps-label">Atendimentos</div></div>
+          <div class="ps-item"><div class="ps-icon">📅</div><div class="ps-val" id="pf-criado">—</div><div class="ps-label">Cadastrado em</div></div>
+          <div class="ps-item"><div class="ps-icon">🔄</div><div class="ps-val" id="pf-update">—</div><div class="ps-label">Última atualização</div></div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div style="background:var(--white);border-radius:0 0 10px 10px;border:1px solid var(--border);border-top:none;margin-bottom:16px;">
+        <div class="perfil-tabs">
+          <button class="ptab active" onclick="trocarAba('dados',this)">👤 Dados</button>
+          <button class="ptab" onclick="trocarAba('processos-pf',this)">📁 Processos</button>
+          <button class="ptab" onclick="trocarAba('docs-pf',this)">📄 Documentos</button>
+          <button class="ptab" onclick="trocarAba('atend-pf',this)">🤝 Atendimentos</button>
+          <button class="ptab" onclick="trocarAba('msgs-pf',this)">💬 Mensagens</button>
+          <button class="ptab" onclick="trocarAba('fin-pf',this)">💰 Financeiro</button>
+          <button class="ptab" onclick="trocarAba('linha-pf',this)">📈 Linha do tempo</button>
+        </div>
+      </div>
+
+      <!-- ABA: DADOS -->
+      <div class="ptab-content active" id="ptab-dados">
+        <div class="perfil-body">
+          <div class="perfil-main">
+            <div class="detalhe-panel">
+              <div class="dp-head"><h4>👤 Dados pessoais</h4></div>
+              <div class="dp-body">
+                <div class="dp-row"><span class="dr-label">Nome completo</span><span class="dr-val" id="dp-nome">—</span></div>
+                <div class="dp-row"><span class="dr-label">CPF</span><span class="dr-val" id="dp-cpf">—</span></div>
+                <div class="dp-row"><span class="dr-label">RG</span><span class="dr-val" id="dp-rg">—</span></div>
+                <div class="dp-row"><span class="dr-label">Nascimento</span><span class="dr-val" id="dp-nasc">—</span></div>
+                <div class="dp-row"><span class="dr-label">Gênero</span><span class="dr-val" id="dp-gen">—</span></div>
+                <div class="dp-row"><span class="dr-label">Profissão</span><span class="dr-val" id="dp-prof">—</span></div>
+                <div class="dp-row"><span class="dr-label">Nacionalidade</span><span class="dr-val" id="dp-nac">—</span></div>
+              </div>
+            </div>
+            <div class="detalhe-panel">
+              <div class="dp-head"><h4>📞 Contato</h4></div>
+              <div class="dp-body">
+                <div class="dp-row"><span class="dr-label">WhatsApp</span><span class="dr-val" id="dp-tel">—</span></div>
+                <div class="dp-row"><span class="dr-label">Telefone</span><span class="dr-val" id="dp-tel2">—</span></div>
+                <div class="dp-row"><span class="dr-label">E-mail</span><span class="dr-val" id="dp-email">—</span></div>
+              </div>
+            </div>
+            <div class="detalhe-panel">
+              <div class="dp-head"><h4>📍 Endereço</h4></div>
+              <div class="dp-body">
+                <div class="dp-row"><span class="dr-label">Endereço completo</span><span class="dr-val" id="dp-end">—</span></div>
+              </div>
+            </div>
+            <div class="detalhe-panel">
+              <div class="dp-head"><h4>⚖️ Caso / Dívida</h4></div>
+              <div class="dp-body">
+                <div class="dp-row"><span class="dr-label">Etapa</span><span class="dr-val" id="dp-etapa">—</span></div>
+                <div class="dp-row"><span class="dr-label">Tipo de Dívida</span><span class="dr-val" id="dp-divida">—</span></div>
+                <div class="dp-row"><span class="dr-label">Banco(s)</span><span class="dr-val" id="dp-banco">—</span></div>
+                <div class="dp-row"><span class="dr-label">Valor</span><span class="dr-val" id="dp-valor">—</span></div>
+                <div class="dp-row"><span class="dr-label">Origem</span><span class="dr-val" id="dp-origem">—</span></div>
+                <div class="dp-row"><span class="dr-label">Observações</span><span class="dr-val" id="dp-obs">—</span></div>
+              </div>
+            </div>
+            <div class="detalhe-panel" id="dp-tags-panel" style="display:none">
+              <div class="dp-head"><h4>🏷️ Etiquetas</h4></div>
+              <div class="dp-body"><div class="tags-wrap" id="dp-tags"></div></div>
+            </div>
+          </div>
+          <div class="perfil-side">
+            <div class="detalhe-panel">
+              <div class="dp-head"><h4>👥 Pessoas vinculadas (0)</h4><button class="btn-link">+ Vincular</button></div>
+              <div class="dp-body"><div class="pessoas-empty">Nenhum vínculo. Use para registrar cônjuges, sócios, familiares ou co-contratantes do mesmo serviço.</div></div>
+            </div>
+            <div class="detalhe-panel">
+              <div class="dp-head"><h4>💰 Financeiro</h4></div>
+              <div class="dp-body" style="text-align:center;padding:20px">
+                <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Nenhuma fatura emitida ainda.</p>
+                <button class="btn btn-success btn-sm">+ Emitir 1ª fatura</button>
+              </div>
+            </div>
+            <div class="detalhe-panel">
+              <div class="dp-head"><h4>📋 Cadastro</h4></div>
+              <div class="dp-body">
+                <div class="dp-row"><span class="dr-label">Cadastrado em</span><span class="dr-val" id="dp-criado2">—</span></div>
+                <div class="dp-row"><span class="dr-label">Última atualização</span><span class="dr-val" id="dp-update2">—</span></div>
+              </div>
+            </div>
+            <div class="detalhe-panel">
+              <div class="dp-head"><h4>📝 Qualificação para petição</h4></div>
+              <div class="dp-body">
+                <div class="qualif-tags">
+                  <span class="qtag qtag-green">✓ Completa</span>
+                  <span class="qtag qtag-blue">Procuração</span>
+                  <span class="qtag qtag-gray">Simplificada</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABAS EM BREVE -->
+      <div class="ptab-content" id="ptab-processos-pf"><div class="em-breve" style="height:30vh"><div class="eb-ic">📁</div><h3>Processos — Em breve</h3></div></div>
+      <div class="ptab-content" id="ptab-docs-pf"><div class="em-breve" style="height:30vh"><div class="eb-ic">📄</div><h3>Documentos — Em breve</h3></div></div>
+      <div class="ptab-content" id="ptab-atend-pf"><div class="em-breve" style="height:30vh"><div class="eb-ic">🤝</div><h3>Atendimentos — Em breve</h3></div></div>
+      <div class="ptab-content" id="ptab-msgs-pf"><div class="em-breve" style="height:30vh"><div class="eb-ic">💬</div><h3>Mensagens — Em breve</h3></div></div>
+      <div class="ptab-content" id="ptab-fin-pf"><div class="em-breve" style="height:30vh"><div class="eb-ic">💰</div><h3>Financeiro — Em breve</h3></div></div>
+      <div class="ptab-content" id="ptab-linha-pf"><div class="em-breve" style="height:30vh"><div class="eb-ic">📈</div><h3>Linha do tempo — Em breve</h3></div></div>
     </div>
 
     <!-- EM BREVE -->
@@ -481,8 +719,10 @@ function g(id){const el=document.getElementById(id);return el?el.value:'';}
 function salvarLead(){
   const nome=g('f-nome').trim(),tel=g('f-tel').trim();
   if(!nome||!tel){t('⚠️ Nome e WhatsApp são obrigatórios!',false);return;}
-  leads.push({id:Date.now(),criado:new Date().toLocaleDateString('pt-BR'),nome,cpf:g('f-cpf'),rg:g('f-rg'),nasc:g('f-nasc'),gen:g('f-gen'),civil:g('f-civil'),prof:g('f-prof'),nac:g('f-nac'),end:g('f-end'),tel,tel2:g('f-tel2'),email:g('f-email'),origem:g('f-origem'),etapa:g('f-etapa'),divida:g('f-divida'),banco:g('f-banco'),valor:g('f-valor'),followup:g('f-followup'),obs:g('f-obs')});
-  salvar();badges();limparForm();renderLeads();t('✅ Cliente salvo com sucesso!');
+  leads.push({id:Date.now(),criado:new Date().toLocaleDateString('pt-BR'),nome,tags:JSON.parse(JSON.stringify(fTags)),cpf:g('f-cpf'),rg:g('f-rg'),nasc:g('f-nasc'),gen:g('f-gen'),civil:g('f-civil'),prof:g('f-prof'),nac:g('f-nac'),end:g('f-end'),tel,tel2:g('f-tel2'),email:g('f-email'),origem:g('f-origem'),etapa:g('f-etapa'),divida:g('f-divida'),banco:g('f-banco'),valor:g('f-valor'),followup:g('f-followup'),obs:g('f-obs')});
+  salvar();badges();limparForm();renderLeads();
+  const newIdx=leads.length-1;
+  setTimeout(()=>abrirPerfil(newIdx,true),100);
 }
 function limparForm(){
   ['f-nome','f-cpf','f-rg','f-nasc','f-prof','f-tel','f-tel2','f-email','f-end','f-banco','f-valor','f-followup','f-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -491,7 +731,7 @@ function limparForm(){
   document.getElementById('f-etapa').value='Novo Lead';
   document.getElementById('f-divida').value='Não informado';
   document.getElementById('f-origem').value='Meta Ads';
-  document.getElementById('ai-files').innerHTML='';
+  document.getElementById('ai-files').innerHTML='';limparTags();
 }
 function renderLeads(){
   const bq=(document.getElementById('busca')?.value||'').toLowerCase();
@@ -504,7 +744,7 @@ function renderLeads(){
     const idx=leads.findIndex(x=>x.id===l.id);
     const cor=CORES[l.etapa]||'#999';
     const fu=l.followup?new Date(l.followup+'T12:00').toLocaleDateString('pt-BR'):'—';
-    return`<tr><td><strong style="color:#1D3461">${l.nome}</strong><br><small style="color:#8695a7">${l.criado||''}</small></td><td>${l.cpf||'—'}</td><td><a href="https://wa.me/55${l.tel.replace(/\D/g,'')}" target="_blank" style="color:#253F6B">📱 ${l.tel}</a></td><td><span class="badge" style="background:${cor}">${l.etapa}</span></td><td>${l.divida||'—'}</td><td>${l.valor?'R$ '+Number(l.valor).toLocaleString('pt-BR'):'—'}</td><td>${fu}</td><td><button class="btn btn-gray btn-xs" onclick="abrirModal(${idx})">✏️</button></td></tr>`;
+    return`<tr><td style="cursor:pointer" onclick="abrirPerfil(${idx})"><strong style="color:#1D3461">${l.nome}</strong><br><small style="color:#8695a7">${l.criado||''}</small></td><td>${l.cpf||'—'}</td><td><a href="https://wa.me/55${l.tel.replace(/\D/g,'')}" target="_blank" style="color:#253F6B">📱 ${l.tel}</a></td><td><span class="badge" style="background:${cor}">${l.etapa}</span></td><td>${l.divida||'—'}</td><td>${l.valor?'R$ '+Number(l.valor).toLocaleString('pt-BR'):'—'}</td><td>${fu}</td><td><button class="btn btn-gray btn-xs" onclick="abrirModal(${idx})">✏️</button></td></tr>`;
   }).join('');
 }
 function abrirModal(idx){
@@ -587,6 +827,27 @@ function importar(e){
     }catch{t('⚠️ Erro ao ler arquivo.',false);}
   };r.readAsText(file);e.target.value='';
 }
+
+// ETIQUETAS
+let fTags=[];
+const TAG_CORES={materia:'#2980b9',processual:'#8e44ad',parceria:'#27ae60',geral:'#e67e22'};
+const TAG_LABELS={materia:'Matéria',processual:'Processual',parceria:'Parceria',geral:'Geral'};
+function tagKeydown(e){if(e.key==='Enter'||e.key===','){e.preventDefault();adicionarTag();}}
+function adicionarTag(){
+  const txt=document.getElementById('f-tag-txt').value.trim().replace(/,/g,'');
+  const cat=document.getElementById('f-tag-cat').value;
+  if(!txt)return;
+  fTags.push({cat,txt});
+  document.getElementById('f-tag-txt').value='';
+  renderTags();
+}
+function renderTags(){
+  const w=document.getElementById('f-tags-wrap');if(!w)return;
+  w.innerHTML=fTags.map((t,i)=>`<span class="tag-chip" style="background:${TAG_CORES[t.cat]}">${TAG_LABELS[t.cat]}: ${t.txt}<span class="tc-x" onclick="removerTag(${i})">×</span></span>`).join('');
+}
+function removerTag(i){fTags.splice(i,1);renderTags();}
+function limparTags(){fTags=[];renderTags();}
+
 document.getElementById('tp-data').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
 badges();renderLeads();
 </script>
