@@ -113,11 +113,11 @@ body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);colo
 /* TABLE */
 .tbl{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;}
-thead th{background:#f7f9fc;color:var(--text2);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:10px 14px;border-bottom:1.5px solid var(--border);text-align:left;white-space:nowraw;}
+thead th{background:#f7f9fc;color:var(--text2);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:10px 14px;border-bottom:1.5px solid var(--border);text-align:left;white-space:nowrap;}
 tbody td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;}
 tbody tr:hover td{background:#f8faff;}
 tbody tr:last-child td{border-bottom:none;}
-.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;color:var(--white);white-space:nowraw;}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;color:var(--white);white-space:nowrap;}
 /* SEARCH */
 .search-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
 .search-bar input,.search-bar select{padding:7px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:12.5px;font-family:inherit;color:var(--text);background:var(--white);}
@@ -274,6 +274,58 @@ tbody tr:last-child td{border-bottom:none;}
   .funil-board{flex-direction:column;}
   .fu-card{flex-wrap:wrap;}
 }
+
+/* ===== PROCESSOS & PRAZOS ===== */
+.proc-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--border);}
+.proc-tab{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);border-bottom:3px solid transparent;margin-bottom:-2px;font-family:inherit;transition:all .15s;}
+.proc-tab:hover{color:var(--navy);}
+.proc-tab.active{color:var(--navy);border-bottom-color:var(--gold);}
+.proc-content{display:none;}
+.proc-content.active{display:block;}
+.proc-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+.proc-kpi{background:var(--white);border-radius:10px;padding:16px 18px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.proc-kpi .pk-num{font-size:24px;font-weight:700;color:var(--navy);line-height:1;}
+.proc-kpi .pk-lbl{font-size:11px;color:var(--text2);margin-top:5px;}
+.proc-kpi.c-green .pk-num{color:var(--green);}
+.proc-kpi.c-red .pk-num{color:var(--red);}
+.proc-kpi.c-gold .pk-num{color:var(--gold);}
+.prazo-item{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--white);border-radius:8px;border:1px solid var(--border);margin-bottom:7px;border-left:3px solid #ccc;}
+.prazo-item.pv-venc{border-left-color:var(--red);}
+.prazo-item.pv-crit{border-left-color:var(--orange);}
+.prazo-item.pv-alert{border-left-color:#2980b9;}
+.prazo-item.pv-ok{border-left-color:var(--green);}
+.prazo-item.pv-done{opacity:.55;}
+.prazo-dias{padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;flex-shrink:0;white-space:nowrap;}
+.pd-venc{background:#fde8e8;color:var(--red);}
+.pd-crit{background:#fef3e2;color:#b05d00;}
+.pd-alert{background:#e8f4fd;color:#2980b9;}
+.pd-ok{background:#d4f5e2;color:var(--green);}
+.pd-done{background:#f0f0f0;color:#888;}
+.anda-list{display:flex;flex-direction:column;}
+.anda-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.anda-item:last-child{border-bottom:none;}
+.anda-dot{width:28px;height:28px;border-radius:50%;background:var(--navy2);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px;}
+.anda-body{flex:1;}
+.anda-tipo{font-weight:600;font-size:13px;color:var(--navy);}
+.anda-data{font-size:11px;color:var(--text2);}
+.anda-desc{font-size:12px;color:var(--text);margin-top:3px;line-height:1.5;}
+.proc-detail-tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:14px;}
+.pdt{padding:8px 14px;border:none;background:none;cursor:pointer;font-size:12px;font-weight:600;color:var(--text2);border-bottom:3px solid transparent;margin-bottom:-2px;font-family:inherit;}
+.pdt.active{color:var(--navy);border-bottom-color:var(--gold);}
+.pdt-content{display:none;}
+.pdt-content.active{display:block;}
+.fase-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;color:#fff;}
+.status-proc{display:inline-flex;align-items:center;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;color:#fff;}
+.proc-card{background:var(--white);border:1px solid var(--border);border-radius:9px;padding:14px 16px;margin-bottom:9px;cursor:pointer;transition:box-shadow .15s;border-left:3px solid var(--navy);}
+.proc-card:hover{box-shadow:0 3px 10px rgba(0,0,0,.1);}
+.proc-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.proc-card-num{font-size:12px;color:var(--text2);font-family:monospace;}
+.proc-card-nome{font-weight:700;color:var(--navy);font-size:14px;margin-top:2px;}
+.proc-card-sub{font-size:12px;color:var(--text2);margin-top:3px;}
+.proc-card-bottom{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.modal-lg{max-width:800px;}
+.add-prazo-form,.add-anda-form{background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:12px;display:none;}
+.add-prazo-form.show,.add-anda-form.show{display:block;}
 </style>
 </head>
 <body>
@@ -347,7 +399,7 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="ai-banner">
         <div class="ai-top">
           <div class="ai-ic">🤖</div>
-          <div><h4>Preenchimento automático por IA</h4><p>Anexe RG, CPF, CNH e/ou comprovante de residência (até 6 arquivos) e o <strong style="color:#1a3a7a">Claude AI</strong> preenche os campos automaticamente. Vocà revisa antes de salvar.</p></div>
+          <div><h4>Preenchimento automático por IA</h4><p>Anexe RG, CPF, CNH e/ou comprovante de residência (até 6 arquivos) e o <strong style="color:#1a3a7a">Claude AI</strong> preenche os campos automaticamente. Você revisa antes de salvar.</p></div>
         </div>
         <div class="ai-drop">
           <input type="file" multiple accept=".jpg,.jpeg,.png,.pdf" onchange="aiFiles(this)">
@@ -450,10 +502,69 @@ tbody tr:last-child td{border-bottom:none;}
 
     <!-- PROCESSOS (dashboard) -->
     <div class="section" id="sec-processos">
-      <div class="ph"><h2>Processos</h2><p>Visão geral do escritório</p></div>
-      <div class="cards-grid" id="cards-proc"></div>
-      <div class="panel"><div class="panel-head"><h3>⚡ Últimos clientes</h3></div><div class="panel-body" id="dash-ul"></div></div>
-      <div class="panel"><div class="panel-head"><h3>🔔 Follow-ups urgentes</h3></div><div class="panel-body" id="dash-fu"></div></div>
+      <div class="ph"><h2>⚖️ Processos &amp; Prazos</h2><p>Gestão de processos judiciais e controle de prazos</p></div>
+      <div class="proc-tabs">
+        <button class="proc-tab active" onclick="trocarAbaProc('pab-dash',this)">📊 Visão Geral</button>
+        <button class="proc-tab" onclick="trocarAbaProc('pab-lista',this)">📋 Processos</button>
+        <button class="proc-tab" onclick="trocarAbaProc('pab-prazos',this)">⏰ Prazos</button>
+        <button class="proc-tab" onclick="trocarAbaProc('pab-novo',this)">➕ Novo</button>
+      </div>
+      <!-- ABA DASH -->
+      <div class="proc-content active" id="pab-dash">
+        <div class="proc-kpi-grid" id="proc-kpis"></div>
+        <div class="panel"><div class="panel-head"><h3>⏰ Prazos Urgentes (7 dias)</h3></div><div class="panel-body" id="proc-pu"></div></div>
+        <div class="panel"><div class="panel-head"><h3>📋 Últimos Processos</h3></div><div class="panel-body" id="proc-ul"></div></div>
+      </div>
+      <!-- ABA LISTA -->
+      <div class="proc-content" id="pab-lista">
+        <div class="search-bar" style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" id="proc-busca" placeholder="🔍 Número, cliente, tipo..." oninput="renderListaProc()" style="flex:1;min-width:160px;padding:8px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit">
+          <select id="proc-fst" onchange="renderListaProc()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit">
+            <option value="">Todos os status</option>
+            <option>Ativo</option><option>Suspenso</option><option>Recurso</option><option>Encerrado</option><option>Ganho</option><option>Perdido</option>
+          </select>
+          <select id="proc-far" onchange="renderListaProc()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit">
+            <option value="">Todas as áreas</option>
+            <option>Bancário</option><option>Trabalhista</option><option>Cível</option><option>Criminal</option><option>Previdenciário</option><option>Tributário</option><option>Outro</option>
+          </select>
+        </div>
+        <div id="proc-lista"></div>
+      </div>
+      <!-- ABA PRAZOS -->
+      <div class="proc-content" id="pab-prazos">
+        <div style="margin-bottom:14px">
+          <select id="prazos-filtro" onchange="renderTodosPrazos()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit">
+            <option value="pendentes">Pendentes</option><option value="7dias">Próximos 7 dias</option><option value="todos">Todos</option><option value="concluidos">Concluídos</option>
+          </select>
+        </div>
+        <div id="todos-prazos-lista"></div>
+      </div>
+      <!-- ABA NOVO -->
+      <div class="proc-content" id="pab-novo">
+        <div class="panel">
+          <div class="panel-head"><h3>➕ Cadastrar Novo Processo</h3></div>
+          <div class="panel-body">
+            <div class="fg g3">
+              <div class="ff" style="grid-column:1/-1"><label>Número CNJ *</label><input type="text" id="np-numero" placeholder="0000000-00.0000.0.00.0000" maxlength="25" oninput="this.value=fmtCNJ(this.value)"></div>
+              <div class="ff"><label>Área</label><select id="np-area"><option>Bancário</option><option>Trabalhista</option><option>Cível</option><option>Criminal</option><option>Previdenciário</option><option>Tributário</option><option>Outro</option></select></div>
+              <div class="ff"><label>Tipo de Ação</label><input type="text" id="np-tipo" placeholder="Ex: Revisional de Juros"></div>
+              <div class="ff"><label>Fase Processual</label><select id="np-fase"><option>Inicial</option><option>Citação</option><option>Contestação</option><option>Instrução</option><option>Audiência</option><option>Sentença</option><option>Recurso</option><option>Execução</option><option>Encerrado</option></select></div>
+              <div class="ff"><label>Cliente (Autor)</label><input type="text" id="np-cliente" placeholder="Nome completo"></div>
+              <div class="ff"><label>Parte Contrária</label><input type="text" id="np-contraria" placeholder="Nome ou razão social"></div>
+              <div class="ff"><label>Responsável</label><input type="text" id="np-resp" value="Dr. Leonardo"></div>
+              <div class="ff"><label>Tribunal</label><select id="np-tribunal"><option>TJSP</option><option>TJRJ</option><option>TJMG</option><option>TRF3</option><option>TST</option><option>STJ</option><option>STF</option><option>JFSP</option><option>Outro</option></select></div>
+              <div class="ff"><label>Comarca / Vara</label><input type="text" id="np-comarca" placeholder="Ex: São Paulo — 3ª Vara Cível"></div>
+              <div class="ff"><label>Data de Distribuição</label><input type="date" id="np-distrib"></div>
+              <div class="ff"><label>Valor da Causa (R$)</label><input type="number" id="np-valor" placeholder="Ex: 50000"></div>
+              <div class="ff" style="grid-column:1/-1"><label>Observações</label><textarea id="np-obs" rows="3" placeholder="Informações relevantes..."></textarea></div>
+            </div>
+            <div class="btn-row" style="display:flex;gap:10px;margin-top:14px">
+              <button class="btn btn-primary" onclick="salvarProcesso()">💾 Cadastrar Processo</button>
+              <button class="btn btn-gray" onclick="limparFormProc()">✖ Limpar</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- FUNIL -->
@@ -626,6 +737,84 @@ tbody tr:last-child td{border-bottom:none;}
 </div>
 
 <!-- MODAL -->
+
+<!-- MODAL PROCESSO -->
+<div class="modal-bg" id="modal-proc">
+  <div class="modal-box modal-lg">
+    <div class="modal-hd">
+      <div><h3 id="mp-titulo">Processo</h3><div style="font-size:12px;color:var(--text2);margin-top:2px" id="mp-num-sub"></div></div>
+      <button class="modal-close" onclick="fecharModalProc()">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div class="proc-detail-tabs">
+        <button class="pdt active" onclick="trocarPdt('pdt-dados',this)">📋 Dados</button>
+        <button class="pdt" onclick="trocarPdt('pdt-prazos',this)">⏰ Prazos</button>
+        <button class="pdt" onclick="trocarPdt('pdt-andamentos',this)">📝 Andamentos</button>
+        <button class="pdt" onclick="trocarPdt('pdt-editar',this)">✏️ Editar</button>
+      </div>
+      <div class="pdt-content active" id="pdt-dados"><div id="mp-dados-body"></div></div>
+      <div class="pdt-content" id="pdt-prazos">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <strong style="color:var(--navy)">Prazos do Processo</strong>
+          <button class="btn btn-primary btn-sm" onclick="document.getElementById('add-prazo-form').classList.toggle('show')">➕ Prazo</button>
+        </div>
+        <div class="add-prazo-form" id="add-prazo-form">
+          <div class="fg">
+            <div class="ff"><label>Tipo</label><select id="prazo-tipo"><option>Contestação</option><option>Recurso</option><option>Impugnação</option><option>Manifestação</option><option>Audiência</option><option>Perícia</option><option>Diligência</option><option>Pagamento</option><option>Prazo Interno</option><option>Outro</option></select></div>
+            <div class="ff"><label>Data *</label><input type="date" id="prazo-data"></div>
+            <div class="ff" style="grid-column:1/-1"><label>Descrição</label><input type="text" id="prazo-desc" placeholder="Detalhes..."></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-success btn-sm" onclick="adicionarPrazo()">✅ Salvar</button>
+            <button class="btn btn-gray btn-sm" onclick="document.getElementById('add-prazo-form').classList.remove('show')">Cancelar</button>
+          </div>
+        </div>
+        <div id="mp-prazos-lista"></div>
+      </div>
+      <div class="pdt-content" id="pdt-andamentos">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <strong style="color:var(--navy)">Andamentos / Movimentações</strong>
+          <button class="btn btn-primary btn-sm" onclick="document.getElementById('add-anda-form').classList.toggle('show')">➕ Registrar</button>
+        </div>
+        <div class="add-anda-form" id="add-anda-form">
+          <div class="fg">
+            <div class="ff"><label>Tipo</label><select id="anda-tipo"><option>Petição</option><option>Despacho</option><option>Decisão</option><option>Sentença</option><option>Acórdão</option><option>Intimação</option><option>Audiência</option><option>Perícia</option><option>Publicação</option><option>Outro</option></select></div>
+            <div class="ff"><label>Data</label><input type="date" id="anda-data"></div>
+            <div class="ff" style="grid-column:1/-1"><label>Descrição *</label><textarea id="anda-desc" rows="2" placeholder="Descreva o andamento..."></textarea></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-success btn-sm" onclick="adicionarAndamento()">✅ Registrar</button>
+            <button class="btn btn-gray btn-sm" onclick="document.getElementById('add-anda-form').classList.remove('show')">Cancelar</button>
+          </div>
+        </div>
+        <div class="anda-list" id="mp-andamentos-lista"></div>
+      </div>
+      <div class="pdt-content" id="pdt-editar">
+        <div class="fg g3">
+          <div class="ff" style="grid-column:1/-1"><label>Número CNJ</label><input type="text" id="ep-numero" maxlength="25" oninput="this.value=fmtCNJ(this.value)"></div>
+          <div class="ff"><label>Área</label><select id="ep-area"><option>Bancário</option><option>Trabalhista</option><option>Cível</option><option>Criminal</option><option>Previdenciário</option><option>Tributário</option><option>Outro</option></select></div>
+          <div class="ff"><label>Tipo de Ação</label><input type="text" id="ep-tipo"></div>
+          <div class="ff"><label>Fase</label><select id="ep-fase"><option>Inicial</option><option>Citação</option><option>Contestação</option><option>Instrução</option><option>Audiência</option><option>Sentença</option><option>Recurso</option><option>Execução</option><option>Encerrado</option></select></div>
+          <div class="ff"><label>Status</label><select id="ep-status"><option>Ativo</option><option>Suspenso</option><option>Recurso</option><option>Encerrado</option><option>Ganho</option><option>Perdido</option></select></div>
+          <div class="ff"><label>Cliente</label><input type="text" id="ep-cliente"></div>
+          <div class="ff"><label>Parte Contrária</label><input type="text" id="ep-contraria"></div>
+          <div class="ff"><label>Responsável</label><input type="text" id="ep-resp"></div>
+          <div class="ff"><label>Tribunal</label><select id="ep-tribunal"><option>TJSP</option><option>TJRJ</option><option>TJMG</option><option>TRF3</option><option>TST</option><option>STJ</option><option>STF</option><option>JFSP</option><option>Outro</option></select></div>
+          <div class="ff"><label>Comarca / Vara</label><input type="text" id="ep-comarca"></div>
+          <div class="ff"><label>Data Distribuição</label><input type="date" id="ep-distrib"></div>
+          <div class="ff"><label>Valor (R$)</label><input type="number" id="ep-valor"></div>
+          <div class="ff" style="grid-column:1/-1"><label>Observações</label><textarea id="ep-obs" rows="3"></textarea></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+          <button class="btn btn-danger btn-sm" onclick="excluirProcesso()">🗑 Excluir</button>
+          <button class="btn btn-gray btn-sm" onclick="fecharModalProc()">Cancelar</button>
+          <button class="btn btn-primary btn-sm" onclick="salvarEdicaoProc()">💾 Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal">
   <div class="modal-box">
     <div class="modal-hd"><h3>✏️ Editar cliente</h3><button class="modal-close" onclick="fecharModal()">✕</button></div>
@@ -659,7 +848,7 @@ const ETAPAS=['Novo Lead','Primeiro Contato','Triagem','Proposta Enviada','Contr
 const CORES={'Novo Lead':'#1D3461','Primeiro Contato':'#2A4A80','Triagem':'#3B6CB5','Proposta Enviada':'#C9A84C','Contrato Assinado':'#27ae60','Em Andamento':'#6B7A8D','Encerrado':'#95a5a6'};
 const MSGS=[
   {e:'Novo Lead',tt:'1º Contato — Boas-vindas',m:`Olá, [NOME]! 👋\nAqui é o Dr. Leonardo, da LCFO Advogados.\n\nVi que você demonstrou interesse em resolver sua situação com dívidas bancárias.\n\nPoderia me contar um pouco mais? Qual banco e qual tipo de dívida?\n\nEstou aqui para ajudar! 😊`},
-  {e:'Primeiro Contato',tt:'Confirmação de Interesse',m:`Oi, [NOME]! Tudo bem?\n\nGostaria de confirmar se ainda tem interesse em analisar nossa proposta.\n\nNa LCFO Advogados trabalhamos com dívidas bancárias e podemos verificar cobranças indevidas.\n\nPosso te explicar melhor?`},
+  {e:'Primeiro Contato',tt:'Confirmação de Interesse',m:`Oi, [NOME]! Tudo bem?\n\nQueria confirmar se ainda tem interesse em analisar sua situação financeira.\n\nNa LCFO Advogados trabalhamos com dívidas bancárias e podemos verificar cobranças indevidas.\n\nPosso te explicar melhor?`},
   {e:'Triagem',tt:'Coleta de Informações',m:`[NOME], para analisar seu caso com precisão preciso de:\n\n1️⃣ Nome do(s) banco(s)\n2️⃣ Valor aproximado da dívida\n3️⃣ Há quanto tempo em atraso?\n4️⃣ Já recebeu proposta de renegociação?\n\nCom isso faço uma análise completa! 📋`},
   {e:'Proposta Enviada',tt:'Follow-up da Proposta',m:`Olá, [NOME]! Como vai?\n\nGostaria de saber se conseguiu analisar nossa proposta.\n\nTenho datas disponíveis essa semana. Qual horário seria melhor?\n\nEstou à disposição! ⚖️`},
   {e:'Contrato Assinado',tt:'Boas-vindas Cliente',m:`[NOME], seja muito bem-vindo(a) à LCFO Advogados! 🎉\n\nContrato assinado com sucesso. Cuidaremos do seu caso com total dedicação.\n\nEm breve entraremos em contato com os próximos passos. ⚖️`},
@@ -672,12 +861,12 @@ const ROTEIRO=[
   {n:'2',h:'',tt:'Segundo Contato',m:`Olá, [NOME]! Tudo bem?\nPassei para saber se conseguiu pensar no assunto.\nNa LCFO Advogados verificamos cobranças indevidas e negociamos judicialmente.\nPosso te explicar como funciona?`},
   {n:'3',h:'',tt:'Valor + Urgência',m:`[NOME], muitos clientes conseguiram reduzir significativamente o valor das dívidas.\nVale muito a pena conversar!\nEssa semana tenho horários disponíveis. Qual melhor para você?`},
   {n:'5',h:'',tt:'Quebra de Objeção',m:`Oi [NOME]! Fazemos análise inicial gratuita, sem compromisso.\nPodemos conversar 15 minutos essa semana?`},
-  {n:'7',h:'',tt:'Última Tentativa Ativa',m:`[NOME], essa será será minha última tentativa antes de encerrar seu contato na fila.\nSe ainda tem interesse, é só responder aqui. ⚖️`},
+  {n:'7',h:'',tt:'Última Tentativa Ativa',m:`[NOME], essa será minha última tentativa antes de encerrar seu contato na fila.\nSe ainda tem interesse, é só responder aqui. ⚖️`},
   {n:'14',h:'',tt:'Reativação',m:`Oi [NOME]! 😊 Passei para ver como você está.\nCaso ainda precise de ajuda com dívidas bancárias, estamos aqui!\nDr. Leonardo — LCFO Advogados`},
   {n:'30',h:'',tt:'Follow-up Final',m:`[NOME], passando para um último contato.\nSe precisar de assessoria jurídica em dívidas bancárias, pode nos procurar a qualquer momento.\nGuarde nosso contato! ⚖️ LCFO Advogados`},
 ];
 
-const EM_BREVE=['prazos','audiencias','dje','atendimentos','tarefas','agenda','chat','documentos','financeiro','metas'];
+const EM_BREVE=['audiencias','dje','atendimentos','tarefas','agenda','chat','documentos','financeiro','metas'];
 function irPara(id,btn,titulo){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
@@ -688,7 +877,7 @@ function irPara(id,btn,titulo){
   const s=document.getElementById('sec-'+id);
   if(s)s.classList.add('active');
   if(id==='clientes')renderLeads();
-  if(id==='processos')renderDash();
+  if(id==='processos')renderProcessos();
   if(id==='funil')renderFunil();
   if(id==='followup')renderFollowup();
   if(id==='mensagens')renderMensagens();
@@ -872,7 +1061,198 @@ function importar(e){
     try{const p=JSON.parse(ev.target.result);
       if(p.leads&&Array.isArray(p.leads)){
         if(!confirm('Importar '+p.leads.length+' clientes? Os dados atuais serão substituídos.'))return;
-        leads=p.leads;salvar();badges();renderLeads();t('✅ '+leads.length+' clientes importados!');
+        leads=p.leads;salvar();
+// ===== PROCESSOS & PRAZOS =====
+const KEY_PROC='proc_lcfo_v1';
+let processos=[];
+let procEditIdx=-1;
+
+const FASE_COR={'Inicial':'#3498db','Citação':'#9b59b6','Contestação':'#e67e22','Instrução':'#f39c12','Audiência':'#e74c3c','Sentença':'#27ae60','Recurso':'#2980b9','Execução':'#8e44ad','Encerrado':'#95a5a6'};
+const STATUS_COR={'Ativo':'#27ae60','Suspenso':'#e67e22','Recurso':'#2980b9','Encerrado':'#95a5a6','Ganho':'#1abc9c','Perdido':'#e74c3c'};
+const ANDA_IC={'Petição':'📄','Despacho':'📋','Decisão':'⚖️','Sentença':'🏛️','Acórdão':'📜','Intimação':'🔔','Audiência':'🎤','Perícia':'🔬','Publicação':'📰','Outro':'📝'};
+
+function carregarProc(){try{processos=JSON.parse(localStorage.getItem(KEY_PROC)||'[]');}catch(e){processos=[];}}
+function salvarProc(){try{localStorage.setItem(KEY_PROC,JSON.stringify(processos));}catch(e){alerta('⚠️ Erro ao salvar!',false);}}
+
+function fmtCNJ(v){
+  const d=v.replace(/\D/g,'').substring(0,20);
+  if(d.length>15)return d.replace(/(\d{7})(\d{2})(\d{4})(\d{1})(\d{2})(\d+)/,'$1-$2.$3.$4.$5.$6');
+  if(d.length>13)return d.replace(/(\d{7})(\d{2})(\d{4})(\d{1})(\d+)/,'$1-$2.$3.$4.$5');
+  if(d.length>11)return d.replace(/(\d{7})(\d{2})(\d{4})(\d+)/,'$1-$2.$3.$4');
+  if(d.length>9)return d.replace(/(\d{7})(\d{2})(\d+)/,'$1-$2.$3');
+  if(d.length>7)return d.replace(/(\d{7})(\d+)/,'$1-$2');
+  return d;
+}
+
+function diasParaPrazo(dt){
+  if(!dt)return null;
+  const h=new Date();h.setHours(0,0,0,0);
+  return Math.round((new Date(dt+'T12:00')-h)/86400000);
+}
+function prazoDaysHtml(dias,concl){
+  if(concl)return '<span class="prazo-dias pd-done">✅ Concluído</span>';
+  if(dias===null)return '';
+  if(dias<0)return `<span class="prazo-dias pd-venc">Vencido ${Math.abs(dias)}d</span>`;
+  if(dias===0)return '<span class="prazo-dias pd-venc">HOJE!</span>';
+  if(dias<=3)return `<span class="prazo-dias pd-crit">⚠️ ${dias}d</span>`;
+  if(dias<=10)return `<span class="prazo-dias pd-alert">${dias} dias</span>`;
+  return `<span class="prazo-dias pd-ok">${dias} dias</span>`;
+}
+function proxPrazo(proc){
+  if(!proc.prazos||!proc.prazos.length)return null;
+  const p=proc.prazos.filter(x=>x.status!=='concluido').map(x=>({...x,dias:diasParaPrazo(x.data)})).filter(x=>x.dias!==null).sort((a,b)=>a.dias-b.dias);
+  return p.length?p[0]:null;
+}
+
+function renderProcessos(){
+  carregarProc();renderDashProc();renderListaProc();renderTodosPrazos();atualizarBadgeProc();
+}
+function trocarAbaProc(id,btn){
+  document.querySelectorAll('.proc-content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.proc-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='pab-lista')renderListaProc();
+  if(id==='pab-prazos')renderTodosPrazos();
+}
+function renderDashProc(){
+  const ativos=processos.filter(p=>p.status==='Ativo').length;
+  const total=processos.length;
+  const urg=processos.reduce((a,p)=>a+(p.prazos||[]).filter(pz=>pz.status!=='concluido'&&diasParaPrazo(pz.data)!==null&&diasParaPrazo(pz.data)<=7).length,0);
+  const venc=processos.reduce((a,p)=>a+(p.prazos||[]).filter(pz=>pz.status!=='concluido'&&diasParaPrazo(pz.data)!==null&&diasParaPrazo(pz.data)<0).length,0);
+  document.getElementById('proc-kpis').innerHTML=`
+    <div class="proc-kpi"><div class="pk-num">${total}</div><div class="pk-lbl">Total de Processos</div></div>
+    <div class="proc-kpi c-green"><div class="pk-num">${ativos}</div><div class="pk-lbl">Processos Ativos</div></div>
+    <div class="proc-kpi c-gold"><div class="pk-num">${urg}</div><div class="pk-lbl">Prazos em 7 dias</div></div>
+    <div class="proc-kpi c-red"><div class="pk-num">${venc}</div><div class="pk-lbl">Prazos Vencidos</div></div>
+  `;
+  const pu=document.getElementById('proc-pu');
+  const prazosUrg=[];
+  processos.forEach(p=>{(p.prazos||[]).filter(pz=>pz.status!=='concluido').forEach(pz=>{const d=diasParaPrazo(pz.data);if(d!==null&&d<=7)prazosUrg.push({p,pz,d});});});
+  prazosUrg.sort((a,b)=>a.d-b.d);
+  pu.innerHTML=prazosUrg.length?prazosUrg.slice(0,5).map(({p,pz,d})=>{
+    const cls=d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
+    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${pz.tipo}</div><div style="font-size:12px;color:var(--text2)">⚖️ ${p.cliente||p.numero} · ${pz.desc||''}</div>${pz.data?`<div style="font-size:11px;color:var(--text2)">📅 ${new Date(pz.data+'T12:00').toLocaleDateString('pt-BR')}</div>`:''}</div>${prazoDaysHtml(d,false)}<button class="btn btn-gray btn-xs" onclick="abrirModalProc(${processos.indexOf(p)})">Ver</button></div>`;
+  }).join(''):'<div class="empty-state" style="padding:16px"><p>✅ Nenhum prazo urgente.</p></div>';
+  const ul=document.getElementById('proc-ul');
+  ul.innerHTML=processos.length?[...processos].reverse().slice(0,4).map(p=>`<div class="proc-card" onclick="abrirModalProc(${processos.indexOf(p)})"><div class="proc-card-top"><div><div class="proc-card-num">${p.numero||'—'}</div><div class="proc-card-nome">${p.cliente||'(sem cliente)'}</div><div class="proc-card-sub">vs. ${p.contraria||'—'} · ${p.tribunal||''}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="fase-badge" style="background:${FASE_COR[p.fase]||'#999'}">${p.fase}</span><span class="status-proc" style="background:${STATUS_COR[p.status]||'#999'}">${p.status}</span></div></div></div>`).join('')
+    :'<div class="empty-state"><div class="es-icon">⚖️</div><p>Nenhum processo cadastrado. Clique em "Novo"!</p></div>';
+}
+function renderListaProc(){
+  const b=(document.getElementById('proc-busca')?.value||'').toLowerCase();
+  const fs=document.getElementById('proc-fst')?.value||'';
+  const fa=document.getElementById('proc-far')?.value||'';
+  const lista=processos.filter(p=>(!b||(p.numero+p.cliente+p.contraria+p.tipo).toLowerCase().includes(b))&&(!fs||p.status===fs)&&(!fa||p.area===fa));
+  const el=document.getElementById('proc-lista');
+  if(!lista.length){el.innerHTML='<div class="empty-state"><div class="es-icon">📁</div><p>Nenhum processo encontrado.</p></div>';return;}
+  el.innerHTML=lista.map(p=>{
+    const idx=processos.findIndex(x=>x.id===p.id);
+    const pp=proxPrazo(p);
+    return `<div class="proc-card" onclick="abrirModalProc(${idx})"><div class="proc-card-top"><div style="flex:1"><div class="proc-card-num">${p.numero||'—'}</div><div class="proc-card-nome">${p.cliente||'(sem cliente)'}</div><div class="proc-card-sub">vs. ${p.contraria||'—'} · ${p.tribunal||''}${p.comarca?' · '+p.comarca:''}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0"><span class="fase-badge" style="background:${FASE_COR[p.fase]||'#999'}">${p.fase}</span><span class="status-proc" style="background:${STATUS_COR[p.status]||'#999'}">${p.status}</span></div></div><div class="proc-card-bottom"><span style="font-size:11px;color:var(--text2)">⚖️ ${p.tipo||p.area}</span>${p.valor?`<span style="font-size:11px;color:var(--text2)">💰 R$ ${Number(p.valor).toLocaleString('pt-BR')}</span>`:''}${pp?prazoDaysHtml(pp.dias,false)+`<span style="font-size:11px;color:var(--text2)">⏰ ${pp.tipo}</span>`:''}<span style="font-size:11px;color:var(--text2)">📋 ${(p.prazos||[]).length}pz · ${(p.andamentos||[]).length}and</span></div></div>`;
+  }).join('');
+}
+function renderTodosPrazos(){
+  const f=document.getElementById('prazos-filtro')?.value||'pendentes';
+  const el=document.getElementById('todos-prazos-lista');
+  const all=[];
+  processos.forEach(p=>(p.prazos||[]).forEach(pz=>{const d=diasParaPrazo(pz.data);all.push({p,pz,d});}));
+  let lista=f==='pendentes'?all.filter(x=>x.pz.status!=='concluido'):f==='7dias'?all.filter(x=>x.pz.status!=='concluido'&&x.d!==null&&x.d<=7):f==='concluidos'?all.filter(x=>x.pz.status==='concluido'):all;
+  lista.sort((a,b)=>(a.d??9999)-(b.d??9999));
+  if(!lista.length){el.innerHTML='<div class="empty-state"><div class="es-icon">⏰</div><p>Nenhum prazo.</p></div>';return;}
+  el.innerHTML=lista.map(({p,pz,d})=>{
+    const cl=pz.status==='concluido';
+    const cls=cl?'pv-done':d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
+    const pi=processos.findIndex(x=>x.id===p.id);
+    const zi=(p.prazos||[]).findIndex(x=>x.id===pz.id);
+    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${pz.tipo}${pz.desc?` — ${pz.desc}`:''}</div><div style="font-size:12px;color:var(--text2)">⚖️ ${p.cliente||p.numero}</div>${pz.data?`<div style="font-size:11px;color:var(--text2)">📅 ${new Date(pz.data+'T12:00').toLocaleDateString('pt-BR')}</div>`:''}</div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px">${!cl?`<button class="btn btn-success btn-xs" onclick="concluirPrazo(${pi},${zi});event.stopPropagation()">✅</button>`:''}<button class="btn btn-gray btn-xs" onclick="abrirModalProc(${pi})">Ver</button></div></div>`;
+  }).join('');
+}
+function concluirPrazo(pi,zi){if(pi<0||!processos[pi]||!processos[pi].prazos[zi])return;processos[pi].prazos[zi].status='concluido';salvarProc();renderTodosPrazos();renderDashProc();atualizarBadgeProc();alerta('✅ Prazo concluído!');}
+function salvarProcesso(){
+  const num=document.getElementById('np-numero').value.trim();
+  const cli=document.getElementById('np-cliente').value.trim();
+  if(!num&&!cli){alerta('⚠️ Informe o número CNJ ou o cliente!',false);return;}
+  processos.push({id:Date.now(),numero:num,area:document.getElementById('np-area').value,tipo:document.getElementById('np-tipo').value,fase:document.getElementById('np-fase').value,cliente:cli,contraria:document.getElementById('np-contraria').value,resp:document.getElementById('np-resp').value||'Dr. Leonardo',tribunal:document.getElementById('np-tribunal').value,comarca:document.getElementById('np-comarca').value,distrib:document.getElementById('np-distrib').value,valor:document.getElementById('np-valor').value,obs:document.getElementById('np-obs').value,status:'Ativo',criado:new Date().toLocaleDateString('pt-BR'),prazos:[],andamentos:[]});
+  salvarProc();limparFormProc();renderProcessos();alerta('✅ Processo cadastrado!');
+  trocarAbaProc('pab-lista',document.querySelectorAll('.proc-tab')[1]);
+}
+function limparFormProc(){['np-numero','np-tipo','np-cliente','np-contraria','np-comarca','np-distrib','np-valor','np-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('np-resp').value='Dr. Leonardo';}
+function abrirModalProc(idx){
+  procEditIdx=idx;const p=processos[idx];
+  document.getElementById('mp-titulo').textContent=p.cliente||'Processo';
+  document.getElementById('mp-num-sub').textContent=p.numero;
+  const m={'ep-numero':'numero','ep-tipo':'tipo','ep-cliente':'cliente','ep-contraria':'contraria','ep-resp':'resp','ep-comarca':'comarca','ep-distrib':'distrib','ep-valor':'valor','ep-obs':'obs'};
+  Object.entries(m).forEach(([id,k])=>{const el=document.getElementById(id);if(el)el.value=p[k]||'';});
+  ['ep-area','ep-fase','ep-status','ep-tribunal'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=p[id.replace('ep-','')]||el.options[0]?.value;});
+  document.getElementById('mp-dados-body').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 20px">${[
+    ['Número CNJ',`<span style="font-family:monospace">${p.numero||'—'}</span>`],
+    ['Área',p.area||'—'],['Tipo de Ação',p.tipo||'—'],
+    ['Fase',`<span class="fase-badge" style="background:${FASE_COR[p.fase]||'#999'}">${p.fase||'—'}</span>`],
+    ['Status',`<span class="status-proc" style="background:${STATUS_COR[p.status]||'#999'}">${p.status||'—'}</span>`],
+    ['Responsável',p.resp||'—'],['Cliente / Autor',`<strong>${p.cliente||'—'}</strong>`],
+    ['Parte Contrária',p.contraria||'—'],['Tribunal',p.tribunal||'—'],
+    ['Comarca / Vara',p.comarca||'—'],
+    ['Data de Distribuição',p.distrib?new Date(p.distrib+'T12:00').toLocaleDateString('pt-BR'):'—'],
+    ['Valor da Causa',p.valor?'R$ '+Number(p.valor).toLocaleString('pt-BR'):'—']
+  ].map(([l,v])=>`<div><div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">${l}</div><div style="font-size:13px">${v}</div></div>`).join('')}${p.obs?`<div style="grid-column:1/-1"><div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Observações</div><div style="font-size:13px;line-height:1.6">${p.obs}</div></div>`:''}</div><div style="font-size:11px;color:var(--text2);margin-top:12px">Cadastrado em: ${p.criado||'—'}</div>`;
+  trocarPdt('pdt-dados',document.querySelector('.pdt'));
+  document.getElementById('modal-proc').classList.add('show');
+  renderPrazosModal();renderAndamentosModal();
+}
+function fecharModalProc(){document.getElementById('modal-proc').classList.remove('show');document.getElementById('add-prazo-form').classList.remove('show');document.getElementById('add-anda-form').classList.remove('show');procEditIdx=-1;}
+function trocarPdt(id,btn){document.querySelectorAll('.pdt-content').forEach(c=>c.classList.remove('active'));document.querySelectorAll('.pdt').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');if(btn)btn.classList.add('active');}
+function salvarEdicaoProc(){
+  if(procEditIdx<0)return;const p=processos[procEditIdx];
+  const m={numero:'ep-numero',tipo:'ep-tipo',cliente:'ep-cliente',contraria:'ep-contraria',resp:'ep-resp',comarca:'ep-comarca',distrib:'ep-distrib',valor:'ep-valor',obs:'ep-obs',area:'ep-area',fase:'ep-fase',status:'ep-status',tribunal:'ep-tribunal'};
+  Object.entries(m).forEach(([k,id])=>{const el=document.getElementById(id);if(el)p[k]=el.value;});
+  salvarProc();fecharModalProc();renderProcessos();alerta('✅ Processo atualizado!');
+}
+function excluirProcesso(){if(!confirm('Excluir permanentemente?'))return;processos.splice(procEditIdx,1);salvarProc();fecharModalProc();renderProcessos();alerta('🗑 Processo excluído.');}
+function adicionarPrazo(){
+  if(procEditIdx<0)return;
+  const dt=document.getElementById('prazo-data').value;
+  if(!dt){alerta('⚠️ Informe a data!',false);return;}
+  if(!processos[procEditIdx].prazos)processos[procEditIdx].prazos=[];
+  processos[procEditIdx].prazos.push({id:Date.now(),tipo:document.getElementById('prazo-tipo').value,data:dt,desc:document.getElementById('prazo-desc').value,status:'pendente'});
+  salvarProc();document.getElementById('prazo-data').value='';document.getElementById('prazo-desc').value='';document.getElementById('add-prazo-form').classList.remove('show');renderPrazosModal();renderDashProc();atualizarBadgeProc();alerta('✅ Prazo adicionado!');
+}
+function renderPrazosModal(){
+  if(procEditIdx<0)return;
+  const pz=processos[procEditIdx].prazos||[];
+  const el=document.getElementById('mp-prazos-lista');
+  if(!pz.length){el.innerHTML='<div class="empty-state" style="padding:20px"><p>Nenhum prazo.</p></div>';return;}
+  el.innerHTML=[...pz].sort((a,b)=>a.data.localeCompare(b.data)).map((z,i)=>{
+    const d=diasParaPrazo(z.data);const cl=z.status==='concluido';
+    const cls=cl?'pv-done':d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
+    const ri=pz.indexOf(z);
+    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${z.tipo}</div>${z.desc?`<div style="font-size:12px;color:var(--text2)">${z.desc}</div>`:''}<div style="font-size:11px;color:var(--text2)">📅 ${z.data?new Date(z.data+'T12:00').toLocaleDateString('pt-BR'):''}</div></div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px">${!cl?`<button class="btn btn-success btn-xs" onclick="concluirPrazoM(${ri})">✅</button>`:''}<button class="btn btn-danger btn-xs" onclick="excluirPrazoM(${ri})">🗑</button></div></div>`;
+  }).join('');
+}
+function concluirPrazoM(i){processos[procEditIdx].prazos[i].status='concluido';salvarProc();renderPrazosModal();renderDashProc();atualizarBadgeProc();}
+function excluirPrazoM(i){processos[procEditIdx].prazos.splice(i,1);salvarProc();renderPrazosModal();renderDashProc();atualizarBadgeProc();}
+function adicionarAndamento(){
+  if(procEditIdx<0)return;
+  const d=document.getElementById('anda-desc').value.trim();
+  if(!d){alerta('⚠️ Descrição obrigatória!',false);return;}
+  if(!processos[procEditIdx].andamentos)processos[procEditIdx].andamentos=[];
+  processos[procEditIdx].andamentos.unshift({id:Date.now(),tipo:document.getElementById('anda-tipo').value,data:document.getElementById('anda-data').value||new Date().toISOString().split('T')[0],desc:d});
+  salvarProc();document.getElementById('anda-desc').value='';document.getElementById('anda-data').value='';document.getElementById('add-anda-form').classList.remove('show');renderAndamentosModal();alerta('✅ Andamento registrado!');
+}
+function renderAndamentosModal(){
+  if(procEditIdx<0)return;
+  const an=processos[procEditIdx].andamentos||[];
+  const el=document.getElementById('mp-andamentos-lista');
+  if(!an.length){el.innerHTML='<div class="empty-state" style="padding:20px"><p>Nenhum andamento.</p></div>';return;}
+  el.innerHTML=an.map((a,i)=>`<div class="anda-item"><div class="anda-dot">${ANDA_IC[a.tipo]||'📝'}</div><div class="anda-body"><div class="anda-tipo">${a.tipo}</div><div class="anda-data">${a.data?new Date(a.data+'T12:00').toLocaleDateString('pt-BR'):''}</div><div class="anda-desc">${a.desc}</div></div><button class="btn btn-danger btn-xs" onclick="excluirAndamento(${i})">🗑</button></div>`).join('');
+}
+function excluirAndamento(i){processos[procEditIdx].andamentos.splice(i,1);salvarProc();renderAndamentosModal();alerta('🗑 Removido.');}
+function atualizarBadgeProc(){
+  const b=document.getElementById('b-proc');if(!b)return;
+  const u=processos.reduce((a,p)=>a+(p.prazos||[]).filter(pz=>pz.status!=='concluido'&&diasParaPrazo(pz.data)!==null&&diasParaPrazo(pz.data)<=3).length,0);
+  b.textContent=u;b.style.display=u?'inline':'none';
+}
+
+carregarProc();badges();renderLeads();atualizarBadgeProc();t('✅ '+leads.length+' clientes importados!');
       }else t('⚠️ Arquivo inválido.',false);
     }catch{t('⚠️ Erro ao ler arquivo.',false);}
   };r.readAsText(file);e.target.value='';
@@ -899,7 +1279,198 @@ function removerTag(i){fTags.splice(i,1);renderTags();}
 function limparTags(){fTags=[];renderTags();}
 
 document.getElementById('tp-data').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
-badges();renderLeads();
+
+// ===== PROCESSOS & PRAZOS =====
+const KEY_PROC='proc_lcfo_v1';
+let processos=[];
+let procEditIdx=-1;
+
+const FASE_COR={'Inicial':'#3498db','Citação':'#9b59b6','Contestação':'#e67e22','Instrução':'#f39c12','Audiência':'#e74c3c','Sentença':'#27ae60','Recurso':'#2980b9','Execução':'#8e44ad','Encerrado':'#95a5a6'};
+const STATUS_COR={'Ativo':'#27ae60','Suspenso':'#e67e22','Recurso':'#2980b9','Encerrado':'#95a5a6','Ganho':'#1abc9c','Perdido':'#e74c3c'};
+const ANDA_IC={'Petição':'📄','Despacho':'📋','Decisão':'⚖️','Sentença':'🏛️','Acórdão':'📜','Intimação':'🔔','Audiência':'🎤','Perícia':'🔬','Publicação':'📰','Outro':'📝'};
+
+function carregarProc(){try{processos=JSON.parse(localStorage.getItem(KEY_PROC)||'[]');}catch(e){processos=[];}}
+function salvarProc(){try{localStorage.setItem(KEY_PROC,JSON.stringify(processos));}catch(e){alerta('⚠️ Erro ao salvar!',false);}}
+
+function fmtCNJ(v){
+  const d=v.replace(/\D/g,'').substring(0,20);
+  if(d.length>15)return d.replace(/(\d{7})(\d{2})(\d{4})(\d{1})(\d{2})(\d+)/,'$1-$2.$3.$4.$5.$6');
+  if(d.length>13)return d.replace(/(\d{7})(\d{2})(\d{4})(\d{1})(\d+)/,'$1-$2.$3.$4.$5');
+  if(d.length>11)return d.replace(/(\d{7})(\d{2})(\d{4})(\d+)/,'$1-$2.$3.$4');
+  if(d.length>9)return d.replace(/(\d{7})(\d{2})(\d+)/,'$1-$2.$3');
+  if(d.length>7)return d.replace(/(\d{7})(\d+)/,'$1-$2');
+  return d;
+}
+
+function diasParaPrazo(dt){
+  if(!dt)return null;
+  const h=new Date();h.setHours(0,0,0,0);
+  return Math.round((new Date(dt+'T12:00')-h)/86400000);
+}
+function prazoDaysHtml(dias,concl){
+  if(concl)return '<span class="prazo-dias pd-done">✅ Concluído</span>';
+  if(dias===null)return '';
+  if(dias<0)return `<span class="prazo-dias pd-venc">Vencido ${Math.abs(dias)}d</span>`;
+  if(dias===0)return '<span class="prazo-dias pd-venc">HOJE!</span>';
+  if(dias<=3)return `<span class="prazo-dias pd-crit">⚠️ ${dias}d</span>`;
+  if(dias<=10)return `<span class="prazo-dias pd-alert">${dias} dias</span>`;
+  return `<span class="prazo-dias pd-ok">${dias} dias</span>`;
+}
+function proxPrazo(proc){
+  if(!proc.prazos||!proc.prazos.length)return null;
+  const p=proc.prazos.filter(x=>x.status!=='concluido').map(x=>({...x,dias:diasParaPrazo(x.data)})).filter(x=>x.dias!==null).sort((a,b)=>a.dias-b.dias);
+  return p.length?p[0]:null;
+}
+
+function renderProcessos(){
+  carregarProc();renderDashProc();renderListaProc();renderTodosPrazos();atualizarBadgeProc();
+}
+function trocarAbaProc(id,btn){
+  document.querySelectorAll('.proc-content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.proc-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='pab-lista')renderListaProc();
+  if(id==='pab-prazos')renderTodosPrazos();
+}
+function renderDashProc(){
+  const ativos=processos.filter(p=>p.status==='Ativo').length;
+  const total=processos.length;
+  const urg=processos.reduce((a,p)=>a+(p.prazos||[]).filter(pz=>pz.status!=='concluido'&&diasParaPrazo(pz.data)!==null&&diasParaPrazo(pz.data)<=7).length,0);
+  const venc=processos.reduce((a,p)=>a+(p.prazos||[]).filter(pz=>pz.status!=='concluido'&&diasParaPrazo(pz.data)!==null&&diasParaPrazo(pz.data)<0).length,0);
+  document.getElementById('proc-kpis').innerHTML=`
+    <div class="proc-kpi"><div class="pk-num">${total}</div><div class="pk-lbl">Total de Processos</div></div>
+    <div class="proc-kpi c-green"><div class="pk-num">${ativos}</div><div class="pk-lbl">Processos Ativos</div></div>
+    <div class="proc-kpi c-gold"><div class="pk-num">${urg}</div><div class="pk-lbl">Prazos em 7 dias</div></div>
+    <div class="proc-kpi c-red"><div class="pk-num">${venc}</div><div class="pk-lbl">Prazos Vencidos</div></div>
+  `;
+  const pu=document.getElementById('proc-pu');
+  const prazosUrg=[];
+  processos.forEach(p=>{(p.prazos||[]).filter(pz=>pz.status!=='concluido').forEach(pz=>{const d=diasParaPrazo(pz.data);if(d!==null&&d<=7)prazosUrg.push({p,pz,d});});});
+  prazosUrg.sort((a,b)=>a.d-b.d);
+  pu.innerHTML=prazosUrg.length?prazosUrg.slice(0,5).map(({p,pz,d})=>{
+    const cls=d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
+    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${pz.tipo}</div><div style="font-size:12px;color:var(--text2)">⚖️ ${p.cliente||p.numero} · ${pz.desc||''}</div>${pz.data?`<div style="font-size:11px;color:var(--text2)">📅 ${new Date(pz.data+'T12:00').toLocaleDateString('pt-BR')}</div>`:''}</div>${prazoDaysHtml(d,false)}<button class="btn btn-gray btn-xs" onclick="abrirModalProc(${processos.indexOf(p)})">Ver</button></div>`;
+  }).join(''):'<div class="empty-state" style="padding:16px"><p>✅ Nenhum prazo urgente.</p></div>';
+  const ul=document.getElementById('proc-ul');
+  ul.innerHTML=processos.length?[...processos].reverse().slice(0,4).map(p=>`<div class="proc-card" onclick="abrirModalProc(${processos.indexOf(p)})"><div class="proc-card-top"><div><div class="proc-card-num">${p.numero||'—'}</div><div class="proc-card-nome">${p.cliente||'(sem cliente)'}</div><div class="proc-card-sub">vs. ${p.contraria||'—'} · ${p.tribunal||''}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="fase-badge" style="background:${FASE_COR[p.fase]||'#999'}">${p.fase}</span><span class="status-proc" style="background:${STATUS_COR[p.status]||'#999'}">${p.status}</span></div></div></div>`).join('')
+    :'<div class="empty-state"><div class="es-icon">⚖️</div><p>Nenhum processo cadastrado. Clique em "Novo"!</p></div>';
+}
+function renderListaProc(){
+  const b=(document.getElementById('proc-busca')?.value||'').toLowerCase();
+  const fs=document.getElementById('proc-fst')?.value||'';
+  const fa=document.getElementById('proc-far')?.value||'';
+  const lista=processos.filter(p=>(!b||(p.numero+p.cliente+p.contraria+p.tipo).toLowerCase().includes(b))&&(!fs||p.status===fs)&&(!fa||p.area===fa));
+  const el=document.getElementById('proc-lista');
+  if(!lista.length){el.innerHTML='<div class="empty-state"><div class="es-icon">📁</div><p>Nenhum processo encontrado.</p></div>';return;}
+  el.innerHTML=lista.map(p=>{
+    const idx=processos.findIndex(x=>x.id===p.id);
+    const pp=proxPrazo(p);
+    return `<div class="proc-card" onclick="abrirModalProc(${idx})"><div class="proc-card-top"><div style="flex:1"><div class="proc-card-num">${p.numero||'—'}</div><div class="proc-card-nome">${p.cliente||'(sem cliente)'}</div><div class="proc-card-sub">vs. ${p.contraria||'—'} · ${p.tribunal||''}${p.comarca?' · '+p.comarca:''}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0"><span class="fase-badge" style="background:${FASE_COR[p.fase]||'#999'}">${p.fase}</span><span class="status-proc" style="background:${STATUS_COR[p.status]||'#999'}">${p.status}</span></div></div><div class="proc-card-bottom"><span style="font-size:11px;color:var(--text2)">⚖️ ${p.tipo||p.area}</span>${p.valor?`<span style="font-size:11px;color:var(--text2)">💰 R$ ${Number(p.valor).toLocaleString('pt-BR')}</span>`:''}${pp?prazoDaysHtml(pp.dias,false)+`<span style="font-size:11px;color:var(--text2)">⏰ ${pp.tipo}</span>`:''}<span style="font-size:11px;color:var(--text2)">📋 ${(p.prazos||[]).length}pz · ${(p.andamentos||[]).length}and</span></div></div>`;
+  }).join('');
+}
+function renderTodosPrazos(){
+  const f=document.getElementById('prazos-filtro')?.value||'pendentes';
+  const el=document.getElementById('todos-prazos-lista');
+  const all=[];
+  processos.forEach(p=>(p.prazos||[]).forEach(pz=>{const d=diasParaPrazo(pz.data);all.push({p,pz,d});}));
+  let lista=f==='pendentes'?all.filter(x=>x.pz.status!=='concluido'):f==='7dias'?all.filter(x=>x.pz.status!=='concluido'&&x.d!==null&&x.d<=7):f==='concluidos'?all.filter(x=>x.pz.status==='concluido'):all;
+  lista.sort((a,b)=>(a.d??9999)-(b.d??9999));
+  if(!lista.length){el.innerHTML='<div class="empty-state"><div class="es-icon">⏰</div><p>Nenhum prazo.</p></div>';return;}
+  el.innerHTML=lista.map(({p,pz,d})=>{
+    const cl=pz.status==='concluido';
+    const cls=cl?'pv-done':d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
+    const pi=processos.findIndex(x=>x.id===p.id);
+    const zi=(p.prazos||[]).findIndex(x=>x.id===pz.id);
+    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${pz.tipo}${pz.desc?` — ${pz.desc}`:''}</div><div style="font-size:12px;color:var(--text2)">⚖️ ${p.cliente||p.numero}</div>${pz.data?`<div style="font-size:11px;color:var(--text2)">📅 ${new Date(pz.data+'T12:00').toLocaleDateString('pt-BR')}</div>`:''}</div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px">${!cl?`<button class="btn btn-success btn-xs" onclick="concluirPrazo(${pi},${zi});event.stopPropagation()">✅</button>`:''}<button class="btn btn-gray btn-xs" onclick="abrirModalProc(${pi})">Ver</button></div></div>`;
+  }).join('');
+}
+function concluirPrazo(pi,zi){if(pi<0||!processos[pi]||!processos[pi].prazos[zi])return;processos[pi].prazos[zi].status='concluido';salvarProc();renderTodosPrazos();renderDashProc();atualizarBadgeProc();alerta('✅ Prazo concluído!');}
+function salvarProcesso(){
+  const num=document.getElementById('np-numero').value.trim();
+  const cli=document.getElementById('np-cliente').value.trim();
+  if(!num&&!cli){alerta('⚠️ Informe o número CNJ ou o cliente!',false);return;}
+  processos.push({id:Date.now(),numero:num,area:document.getElementById('np-area').value,tipo:document.getElementById('np-tipo').value,fase:document.getElementById('np-fase').value,cliente:cli,contraria:document.getElementById('np-contraria').value,resp:document.getElementById('np-resp').value||'Dr. Leonardo',tribunal:document.getElementById('np-tribunal').value,comarca:document.getElementById('np-comarca').value,distrib:document.getElementById('np-distrib').value,valor:document.getElementById('np-valor').value,obs:document.getElementById('np-obs').value,status:'Ativo',criado:new Date().toLocaleDateString('pt-BR'),prazos:[],andamentos:[]});
+  salvarProc();limparFormProc();renderProcessos();alerta('✅ Processo cadastrado!');
+  trocarAbaProc('pab-lista',document.querySelectorAll('.proc-tab')[1]);
+}
+function limparFormProc(){['np-numero','np-tipo','np-cliente','np-contraria','np-comarca','np-distrib','np-valor','np-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('np-resp').value='Dr. Leonardo';}
+function abrirModalProc(idx){
+  procEditIdx=idx;const p=processos[idx];
+  document.getElementById('mp-titulo').textContent=p.cliente||'Processo';
+  document.getElementById('mp-num-sub').textContent=p.numero;
+  const m={'ep-numero':'numero','ep-tipo':'tipo','ep-cliente':'cliente','ep-contraria':'contraria','ep-resp':'resp','ep-comarca':'comarca','ep-distrib':'distrib','ep-valor':'valor','ep-obs':'obs'};
+  Object.entries(m).forEach(([id,k])=>{const el=document.getElementById(id);if(el)el.value=p[k]||'';});
+  ['ep-area','ep-fase','ep-status','ep-tribunal'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=p[id.replace('ep-','')]||el.options[0]?.value;});
+  document.getElementById('mp-dados-body').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 20px">${[
+    ['Número CNJ',`<span style="font-family:monospace">${p.numero||'—'}</span>`],
+    ['Área',p.area||'—'],['Tipo de Ação',p.tipo||'—'],
+    ['Fase',`<span class="fase-badge" style="background:${FASE_COR[p.fase]||'#999'}">${p.fase||'—'}</span>`],
+    ['Status',`<span class="status-proc" style="background:${STATUS_COR[p.status]||'#999'}">${p.status||'—'}</span>`],
+    ['Responsável',p.resp||'—'],['Cliente / Autor',`<strong>${p.cliente||'—'}</strong>`],
+    ['Parte Contrária',p.contraria||'—'],['Tribunal',p.tribunal||'—'],
+    ['Comarca / Vara',p.comarca||'—'],
+    ['Data de Distribuição',p.distrib?new Date(p.distrib+'T12:00').toLocaleDateString('pt-BR'):'—'],
+    ['Valor da Causa',p.valor?'R$ '+Number(p.valor).toLocaleString('pt-BR'):'—']
+  ].map(([l,v])=>`<div><div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">${l}</div><div style="font-size:13px">${v}</div></div>`).join('')}${p.obs?`<div style="grid-column:1/-1"><div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Observações</div><div style="font-size:13px;line-height:1.6">${p.obs}</div></div>`:''}</div><div style="font-size:11px;color:var(--text2);margin-top:12px">Cadastrado em: ${p.criado||'—'}</div>`;
+  trocarPdt('pdt-dados',document.querySelector('.pdt'));
+  document.getElementById('modal-proc').classList.add('show');
+  renderPrazosModal();renderAndamentosModal();
+}
+function fecharModalProc(){document.getElementById('modal-proc').classList.remove('show');document.getElementById('add-prazo-form').classList.remove('show');document.getElementById('add-anda-form').classList.remove('show');procEditIdx=-1;}
+function trocarPdt(id,btn){document.querySelectorAll('.pdt-content').forEach(c=>c.classList.remove('active'));document.querySelectorAll('.pdt').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');if(btn)btn.classList.add('active');}
+function salvarEdicaoProc(){
+  if(procEditIdx<0)return;const p=processos[procEditIdx];
+  const m={numero:'ep-numero',tipo:'ep-tipo',cliente:'ep-cliente',contraria:'ep-contraria',resp:'ep-resp',comarca:'ep-comarca',distrib:'ep-distrib',valor:'ep-valor',obs:'ep-obs',area:'ep-area',fase:'ep-fase',status:'ep-status',tribunal:'ep-tribunal'};
+  Object.entries(m).forEach(([k,id])=>{const el=document.getElementById(id);if(el)p[k]=el.value;});
+  salvarProc();fecharModalProc();renderProcessos();alerta('✅ Processo atualizado!');
+}
+function excluirProcesso(){if(!confirm('Excluir permanentemente?'))return;processos.splice(procEditIdx,1);salvarProc();fecharModalProc();renderProcessos();alerta('🗑 Processo excluído.');}
+function adicionarPrazo(){
+  if(procEditIdx<0)return;
+  const dt=document.getElementById('prazo-data').value;
+  if(!dt){alerta('⚠️ Informe a data!',false);return;}
+  if(!processos[procEditIdx].prazos)processos[procEditIdx].prazos=[];
+  processos[procEditIdx].prazos.push({id:Date.now(),tipo:document.getElementById('prazo-tipo').value,data:dt,desc:document.getElementById('prazo-desc').value,status:'pendente'});
+  salvarProc();document.getElementById('prazo-data').value='';document.getElementById('prazo-desc').value='';document.getElementById('add-prazo-form').classList.remove('show');renderPrazosModal();renderDashProc();atualizarBadgeProc();alerta('✅ Prazo adicionado!');
+}
+function renderPrazosModal(){
+  if(procEditIdx<0)return;
+  const pz=processos[procEditIdx].prazos||[];
+  const el=document.getElementById('mp-prazos-lista');
+  if(!pz.length){el.innerHTML='<div class="empty-state" style="padding:20px"><p>Nenhum prazo.</p></div>';return;}
+  el.innerHTML=[...pz].sort((a,b)=>a.data.localeCompare(b.data)).map((z,i)=>{
+    const d=diasParaPrazo(z.data);const cl=z.status==='concluido';
+    const cls=cl?'pv-done':d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
+    const ri=pz.indexOf(z);
+    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${z.tipo}</div>${z.desc?`<div style="font-size:12px;color:var(--text2)">${z.desc}</div>`:''}<div style="font-size:11px;color:var(--text2)">📅 ${z.data?new Date(z.data+'T12:00').toLocaleDateString('pt-BR'):''}</div></div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px">${!cl?`<button class="btn btn-success btn-xs" onclick="concluirPrazoM(${ri})">✅</button>`:''}<button class="btn btn-danger btn-xs" onclick="excluirPrazoM(${ri})">🗑</button></div></div>`;
+  }).join('');
+}
+function concluirPrazoM(i){processos[procEditIdx].prazos[i].status='concluido';salvarProc();renderPrazosModal();renderDashProc();atualizarBadgeProc();}
+function excluirPrazoM(i){processos[procEditIdx].prazos.splice(i,1);salvarProc();renderPrazosModal();renderDashProc();atualizarBadgeProc();}
+function adicionarAndamento(){
+  if(procEditIdx<0)return;
+  const d=document.getElementById('anda-desc').value.trim();
+  if(!d){alerta('⚠️ Descrição obrigatória!',false);return;}
+  if(!processos[procEditIdx].andamentos)processos[procEditIdx].andamentos=[];
+  processos[procEditIdx].andamentos.unshift({id:Date.now(),tipo:document.getElementById('anda-tipo').value,data:document.getElementById('anda-data').value||new Date().toISOString().split('T')[0],desc:d});
+  salvarProc();document.getElementById('anda-desc').value='';document.getElementById('anda-data').value='';document.getElementById('add-anda-form').classList.remove('show');renderAndamentosModal();alerta('✅ Andamento registrado!');
+}
+function renderAndamentosModal(){
+  if(procEditIdx<0)return;
+  const an=processos[procEditIdx].andamentos||[];
+  const el=document.getElementById('mp-andamentos-lista');
+  if(!an.length){el.innerHTML='<div class="empty-state" style="padding:20px"><p>Nenhum andamento.</p></div>';return;}
+  el.innerHTML=an.map((a,i)=>`<div class="anda-item"><div class="anda-dot">${ANDA_IC[a.tipo]||'📝'}</div><div class="anda-body"><div class="anda-tipo">${a.tipo}</div><div class="anda-data">${a.data?new Date(a.data+'T12:00').toLocaleDateString('pt-BR'):''}</div><div class="anda-desc">${a.desc}</div></div><button class="btn btn-danger btn-xs" onclick="excluirAndamento(${i})">🗑</button></div>`).join('');
+}
+function excluirAndamento(i){processos[procEditIdx].andamentos.splice(i,1);salvarProc();renderAndamentosModal();alerta('🗑 Removido.');}
+function atualizarBadgeProc(){
+  const b=document.getElementById('b-proc');if(!b)return;
+  const u=processos.reduce((a,p)=>a+(p.prazos||[]).filter(pz=>pz.status!=='concluido'&&diasParaPrazo(pz.data)!==null&&diasParaPrazo(pz.data)<=3).length,0);
+  b.textContent=u;b.style.display=u?'inline':'none';
+}
+
+carregarProc();badges();renderLeads();atualizarBadgeProc();
 </script>
 </body>
 </html>
