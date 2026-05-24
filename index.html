@@ -205,6 +205,42 @@ tbody tr:last-child td{border-bottom:none;}
 .em-breve h3{font-size:17px;color:var(--text2);margin-bottom:6px;}
 .em-breve p{font-size:13px;}
 
+/* BOT DE FOLLOW-UP */
+.bot-tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);margin-bottom:16px;}
+.bot-tab{padding:8px 16px;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit;}
+.bot-tab.active{color:var(--navy);border-bottom-color:var(--navy);}
+.bot-content{display:none;}
+.bot-content.active{display:block;}
+.bot-step-card{background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start;}
+.bot-step-card.step-active{border-color:#e67e22;background:#fffaf5;}
+.bot-step-num{min-width:38px;height:38px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.bot-step-num.sn-green{background:#27ae60;}
+.bot-step-body{flex:1;}
+.bot-step-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.bot-step-delay{font-size:11px;background:#eef3ff;color:var(--navy);padding:2px 8px;border-radius:10px;font-weight:600;}
+.bot-step-msg{width:100%;font-size:12px;padding:8px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;resize:vertical;min-height:70px;margin-top:8px;box-sizing:border-box;line-height:1.6;}
+.bot-step-msg:focus{outline:none;border-color:var(--navy);}
+/* Toggle switch */
+.bot-toggle-wrap{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--white);border:1.5px solid var(--border);border-radius:10px;margin-bottom:16px;}
+.sw{position:relative;width:42px;height:22px;flex-shrink:0;}
+.sw input{opacity:0;width:0;height:0;}
+.sw-slider{position:absolute;inset:0;background:#ccc;border-radius:22px;cursor:pointer;transition:.25s;}
+.sw-slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s;}
+.sw input:checked+.sw-slider{background:#27ae60;}
+.sw input:checked+.sw-slider:before{transform:translateX(20px);}
+/* Monitor table */
+.bot-monitor-row{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.bot-monitor-row:last-child{border-bottom:none;}
+.bot-monitor-row:hover{background:#f9fafb;}
+.bot-steps-track{display:flex;gap:4px;align-items:center;}
+.bst-dot{width:10px;height:10px;border-radius:50%;background:#e0e0e0;cursor:default;}
+.bst-dot.done{background:#27ae60;}
+.bst-dot.active{background:#e67e22;animation:pulse-dot 1.2s infinite;}
+.bst-dot.pending{background:#e0e0e0;}
+@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.4;}}
+.bot-eta{font-size:11px;color:var(--text2);min-width:90px;}
+.bot-eta.urgente{color:#e74c3c;font-weight:600;}
+
 /* CALENDÁRIO DE REUNIÕES */
 .cal-nav{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
 .cal-nav h3{margin:0;font-size:15px;font-weight:700;color:var(--navy);flex:1;text-align:center;}
@@ -425,6 +461,7 @@ tbody tr:last-child td{border-bottom:none;}
       <button class="nav-item" onclick="irPara('clientes',this,'Clientes')"><span class="ni">👥</span>Clientes<span class="nb gold" id="b-cli">0</span></button>
       <button class="nav-item" onclick="irPara('funil',this,'Funil / Pipeline')"><span class="ni">📐</span>Funil / Pipeline</button>
       <button class="nav-item" onclick="irPara('followup',this,'Follow-ups')"><span class="ni">🔔</span>Follow-ups<span class="nb" id="b-fu" style="display:none">0</span></button>
+      <button class="nav-item" onclick="irPara('bot',this,'Bot de Follow-up')"><span class="ni">🤖</span>Bot de Follow-up<span class="nb" id="b-bot" style="display:none;background:#27ae60">0</span></button>
       <button class="nav-item" onclick="irPara('atendimentos',this,'Atendimentos / Reuniões')"><span class="ni">🤝</span>Atendimentos / Reuniões</button>
       <button class="nav-item" onclick="irPara('mensagens',this,'Modelos de Mensagens')"><span class="ni">💬</span>Modelos de Mensagens</button>
     </div>
@@ -688,6 +725,34 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="ph"><h2>Follow-ups</h2><p>Contatos com acompanhamento agendado</p></div>
       <div class="panel" style="border-color:#ffe082;background:#fffdf0;margin-bottom:14px"><div class="panel-body" style="padding:11px 16px"><p style="font-size:12.5px;color:#7a5a00">📅 Atrasados e para hoje aparecem primeiro.</p></div></div>
       <div class="fu-list" id="fu-list"></div>
+    </div>
+
+    <!-- BOT DE FOLLOW-UP -->
+    <div class="section" id="sec-bot">
+      <div class="ph"><h2>🤖 Bot de Follow-up</h2><p>Sequência automática para leads sem resposta — configure as mensagens e acompanhe em tempo real</p></div>
+      <div class="bot-toggle-wrap">
+        <label class="sw"><input type="checkbox" id="bot-ativo-chk" onchange="toggleBot(this.checked)"><span class="sw-slider"></span></label>
+        <span style="font-size:13px;font-weight:600;color:var(--text)" id="bot-ativo-label">Bot Ativo</span>
+        <span style="font-size:12px;color:var(--text2);margin-left:4px">— Leads em "Leads de Entrada" sem resposta recebem a sequência abaixo automaticamente</span>
+        <span style="margin-left:auto;font-size:12px;color:var(--text2)" id="bot-contagem-label"></span>
+      </div>
+      <div class="bot-tabs">
+        <button class="bot-tab active" onclick="trocarAbaBot('bot-config-tab',this)">⚙️ Configuração</button>
+        <button class="bot-tab" onclick="trocarAbaBot('bot-monitor-tab',this)">📊 Monitoramento</button>
+      </div>
+      <div class="bot-content active" id="bot-config-tab">
+        <div id="bot-steps-container"></div>
+        <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="salvarBotConfig()">💾 Salvar Configuração</button>
+          <button class="btn btn-gray btn-sm" onclick="resetarBotConfig()">↩ Resetar Padrão</button>
+        </div>
+        <div style="background:#fff8e1;border:1px solid #ffc107;border-radius:8px;padding:12px 16px;margin-top:16px;font-size:12px;color:#7a5a00">
+          🔌 <strong>Modo simulação:</strong> As mensagens são copiadas para a área de transferência. Para envio automático real via WhatsApp, conecte o <strong>Z-API</strong> ou <strong>WhatsApp Cloud API</strong> — um clique para ativar quando estiver pronto.
+        </div>
+      </div>
+      <div class="bot-content" id="bot-monitor-tab">
+        <div id="bot-monitor-lista" class="panel"><div class="panel-body" id="bot-monitor-body"></div></div>
+      </div>
     </div>
 
     <!-- MENSAGENS -->
@@ -1133,6 +1198,7 @@ function irPara(id,btn,titulo){
   if(id==='dje')renderDJE();
   if(id==='audiencias'){carregarAud();renderAudDash();renderListaAud();renderPericias();badgesAud();}
   if(id==='atendimentos')renderAtendimentos();
+  if(id==='bot')renderBot();
 }
 function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('mob-ov').classList.toggle('show');}
 function fecharSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mob-ov').classList.remove('show');}
@@ -1210,8 +1276,9 @@ function salvarLead(){
   const nome=g('f-nome').trim(),tel=g('f-tel').trim();
   if(!nome||!tel){t('⚠️ Nome e WhatsApp são obrigatórios!',false);return;}
   leads.push({id:Date.now(),criado:new Date().toLocaleDateString('pt-BR'),nome,tags:JSON.parse(JSON.stringify(fTags)),cpf:g('f-cpf'),rg:g('f-rg'),nasc:g('f-nasc'),gen:g('f-gen'),civil:g('f-civil'),prof:g('f-prof'),nac:g('f-nac'),end:g('f-end'),tel,tel2:g('f-tel2'),email:g('f-email'),origem:g('f-origem'),etapa:g('f-etapa'),divida:g('f-divida'),banco:g('f-banco'),valor:g('f-valor'),followup:g('f-followup'),obs:g('f-obs')});
-  salvar();badges();badgesAud();limparForm();renderLeads();
   const newIdx=leads.length-1;
+  if(leads[newIdx].etapa==='Leads de Entrada')iniciarBotLead(newIdx);
+  salvar();badges();badgesAud();limparForm();renderLeads();
   setTimeout(()=>abrirPerfil(newIdx,true),100);
 }
 function limparForm(){
@@ -1512,6 +1579,200 @@ function copiarMsgEdit(i){
   const v=document.getElementById('mg-'+i).value;
   navigator.clipboard.writeText(v).then(()=>t('📋 Copiado!'));
 }
+// ===== BOT DE FOLLOW-UP =====
+const KEY_BOT='lcfo_bot_v1';
+const BOT_STEPS_DEFAULT=[
+  {id:'welcome', label:'Saudação',             delay:0,     unit:'imediato',   emoji:'👋'},
+  {id:'1h',      label:'1 hora sem resposta',  delay:60,    unit:'60 min',     emoji:'⏰'},
+  {id:'24h',     label:'24 horas sem resposta',delay:1440,  unit:'24 horas',   emoji:'📅'},
+  {id:'5d',      label:'5 dias sem resposta',  delay:7200,  unit:'5 dias',     emoji:'📆'},
+  {id:'final',   label:'7 dias — última msg',  delay:10080, unit:'7 dias',     emoji:'🚩'},
+];
+const BOT_MOVER_DELAY=12960; // 9 dias → Leads Desqualificados
+
+let botCfg=null;
+function carregarBotConfig(){
+  try{botCfg=JSON.parse(localStorage.getItem(KEY_BOT));}catch(e){botCfg=null;}
+  if(!botCfg){
+    botCfg={ativo:true,steps:BOT_STEPS_DEFAULT.map(s=>({...s,msg:getBotMsgDefault(s.id)}))};
+  }
+}
+function getBotMsgDefault(id){
+  const msgs={
+    welcome:`Olá, [NOME]! 👋 Aqui é o Dr. Leonardo, da LCFO Advogados.\nRecebi seu contato e já quero te atender!\nPode me contar sua situação? Qual banco e qual tipo de dívida? 😊`,
+    '1h':   `Oi [NOME], tentei falar com você agora há pouco.\nEstou disponível para conversar sobre sua situação com dívidas.\nQuando for conveniente, me chame! ⚖️`,
+    '24h':  `Olá, [NOME]! Tudo bem?\nPassei para saber se conseguiu pensar no assunto.\nNa LCFO Advogados verificamos cobranças indevidas e negociamos judicialmente.\nPosso te explicar como funciona?`,
+    '5d':   `[NOME], muitos clientes conseguiram reduzir significativamente o valor das dívidas bancárias.\nVale muito a pena conversar! Essa semana tenho horários disponíveis.\nQual o melhor horário para você? ⚖️`,
+    final:  `[NOME], essa será minha última tentativa antes de encerrar seu atendimento.\nSe ainda tem interesse em resolver sua situação, é só responder aqui. 🙏\nDr. Leonardo — LCFO Advogados`,
+  };
+  return msgs[id]||'';
+}
+function salvarBotConfig(){
+  // Lê mensagens editadas dos textareas
+  botCfg.steps.forEach(s=>{
+    const el=document.getElementById('bot-msg-'+s.id);
+    if(el)s.msg=el.value;
+  });
+  localStorage.setItem(KEY_BOT,JSON.stringify(botCfg));
+  t('💾 Configuração do bot salva!');
+}
+function resetarBotConfig(){
+  botCfg={ativo:true,steps:BOT_STEPS_DEFAULT.map(s=>({...s,msg:getBotMsgDefault(s.id)}))};
+  localStorage.setItem(KEY_BOT,JSON.stringify(botCfg));
+  renderBot();
+  t('↩ Bot restaurado ao padrão');
+}
+function toggleBot(ativo){
+  if(!botCfg)carregarBotConfig();
+  botCfg.ativo=ativo;
+  localStorage.setItem(KEY_BOT,JSON.stringify(botCfg));
+  const lbl=document.getElementById('bot-ativo-label');
+  if(lbl)lbl.textContent=ativo?'Bot Ativo':'Bot Pausado';
+  t(ativo?'🤖 Bot ativado':'⏸ Bot pausado');
+}
+function trocarAbaBot(id,btn){
+  document.querySelectorAll('.bot-content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.bot-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='bot-monitor-tab')renderBotMonitor();
+}
+function renderBot(){
+  carregarBotConfig();
+  const chk=document.getElementById('bot-ativo-chk');
+  if(chk)chk.checked=botCfg.ativo;
+  const lbl=document.getElementById('bot-ativo-label');
+  if(lbl)lbl.textContent=botCfg.ativo?'Bot Ativo':'Bot Pausado';
+  // Steps
+  const cont=document.getElementById('bot-steps-container');
+  if(!cont)return;
+  cont.innerHTML=botCfg.steps.map((s,i)=>`
+    <div class="bot-step-card">
+      <div class="bot-step-num${i===botCfg.steps.length-1?' sn-green':''}">${s.emoji}</div>
+      <div class="bot-step-body">
+        <div class="bot-step-title">
+          ${s.label}
+          <span class="bot-step-delay">⏱ ${s.unit}</span>
+          ${i===0?'<span style="font-size:10px;background:#e8f5e9;color:#27ae60;padding:2px 7px;border-radius:10px;font-weight:600">Automático ao chegar</span>':''}
+        </div>
+        <textarea class="bot-step-msg" id="bot-msg-${s.id}" rows="3">${s.msg.replace(/</g,'&lt;')}</textarea>
+      </div>
+    </div>`).join('');
+  // Contagem
+  verificarBots();
+  const ativos=leads.filter(l=>l.etapa==='Leads de Entrada'&&l.bot_inicio&&!l.bot_pausado).length;
+  const cl=document.getElementById('bot-contagem-label');
+  if(cl)cl.textContent=ativos+' lead'+(ativos!==1?'s':'')+' monitorado'+(ativos!==1?'s':'');
+  const bb=document.getElementById('b-bot');
+  if(bb){bb.textContent=ativos;bb.style.display=ativos?'inline':'none';}
+}
+function renderBotMonitor(){
+  carregarBotConfig();
+  verificarBots();
+  const body=document.getElementById('bot-monitor-body');
+  if(!body)return;
+  const lista=leads.filter(l=>l.etapa==='Leads de Entrada'&&l.bot_inicio).sort((a,b)=>a.bot_inicio-b.bot_inicio);
+  if(!lista.length){
+    body.innerHTML='<div class="empty"><div class="ei">🤖</div><p>Nenhum lead sendo monitorado pelo bot no momento.</p></div>';
+    return;
+  }
+  const agora=Date.now();
+  body.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:8px;padding:10px 14px;border-bottom:2px solid var(--border);font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase">
+      <span>Cliente</span><span>Progresso</span><span>Próximo passo</span><span>Ação</span>
+    </div>
+  `+lista.map(l=>{
+    const idx=leads.indexOf(l);
+    const minutos=(agora-l.bot_inicio)/60000;
+    const feitos=l.bot_feitos||[];
+    const pausado=l.bot_pausado||false;
+    // Próximo step pendente
+    const prox=botCfg.steps.find(s=>!feitos.includes(s.id)&&minutos>=s.delay);
+    const futuro=botCfg.steps.find(s=>!feitos.includes(s.id)&&minutos<s.delay);
+    // ETA do próximo step
+    let etaHtml='';
+    if(futuro){
+      const restMin=futuro.delay-minutos;
+      const etaStr=restMin<60?Math.round(restMin)+'min':restMin<1440?(restMin/60).toFixed(1)+'h':(restMin/1440).toFixed(1)+'d';
+      etaHtml=`<span class="bot-eta">${futuro.emoji} em ${etaStr}</span>`;
+    } else if(feitos.length===botCfg.steps.length){
+      const restMove=(BOT_MOVER_DELAY-minutos)/1440;
+      etaHtml=`<span class="bot-eta urgente">🚨 Mover em ${restMove>0?restMove.toFixed(1)+'d':'breve'}</span>`;
+    } else {
+      etaHtml='<span class="bot-eta">—</span>';
+    }
+    // Dots
+    const dots=botCfg.steps.map(s=>{
+      const cls=feitos.includes(s.id)?'done':s===prox?'active':'pending';
+      return `<div class="bst-dot ${cls}" title="${s.label}"></div>`;
+    }).join('');
+    // Botão de ação
+    let acaoHtml='';
+    if(pausado){
+      acaoHtml=`<button class="btn btn-xs" style="background:#27ae60;color:#fff" onclick="retomarbotLead(${idx})">▶ Retomar</button>`;
+    } else if(prox){
+      const msgFmt=prox.msg.replace('[NOME]',l.nome?.split(' ')[0]||'cliente');
+      acaoHtml=`<button class="btn btn-xs" style="background:#e67e22;color:#fff" onclick="executarStepBot(${idx},'${prox.id}')">📋 ${prox.emoji} Copiar</button>`;
+    } else {
+      acaoHtml=`<button class="btn btn-xs btn-gray" onclick="pausarBotLead(${idx})">⏸</button>`;
+    }
+    return `<div class="bot-monitor-row">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--navy)">${l.nome||'—'}</div>
+        <div style="font-size:11px;color:var(--text2)">📱 ${l.tel||l.telefone||'—'} · ${new Date(l.bot_inicio).toLocaleDateString('pt-BR')}</div>
+      </div>
+      <div class="bot-steps-track">${dots}</div>
+      ${etaHtml}
+      <div>${acaoHtml}</div>
+    </div>`;
+  }).join('');
+}
+function executarStepBot(idx,stepId){
+  carregarBotConfig();
+  const l=leads[idx];
+  if(!l)return;
+  const step=botCfg.steps.find(s=>s.id===stepId);
+  if(!step)return;
+  const msg=step.msg.replace(/\[NOME\]/g,l.nome?.split(' ')[0]||'cliente');
+  navigator.clipboard.writeText(msg).then(()=>{
+    if(!l.bot_feitos)l.bot_feitos=[];
+    if(!l.bot_feitos.includes(stepId))l.bot_feitos.push(stepId);
+    salvar();
+    t('📋 Mensagem copiada! Abra o WhatsApp e cole para '+l.nome?.split(' ')[0]);
+    renderBotMonitor();
+  });
+}
+function pausarBotLead(idx){leads[idx].bot_pausado=true;salvar();renderBotMonitor();}
+function retomarbotLead(idx){leads[idx].bot_pausado=false;salvar();renderBotMonitor();}
+function iniciarBotLead(idx){
+  carregarBotConfig();
+  if(!botCfg.ativo)return;
+  if(leads[idx].bot_inicio)return; // já iniciado
+  leads[idx].bot_inicio=Date.now();
+  leads[idx].bot_feitos=[];
+  leads[idx].bot_pausado=false;
+}
+function verificarBots(){
+  carregarBotConfig();
+  if(!botCfg.ativo)return;
+  const agora=Date.now();
+  let mudou=false;
+  leads.forEach((l,idx)=>{
+    if(l.etapa!=='Leads de Entrada'||!l.bot_inicio||l.bot_pausado)return;
+    const minutos=(agora-l.bot_inicio)/60000;
+    // Auto-mover se passou do delay final + 2 dias
+    if(minutos>=BOT_MOVER_DELAY){
+      leads[idx].etapa='Leads Desqualificados';
+      leads[idx].obs=(leads[idx].obs||'')+(leads[idx].obs?'\n':'')+'[Bot] Movido automaticamente por inatividade (9 dias sem resposta)';
+      mudou=true;
+      console.log('[Bot] Lead movido para Desqualificados:',l.nome);
+    }
+  });
+  if(mudou){salvar();badges();}
+}
+// Roda verificação a cada 5 minutos
+setInterval(function(){verificarBots();const bb=document.getElementById('b-bot');if(bb){const n=leads.filter(l=>l.etapa==='Leads de Entrada'&&l.bot_inicio&&!l.bot_pausado).length;bb.textContent=n;bb.style.display=n?'inline':'none';}},300000);
+
 // ── Calendário de Reuniões ────────────────────────────────────────────────────
 let _calMes=new Date().getMonth(),_calAno=new Date().getFullYear();
 function navMes(d){
@@ -2609,6 +2870,8 @@ function syncLeadsMeta(){
         novos++;
       });
       if(novos>0){
+        // Inicia bot para leads novos em "Leads de Entrada"
+        leads.forEach(function(l,i){if(!l.bot_inicio&&l.etapa==='Leads de Entrada')iniciarBotLead(i);});
         salvar();badges();
         var msg=novos===1
           ?'🔥 Novo lead do Meta Ads: '+(res.leads[0].nome||res.leads[0].telefone||'sem nome')+'!'
