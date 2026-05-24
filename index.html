@@ -326,6 +326,30 @@ tbody tr:last-child td{border-bottom:none;}
 .modal-lg{max-width:800px;}
 .add-prazo-form,.add-anda-form{background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:12px;display:none;}
 .add-prazo-form.show,.add-anda-form.show{display:block;}
+
+/* ===== AUDIÊNCIAS E PERÍCIAS ===== */
+.aud-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--border);}
+.aud-tab{padding:10px 20px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);border-bottom:3px solid transparent;margin-bottom:-2px;font-family:inherit;transition:all .15s;}
+.aud-tab:hover{color:var(--navy);}
+.aud-tab.active{color:var(--navy);border-bottom-color:var(--gold);}
+.aud-content{display:none;}
+.aud-content.active{display:block;}
+.aud-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+.aud-kpi{background:var(--white);border-radius:10px;padding:16px 18px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.aud-kpi .ak-num{font-size:26px;font-weight:700;color:var(--navy);line-height:1;}
+.aud-kpi .ak-lbl{font-size:11px;color:var(--text2);margin-top:5px;}
+.aud-item{display:flex;align-items:center;gap:14px;background:var(--white);border-radius:10px;padding:14px 18px;border:1px solid var(--border);margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.aud-data-bloco{min-width:54px;text-align:center;background:var(--navy);border-radius:8px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.adb-dia{font-size:20px;font-weight:700;color:var(--gold);line-height:1;}
+.adb-mes{font-size:8px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px;margin-top:1px;}
+.adb-hora{font-size:10px;color:rgba(255,255,255,.8);margin-top:3px;font-weight:600;}
+.aud-info{flex:1;}
+.aud-tipo{font-weight:700;color:var(--navy);font-size:14px;}
+.aud-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.aud-local{font-size:11px;color:var(--text2);margin-top:2px;}
+.aud-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
+.aud-edit-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:16px;}
+.aud-edit-modal.show{display:flex;}
 </style>
 </head>
 <body>
@@ -728,7 +752,75 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="ptab-content" id="ptab-linha-pf"><div class="em-breve" style="height:30vh"><div class="eb-ic">📈</div><h3>Linha do tempo — Em breve</h3></div></div>
     </div>
 
-    <!-- EM BREVE -->
+    <!-- ===== AUDIÊNCIAS E PERÍCIAS ===== -->
+<div class="section" id="sec-audiencias">
+  <div class="page-header">
+    <h2>⚖️ Audiências e Perícias</h2>
+    <p>Controle de audiências, perícias e diligências judiciais</p>
+  </div>
+  <div class="aud-tabs">
+    <button class="aud-tab active" onclick="trocarAbaAud('aab-dash',this)">📊 Visão Geral</button>
+    <button class="aud-tab" onclick="trocarAbaAud('aab-lista',this)">📋 Lista</button>
+    <button class="aud-tab" onclick="trocarAbaAud('aab-nova',this)">➕ Nova Audiência</button>
+    <button class="aud-tab" onclick="trocarAbaAud('aab-pericias',this)">🔬 Perícias</button>
+  </div>
+  <div class="aud-content active" id="aab-dash">
+    <div class="aud-kpi-grid" id="aud-kpis"></div>
+    <div class="panel"><div class="panel-title">⏰ Próximas Audiências (7 dias)</div><div id="aud-proximas"></div></div>
+    <div class="panel"><div class="panel-title">📅 Audiências de Hoje</div><div id="aud-hoje"></div></div>
+  </div>
+  <div class="aud-content" id="aab-lista">
+    <div class="search-row" style="margin-bottom:16px">
+      <input type="text" id="aud-busca" placeholder="🔍 Processo, cliente, tipo..." oninput="renderListaAud()">
+      <select id="aud-filtro-tipo" onchange="renderListaAud()">
+        <option value="">Todos os tipos</option>
+        <option>Instrução e Julgamento</option><option>Conciliação</option><option>Julgamento</option>
+        <option>Audiência Preliminar</option><option>Audiência de Custódia</option>
+        <option>Perícia</option><option>Diligência</option><option>Outro</option>
+      </select>
+      <select id="aud-filtro-status" onchange="renderListaAud()">
+        <option value="">Todos os status</option>
+        <option>Agendada</option><option>Realizada</option><option>Cancelada</option><option>Adiada</option>
+      </select>
+    </div>
+    <div id="aud-lista"></div>
+  </div>
+  <div class="aud-content" id="aab-nova">
+    <div class="panel">
+      <div class="panel-title">➕ Nova Audiência / Ato Processual</div>
+      <div class="form-grid g3">
+        <div class="form-field"><label>Tipo *</label>
+          <select id="na-tipo">
+            <option>Instrução e Julgamento</option><option>Conciliação</option><option>Julgamento</option>
+            <option>Audiência Preliminar</option><option>Audiência de Custódia</option>
+            <option>Perícia</option><option>Diligência</option><option>Outro</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Data *</label><input type="date" id="na-data"></div>
+        <div class="form-field"><label>Horário</label><input type="time" id="na-hora"></div>
+        <div class="form-field" style="grid-column:1/-1"><label>Número do Processo (CNJ)</label><input type="text" id="na-proc" placeholder="0000000-00.0000.0.00.0000"></div>
+        <div class="form-field"><label>Cliente / Parte</label><input type="text" id="na-cliente" placeholder="Nome do cliente"></div>
+        <div class="form-field"><label>Parte Contrária</label><input type="text" id="na-contraria" placeholder="Réu / Reclamado"></div>
+        <div class="form-field"><label>Advogado Responsável</label><input type="text" id="na-adv" value="Dr. Leonardo"></div>
+        <div class="form-field" style="grid-column:1/-1"><label>Local (Tribunal / Vara)</label><input type="text" id="na-local" placeholder="Ex: TJSP — 5ª Vara Cível de São Paulo"></div>
+        <div class="form-field"><label>Juiz / Perito</label><input type="text" id="na-juiz" placeholder="Dr. Nome"></div>
+        <div class="form-field" style="grid-column:1/-1"><label>Documentos Necessários</label><textarea id="na-docs" rows="2" placeholder="Liste os documentos que precisam ser preparados..."></textarea></div>
+        <div class="form-field" style="grid-column:1/-1"><label>Observações / Estratégia</label><textarea id="na-obs" rows="3" placeholder="Pautas, testemunhas, pontos de atenção, estratégia..."></textarea></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="salvarAudiencia()">💾 Cadastrar Audiência</button>
+        <button class="btn btn-gray" onclick="limparFormAud()">✖ Limpar</button>
+      </div>
+    </div>
+  </div>
+  <div class="aud-content" id="aab-pericias">
+    <div class="search-row" style="margin-bottom:16px">
+      <button class="btn btn-primary btn-sm" onclick="(function(){trocarAbaAud('aab-nova',document.querySelectorAll('.aud-tab')[2]);document.getElementById('na-tipo').value='Pércia';})()">➕ Nova Perícia</button>
+    </div>
+    <div id="pericias-lista"></div>
+  </div>
+</div>
+<!-- EM BREVE -->
     <div class="section" id="sec-eb">
       <div class="em-breve"><div class="eb-ic">🚀</div><h3 id="eb-titulo">Em desenvolvimento</h3><p>Esta funcionalidade estará disponível em breve.</p></div>
     </div>
@@ -866,7 +958,7 @@ const ROTEIRO=[
   {n:'30',h:'',tt:'Follow-up Final',m:`[NOME], passando para um último contato.\nSe precisar de assessoria jurídica em dívidas bancárias, pode nos procurar a qualquer momento.\nGuarde nosso contato! ⚖️ LCFO Advogados`},
 ];
 
-const EM_BREVE=['audiencias','dje','atendimentos','tarefas','agenda','chat','documentos','financeiro','metas'];
+const EM_BREVE=['dje','atendimentos','tarefas','agenda','chat','documentos','financeiro','metas'];
 function irPara(id,btn,titulo){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
@@ -959,7 +1051,7 @@ function salvarLead(){
   const nome=g('f-nome').trim(),tel=g('f-tel').trim();
   if(!nome||!tel){t('⚠️ Nome e WhatsApp são obrigatórios!',false);return;}
   leads.push({id:Date.now(),criado:new Date().toLocaleDateString('pt-BR'),nome,tags:JSON.parse(JSON.stringify(fTags)),cpf:g('f-cpf'),rg:g('f-rg'),nasc:g('f-nasc'),gen:g('f-gen'),civil:g('f-civil'),prof:g('f-prof'),nac:g('f-nac'),end:g('f-end'),tel,tel2:g('f-tel2'),email:g('f-email'),origem:g('f-origem'),etapa:g('f-etapa'),divida:g('f-divida'),banco:g('f-banco'),valor:g('f-valor'),followup:g('f-followup'),obs:g('f-obs')});
-  salvar();badges();limparForm();renderLeads();
+  salvar();badges();badgesAud();limparForm();renderLeads();
   const newIdx=leads.length-1;
   setTimeout(()=>abrirPerfil(newIdx,true),100);
 }
@@ -1471,6 +1563,169 @@ function atualizarBadgeProc(){
 }
 
 carregarProc();badges();renderLeads();atualizarBadgeProc();
+
+// ===== AUDIÊNCIAS E PERÍCIAS =====
+const KEY_AUD='crm_aud_v1';
+let audiencias=[];let audEditIdx=-1;
+function carregarAud(){try{audiencias=JSON.parse(localStorage.getItem(KEY_AUD)||'[]');}catch(e){audiencias=[];}}
+function salvarAudLS(){try{localStorage.setItem(KEY_AUD,JSON.stringify(audiencias));}catch(e){t('Erro ao salvar!',false);}}
+carregarAud();
+
+function trocarAbaAud(id,btn){
+  document.querySelectorAll('.aud-content').forEach(function(el){el.classList.remove('active');});
+  document.querySelectorAll('.aud-tab').forEach(function(el){el.classList.remove('active');});
+  var el=document.getElementById(id);if(el)el.classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='aab-dash')renderAudDash();
+  else if(id==='aab-lista')renderListaAud();
+  else if(id==='aab-pericias')renderPericias();
+}
+
+function salvarAudiencia(){
+  var tipo=g('na-tipo'),data=g('na-data');
+  if(!tipo||!data){t('Tipo e data são obrigatórios!',false);return;}
+  audiencias.push({id:Date.now(),tipo:tipo,data:data,hora:g('na-hora'),proc:g('na-proc'),
+    cliente:g('na-cliente'),contraria:g('na-contraria'),local:g('na-local'),
+    juiz:g('na-juiz'),adv:g('na-adv'),docs:g('na-docs'),obs:g('na-obs'),
+    status:'Agendada',criado:new Date().toLocaleDateString('pt-BR')});
+  salvarAudLS();limparFormAud();t('Audiência cadastrada com sucesso!');
+  trocarAbaAud('aab-lista',document.querySelectorAll('.aud-tab')[1]);
+  badgesAud();
+}
+
+function limparFormAud(){
+  ['na-proc','na-cliente','na-contraria','na-local','na-juiz','na-docs','na-obs'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var adv=document.getElementById('na-adv');if(adv)adv.value='Dr. Leonardo';
+  ['na-data','na-hora'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var tipo=document.getElementById('na-tipo');if(tipo)tipo.selectedIndex=0;
+}
+
+var AUD_COR={'Agendada':'#e8f4fd','Realizada':'#d4f5e2','Cancelada':'#fde8e8','Adiada':'#fef3e2'};
+var AUD_TXT={'Agendada':'#1a6a9a','Realizada':'#1a7a45','Cancelada':'#b53737','Adiada':'#8a4d00'};
+
+function audItemHTML(a){
+  var cor=AUD_COR[a.status]||'#f0f0f0',txt=AUD_TXT[a.status]||'#666';
+  var d=a.data?new Date(a.data+'T12:00'):null;
+  var dia=d?d.getDate():'--',mes=d?d.toLocaleDateString('pt-BR',{month:'short'}).toUpperCase():'--';
+  var idx=audiencias.findIndex(function(x){return x.id===a.id;});
+  return '<div class="aud-item">'+
+    '<div class="aud-data-bloco"><div class="adb-dia">'+dia+'</div><div class="adb-mes">'+mes+'</div><div class="adb-hora">'+(a.hora||'--')+'</div></div>'+
+    '<div class="aud-info">'+
+      '<div class="aud-tipo">'+a.tipo+'</div>'+
+      '<div class="aud-sub">'+(a.proc?'📎 '+a.proc+(a.cliente?' · '+a.cliente:''):a.cliente||'')+'</div>'+
+      '<div class="aud-local">📍 '+(a.local||'Local não informado')+(a.juiz?' · '+a.juiz:'')+'</div>'+
+    '</div>'+
+    '<div class="aud-actions">'+
+      '<span class="badge" style="background:'+cor+';color:'+txt+';font-size:10px">'+a.status+'</span>'+
+      '<button class="btn btn-gray btn-xs" onclick="abrirModalAud('+idx+')">✏️</button>'+
+      (a.status==='Agendada'?'<button class="btn btn-success btn-xs" onclick="marcarAudStatus('+idx+','Realizada')">✅</button>':'')+
+    '</div>'+
+  '</div>';
+}
+
+function renderAudDash(){
+  var hoje=new Date().toISOString().split('T')[0];
+  var em7=new Date();em7.setDate(em7.getDate()+7);var str7=em7.toISOString().split('T')[0];
+  var total=audiencias.length,agend=audiencias.filter(function(a){return a.status==='Agendada';}).length;
+  var hj=audiencias.filter(function(a){return a.data===hoje&&a.status==='Agendada';}).length;
+  var sem=audiencias.filter(function(a){return a.data>=hoje&&a.data<=str7&&a.status==='Agendada';}).length;
+  var kpiEl=document.getElementById('aud-kpis');
+  if(kpiEl)kpiEl.innerHTML=
+    '<div class="aud-kpi"><div class="ak-num">'+total+'</div><div class="ak-lbl">📋 Total Registradas</div></div>'+
+    '<div class="aud-kpi" style="border-color:var(--blue)"><div class="ak-num" style="color:var(--blue)">'+agend+'</div><div class="ak-lbl">⏳ Agendadas</div></div>'+
+    '<div class="aud-kpi" style="border-color:var(--gold)"><div class="ak-num" style="color:var(--gold)">'+hj+'</div><div class="ak-lbl">📅 Hoje</div></div>'+
+    '<div class="aud-kpi" style="border-color:var(--green)"><div class="ak-num" style="color:var(--green)">'+sem+'</div><div class="ak-lbl">🗓 Esta Semana</div></div>';
+  var prox=audiencias.filter(function(a){return a.data>=hoje&&a.status==='Agendada';}).sort(function(a,b){return a.data.localeCompare(b.data)||(a.hora||'').localeCompare(b.hora||'');}).slice(0,6);
+  var pEl=document.getElementById('aud-proximas');
+  if(pEl)pEl.innerHTML=prox.length?prox.map(audItemHTML).join(''):'<div class="empty-state"><div class="es-icon">📅</div><p>Nenhuma audiência agendada para os próximos 7 dias.</p></div>';
+  var hjList=audiencias.filter(function(a){return a.data===hoje;});
+  var hEl=document.getElementById('aud-hoje');
+  if(hEl)hEl.innerHTML=hjList.length?hjList.map(audItemHTML).join(''):'<div class="empty-state" style="padding:20px"><p>Nenhuma audiência hoje.</p></div>';
+}
+
+function renderListaAud(){
+  var bq=(document.getElementById('aud-busca')?document.getElementById('aud-busca').value:'').toLowerCase();
+  var ft=document.getElementById('aud-filtro-tipo')?document.getElementById('aud-filtro-tipo').value:'';
+  var fs=document.getElementById('aud-filtro-status')?document.getElementById('aud-filtro-status').value:'';
+  var lista=audiencias.filter(function(a){
+    return (!bq||(a.proc+a.cliente+a.tipo+(a.local||'')).toLowerCase().includes(bq))&&
+    (!ft||a.tipo===ft)&&(!fs||a.status===fs);
+  }).sort(function(a,b){return b.data.localeCompare(a.data);});
+  var el=document.getElementById('aud-lista');if(!el)return;
+  el.innerHTML=lista.length?lista.map(audItemHTML).join(''):'<div class="empty-state"><div class="es-icon">📋</div><p>Nenhuma audiência encontrada.</p></div>';
+}
+
+function renderPericias(){
+  var lista=audiencias.filter(function(a){return a.tipo==='Perícia';}).sort(function(a,b){return b.data.localeCompare(a.data);});
+  var el=document.getElementById('pericias-lista');if(!el)return;
+  el.innerHTML=lista.length?lista.map(audItemHTML).join(''):'<div class="empty-state"><div class="es-icon">🔬</div><p>Nenhuma perícia registrada.</p></div>';
+}
+
+function abrirModalAud(idx){
+  audEditIdx=idx;var a=audiencias[idx];
+  ['tipo','data','hora','status','proc','cliente','contraria','local','juiz','adv','docs','obs'].forEach(function(k){
+    var el=document.getElementById('ea-'+k);if(el)el.value=a[k]||'';
+  });
+  document.getElementById('modal-aud').classList.add('show');
+}
+function fecharModalAud(){document.getElementById('modal-aud').classList.remove('show');audEditIdx=-1;}
+function salvarEdicaoAud(){
+  if(audEditIdx<0)return;
+  ['tipo','data','hora','status','proc','cliente','contraria','local','juiz','adv','docs','obs'].forEach(function(k){
+    var el=document.getElementById('ea-'+k);if(el)audiencias[audEditIdx][k]=el.value||'';
+  });
+  salvarAudLS();fecharModalAud();renderAudDash();renderListaAud();renderPericias();badgesAud();t('Audiência atualizada!');
+}
+function excluirAudiencia(){
+  if(!confirm('Excluir esta audiência?'))return;
+  audiencias.splice(audEditIdx,1);salvarAudLS();fecharModalAud();
+  renderAudDash();renderListaAud();renderPericias();badgesAud();t('Audiência excluída.');
+}
+function marcarAudStatus(idx,status){
+  audiencias[idx].status=status;salvarAudLS();
+  renderAudDash();renderListaAud();renderPericias();badgesAud();t('Marcada como '+status+'!');
+}
+function badgesAud(){
+  var hoje=new Date().toISOString().split('T')[0];
+  var urg=audiencias.filter(function(a){return a.data>=hoje&&a.status==='Agendada';}).length;
+  var nb=document.querySelector('[onclick*=audiencias] .nb');
+  if(nb){nb.textContent=urg;nb.style.display=urg?'inline':'none';}
+}
 </script>
+
+<!-- MODAL AUDIÊNCIA -->
+<div class="aud-edit-modal" id="modal-aud">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-header">
+      <h3>✏️ Editar Audiência</h3>
+      <button class="modal-close" onclick="fecharModalAud()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid g3">
+        <div class="form-field"><label>Tipo</label>
+          <select id="ea-tipo"><option>Instrução e Julgamento</option><option>Conciliação</option><option>Julgamento</option><option>Audiência Preliminar</option><option>Audiência de Custódia</option><option>Perícia</option><option>Diligência</option><option>Outro</option></select>
+        </div>
+        <div class="form-field"><label>Data</label><input type="date" id="ea-data"></div>
+        <div class="form-field"><label>Horário</label><input type="time" id="ea-hora"></div>
+        <div class="form-field"><label>Status</label>
+          <select id="ea-status"><option>Agendada</option><option>Realizada</option><option>Cancelada</option><option>Adiada</option></select>
+        </div>
+        <div class="form-field" style="grid-column:2/-1"><label>Processo</label><input type="text" id="ea-proc"></div>
+        <div class="form-field"><label>Cliente</label><input type="text" id="ea-cliente"></div>
+        <div class="form-field"><label>Parte Contrária</label><input type="text" id="ea-contraria"></div>
+        <div class="form-field"><label>Advogado</label><input type="text" id="ea-adv"></div>
+        <div class="form-field" style="grid-column:1/-1"><label>Local</label><input type="text" id="ea-local"></div>
+        <div class="form-field"><label>Juiz / Perito</label><input type="text" id="ea-juiz"></div>
+        <div class="form-field" style="grid-column:1/-1"><label>Documentos</label><textarea id="ea-docs" rows="2"></textarea></div>
+        <div class="form-field" style="grid-column:1/-1"><label>Observações</label><textarea id="ea-obs" rows="3"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="excluirAudiencia()">🗑 Excluir</button>
+      <button class="btn btn-gray btn-sm" onclick="fecharModalAud()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="salvarEdicaoAud()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
