@@ -1258,8 +1258,9 @@ function renderFunil(){
             <button class="btn btn-xs" style="background:#c0392b;color:#fff;flex:1;min-width:80px" onclick="moverEtapa(${idx},'Cliente em Dúvida Pós-Reunião');event.stopPropagation()">🤔 Em Dúvida</button>
           </div>`
         :isAguardDoc
-        ?`<div style="display:flex;gap:4px;margin-top:7px">
-            <button class="btn btn-xs" style="background:#1D3461;color:#fff;flex:1" onclick="abrirModalPedirDocs(${idx});event.stopPropagation()">📋 Pedir Documentos</button>
+        ?`<div style="display:flex;gap:4px;margin-top:7px;flex-wrap:wrap">
+            <button class="btn btn-xs" style="background:#1D3461;color:#fff;flex:1" onclick="abrirModalPedirDocs(${idx});event.stopPropagation()">📋 Pedir Docs</button>
+            <button class="btn btn-xs" style="background:#C9A84C;color:#fff;flex:1" onclick="abrirModalContrato(${idx});event.stopPropagation()">📝 Gerar Contrato</button>
           </div>`
         :'';
       const cardCls=(isDuvida||isDuvPos)?' fc-duvida':'';
@@ -2152,6 +2153,173 @@ function limparDJE(){
   t('Histórico do DJE limpo.');
 }
 
+// ===== TEMPLATES — CONTRATO & PROCURAÇÃO =====
+const LCFO_ADV = {
+  nome:      'LEONARDO CÉSAR FIGUEIREDO DE OLIVEIRA',
+  oab:       '331.449',
+  endereco:  'Rua Hipólito da Silva, n.º 59, Vila Marieta, Campinas/SP CEP 13042-120',
+  email:     'lcfoadvogados@gmail.com',
+  tel:       '(19) 98910-1414',
+  pix:       '19989101414',
+  cidade:    'Campinas',
+};
+
+function dataExtenso(dt){
+  const d=dt?new Date(dt+'T12:00'):new Date();
+  const meses=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  return d.getDate()+' de '+meses[d.getMonth()]+' de '+d.getFullYear();
+}
+function fmtMoeda(v){
+  const n=parseFloat(String(v).replace(/[^\d,]/g,'.').replace(',','.'));
+  if(isNaN(n))return v;
+  return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function preencherTemplate(tpl,dados){
+  return tpl.replace(/\{\{(\w+)\}\}/g,function(_,k){return dados[k]||'____________';});
+}
+
+function gerarHTMLContrato(d){
+  const tpl=`<div style="font-family:Arial,sans-serif;font-size:12px;line-height:1.8;color:#1a1a1a;max-width:700px;margin:0 auto">
+<p style="text-align:center;font-weight:700;font-size:14px;margin-bottom:16px">CONTRATO DE PRESTAÇÃO DE SERVIÇOS ADVOCATÍCIOS</p>
+<p><strong>CONTRATANTE:</strong> {{NOME}}, {{NACIONALIDADE}}, {{ESTADO_CIVIL}}, {{PROFISSAO}}, portador da cédula de identidade número {{RG}}, inscrito no CPF (MF) sob o número {{CPF}}, residente e domiciliado na {{ENDERECO}}, e-mail: {{EMAIL_CLIENTE}}.</p>
+<p><strong>CONTRATADO:</strong> ${LCFO_ADV.nome}, brasileiro, advogado, inscrito na OAB/SP sob n.º ${LCFO_ADV.oab}, com escritório profissional localizado na ${LCFO_ADV.endereco}, com endereço de e-mail: ${LCFO_ADV.email}, tel. ${LCFO_ADV.tel}.</p>
+<p>As partes acima identificadas têm, entre si, justo e acertado o presente Contrato de Honorários Advocatícios, que se regerá pelas cláusulas e condições a seguir descritas.</p>
+<p><strong>DO OBJETO DO CONTRATO</strong><br>
+<strong>Cláusula 1ª.</strong> O presente contrato tem como objeto a prestação de serviços advocatícios visando a negociação extrajudicial e, caso necessário, defesa ou propositura de Ações Judiciais a serem movidas em desfavor de <strong>{{BANCO}}</strong>.</p>
+<p><em>Parágrafo único.</em> O objeto específico desta prestação de serviços é ajuizar a demanda, acompanhar a parte contratante em eventual audiência designada pelo juiz da causa e proceder o acompanhamento do processo.</p>
+<p><strong>DAS ATIVIDADES</strong><br>
+<strong>Cláusula 2ª.</strong> O CONTRATADO deverá praticar todos os atos relacionados ao exercício da advocacia, obrigações tipicamente de meio, particularmente aqueles constantes no Estatuto da OAB, com a diligência habitual que se presume da atuação profissional.</p>
+<p><strong>DOS ATOS PROCESSUAIS</strong><br>
+<strong>Cláusula 3ª.</strong> A gestão do processo correrá por conta e responsabilidade do CONTRATADO, podendo substabelecer os poderes que lhe foram conferidos pelo CONTRATANTE a outro advogado.</p>
+<p><strong>DAS DESPESAS</strong><br>
+<strong>Cláusula 4ª.</strong> Ao CONTRATANTE caberá, se necessário, o pagamento das custas judiciais, em caso de indeferimento do benefício da AJG.</p>
+<p><strong>DOS HONORÁRIOS</strong><br>
+<strong>Cláusula 5ª.</strong> O CONTRATANTE pagará ao CONTRATADO o valor de <strong>{{HONORARIOS_TOTAL}}</strong> de Honorários Iniciais, parcelados em <strong>{{HONORARIOS_PARCELAS}} prestações</strong> iguais, mensais e sucessivas de <strong>{{HONORARIOS_VALOR_PARCELA}}</strong>, sendo o vencimento da primeira em <strong>{{HONORARIOS_VENCIMENTO}}</strong>. Além de <strong>20%</strong> sobre o benefício econômico obtido e 20% sobre indenizações e/ou devoluções.</p>
+<p><em>Subcláusula 1ª.</em> O adimplemento dos valores será feito exclusivamente através de PIX para a chave: <strong>${LCFO_ADV.pix}</strong>.</p>
+<p><strong>Cláusula 6ª.</strong> Os honorários de sucumbência pertencem ao CONTRATADO e não se confundem com os honorários contratuais.</p>
+<p><strong>Cláusula 7ª.</strong> Havendo acordo ou desistência pelo CONTRATANTE, este fato não prejudicará o recebimento de todos os honorários contratados pelo CONTRATADO.</p>
+<p><strong>Cláusula 8ª.</strong> O atraso no pagamento dos honorários ensejará multa de 10% e juros de mora de 5% ao mês.</p>
+<p><strong>DA VIGÊNCIA E DA RESCISÃO</strong><br>
+<strong>Cláusula 9ª.</strong> Este contrato tem vigência até o adimplemento das obrigações ajustadas e pode ser rescindido a qualquer tempo por qualquer das partes, mediante aviso prévio de 30 dias.</p>
+<p style="margin-top:32px">{{CIDADE_DATA}}</p>
+<div style="display:flex;justify-content:space-between;margin-top:48px;gap:40px">
+  <div style="flex:1;border-top:1px solid #000;text-align:center;padding-top:6px"><strong>CONTRATANTE</strong><br>{{NOME}}</div>
+  <div style="flex:1;border-top:1px solid #000;text-align:center;padding-top:6px"><strong>CONTRATADO</strong><br>${LCFO_ADV.nome}<br>OAB/SP ${LCFO_ADV.oab}</div>
+</div>
+</div>`;
+  return preencherTemplate(tpl,d);
+}
+
+function gerarHTMLProcuracao(d){
+  const tpl=`<div style="font-family:Arial,sans-serif;font-size:12px;line-height:1.8;color:#1a1a1a;max-width:700px;margin:0 auto">
+<p style="text-align:center;font-weight:700;font-size:14px;margin-bottom:16px">PROCURAÇÃO</p>
+<p><strong>OUTORGANTE:</strong> {{NOME}}, {{NACIONALIDADE}}, {{ESTADO_CIVIL}}, {{PROFISSAO}}, portador da cédula de identidade número {{RG}}, inscrito no CPF (MF) sob o número {{CPF}}, residente e domiciliado na {{ENDERECO}}, e-mail: {{EMAIL_CLIENTE}}.</p>
+<p><strong>OUTORGADO:</strong> ${LCFO_ADV.nome}, brasileiro, advogado, inscrito na OAB/SP sob n.º ${LCFO_ADV.oab}, com escritório profissional localizado na ${LCFO_ADV.endereco}, e-mail: ${LCFO_ADV.email}, tel. ${LCFO_ADV.tel}.</p>
+<p><strong>PODERES:</strong> O OUTORGANTE nomeia e constitui o OUTORGADO seu procurador, outorgando-lhe os necessários poderes para representá-lo em juízo ou fora dele, podendo nesta ação praticar, requerer, assinar, com poderes para transigir, desistir, reconvir, discordar, ratificar, retificar, receber quantias e intimações, dar quitação, propor contra pedido, acompanhar quaisquer recursos em todos os termos ou instâncias, responder perante qualquer repartição pública ou privada no que se refere a esta ação em específico, e ainda praticar todos os demais atos necessários ao integral cumprimento do presente mandato, com a cláusula <em>ad judicia</em>, podendo substabelecer, no todo ou em parte, com ou sem reserva, os poderes ora conferidos, que se destinam especialmente para representação do outorgante na negociação extrajudicial e, caso necessário, defesa ou propositura de Ações Judiciais em desfavor de <strong>{{BANCO}}</strong>.</p>
+<p><strong>DECLARAÇÃO DE HIPOSSUFICIÊNCIA ECONÔMICA</strong><br>
+Sob as penas da lei e para que produza seus jurídicos efeitos, atendendo ao disposto na Lei 1060/50, art. 4º § 1º, especialmente para obter os benefícios da Assistência Judiciária Gratuita, DECLARO que não disponho de rendimentos suficientes que me permitam pagar custas processuais, honorários advocatícios e valores de depósito recursal, sendo juridicamente necessitado, requerendo o deferimento da gratuidade de justiça.</p>
+<p>Por ser esta a expressão da verdade, assino a presente.</p>
+<p style="margin-top:24px">{{CIDADE_DATA}}</p>
+<div style="margin-top:48px;border-top:1px solid #000;text-align:center;padding-top:6px;max-width:320px">
+  <strong>OUTORGANTE</strong><br>{{NOME}}<br>CPF: {{CPF}}
+</div>
+</div>`;
+  return preencherTemplate(tpl,d);
+}
+
+// ── Modal Gerar Contrato ──
+let _contratoIdx=-1;
+function abrirModalContrato(idx){
+  _contratoIdx=idx;
+  const l=leads[idx];
+  const set=function(id,v){var el=document.getElementById(id);if(el)el.value=v||'';};
+  set('ct-nome',      l.nome||'');
+  set('ct-nac',       l.nacionalidade||'brasileiro(a)');
+  set('ct-civil',     l.civil||l.estadoCivil||'');
+  set('ct-prof',      l.profissao||'');
+  set('ct-rg',        l.rg||'');
+  set('ct-cpf',       l.cpf||'');
+  set('ct-end',       l.endereco||'');
+  set('ct-email',     l.email||'');
+  set('ct-banco',     l.banco||'');
+  set('ct-hon-total', '');set('ct-parcelas','');set('ct-valor-parc','');set('ct-venc','');
+  document.getElementById('ct-preview-area').style.display='none';
+  document.getElementById('modal-contrato').classList.add('show');
+}
+function fecharModalContrato(){
+  document.getElementById('modal-contrato').classList.remove('show');
+  _contratoIdx=-1;
+}
+function getDadosContrato(){
+  const g=function(id){return(document.getElementById(id)||{}).value||'';};
+  const d=new Date();
+  return{
+    NOME:                  g('ct-nome'),
+    NACIONALIDADE:         g('ct-nac'),
+    ESTADO_CIVIL:          g('ct-civil'),
+    PROFISSAO:             g('ct-prof'),
+    RG:                    g('ct-rg'),
+    CPF:                   g('ct-cpf'),
+    ENDERECO:              g('ct-end'),
+    EMAIL_CLIENTE:         g('ct-email'),
+    BANCO:                 g('ct-banco'),
+    HONORARIOS_TOTAL:      fmtMoeda(g('ct-hon-total')),
+    HONORARIOS_PARCELAS:   g('ct-parcelas'),
+    HONORARIOS_VALOR_PARC: fmtMoeda(g('ct-valor-parc')),
+    HONORARIOS_VALOR_PARCELA: fmtMoeda(g('ct-valor-parc')),
+    HONORARIOS_VENCIMENTO: g('ct-venc'),
+    CIDADE_DATA:           LCFO_ADV.cidade+', '+dataExtenso(),
+  };
+}
+function previewContrato(){
+  const d=getDadosContrato();
+  const html='<div style="margin-bottom:32px">'+gerarHTMLContrato(d)+'</div><hr style="border-color:#C9A84C;margin:24px 0"><div>'+gerarHTMLProcuracao(d)+'</div>';
+  const area=document.getElementById('ct-preview-area');
+  document.getElementById('ct-preview-body').innerHTML=html;
+  area.style.display='block';
+  area.scrollIntoView({behavior:'smooth'});
+}
+function downloadContrato(tipo){
+  const d=getDadosContrato();
+  const html=tipo==='contrato'?gerarHTMLContrato(d):gerarHTMLProcuracao(d);
+  const titulo=tipo==='contrato'?'Contrato de Honorários':'Procuração';
+  const full=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${titulo} — ${d.NOME}</title>
+  <style>@media print{body{margin:20mm}}</style></head><body style="padding:40px">${html}</body></html>`;
+  const blob=new Blob([full],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=titulo+' - '+(d.NOME||'cliente')+'.html';a.click();
+  t('📄 '+titulo+' baixado! Abra o arquivo e imprima como PDF.');
+}
+function downloadAmbos(){downloadContrato('contrato');setTimeout(function(){downloadContrato('procuracao');},500);}
+function enviarContratoEmail(){
+  const d=getDadosContrato();
+  if(!d.EMAIL_CLIENTE){t('⚠️ Informe o e-mail do cliente!',false);document.getElementById('ct-email').focus();return;}
+  if(!d.HONORARIOS_TOTAL||d.HONORARIOS_TOTAL==='____________'){t('⚠️ Preencha o valor dos honorários!',false);return;}
+  const btn=document.getElementById('ct-btn-email');
+  btn.textContent='⏳ Enviando...';btn.disabled=true;
+  fetch('/api/enviar-contrato',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      emailCliente:  d.EMAIL_CLIENTE,
+      nomeCliente:   d.NOME,
+      htmlContrato:  gerarHTMLContrato(d),
+      htmlProcuracao:gerarHTMLProcuracao(d),
+    })
+  }).then(function(r){return r.json();}).then(function(res){
+    btn.textContent='📧 Enviar por E-mail';btn.disabled=false;
+    if(res.ok){
+      // Salva email no lead e move para "Aguardando Assinatura"
+      if(_contratoIdx>=0){leads[_contratoIdx].email=d.EMAIL_CLIENTE;salvar();}
+      fecharModalContrato();
+      t('✅ Contrato e procuração enviados para '+d.EMAIL_CLIENTE+'!');
+    } else {
+      t('⚠️ Erro ao enviar: '+res.erro,false);
+    }
+  }).catch(function(){btn.textContent='📧 Enviar por E-mail';btn.disabled=false;t('⚠️ Erro de conexão.',false);});
+}
+
 // ===== SYNC AUTOMÁTICO — META ADS (polling a cada 30s) =====
 function syncLeadsMeta(){
   if(document.hidden)return; // Não busca se a aba estiver em segundo plano
@@ -2234,6 +2402,55 @@ setTimeout(function(){syncLeadsMeta();setInterval(syncLeadsMeta,30000);},10000);
   }
 })();
 </script>
+
+<!-- MODAL GERAR CONTRATO & PROCURAÇÃO -->
+<div class="modal-bg" id="modal-contrato" onclick="if(event.target===this)fecharModalContrato()" style="align-items:flex-start;padding-top:30px;overflow-y:auto">
+  <div class="modal-box" style="max-width:620px;margin:0 auto 40px">
+    <div class="modal-hd">
+      <div><h3>📝 Gerar Contrato & Procuração</h3><div style="font-size:12px;color:var(--text2);margin-top:2px">Preencha os dados e gere os documentos automaticamente</div></div>
+      <button class="modal-close" onclick="fecharModalContrato()">✕</button>
+    </div>
+    <div class="modal-bd">
+      <!-- Dados do cliente -->
+      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Dados do Cliente</div>
+      <div class="fg g3" style="margin-bottom:14px">
+        <div class="ff" style="grid-column:1/-1"><label>Nome completo *</label><input id="ct-nome" placeholder="Nome completo do cliente"></div>
+        <div class="ff"><label>Nacionalidade</label><input id="ct-nac" placeholder="brasileiro(a)"></div>
+        <div class="ff"><label>Estado Civil</label><input id="ct-civil" placeholder="casado(a)"></div>
+        <div class="ff"><label>Profissão</label><input id="ct-prof" placeholder="autônomo, aposentado..."></div>
+        <div class="ff"><label>RG</label><input id="ct-rg" placeholder="Número do RG"></div>
+        <div class="ff"><label>CPF</label><input id="ct-cpf" placeholder="000.000.000-00"></div>
+        <div class="ff" style="grid-column:1/-1"><label>Endereço completo (rua, nº, cidade/UF, CEP)</label><input id="ct-end" placeholder="Rua..., nº, Cidade/UF, CEP"></div>
+        <div class="ff"><label>E-mail do cliente *</label><input id="ct-email" type="email" placeholder="Para envio dos documentos"></div>
+        <div class="ff"><label>Banco (parte contrária)</label><input id="ct-banco" placeholder="Ex: BANCO SANTANDER S.A."></div>
+      </div>
+      <!-- Honorários -->
+      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:4px;border-top:1px solid var(--border);padding-top:14px">Estrutura de Honorários</div>
+      <div class="fg" style="margin-bottom:6px">
+        <div class="ff"><label>Valor total dos honorários *</label><input id="ct-hon-total" placeholder="Ex: 3000" type="number" oninput="this.value=this.value.replace(/[^0-9.,]/g,'')"></div>
+        <div class="ff"><label>Nº de parcelas</label><input id="ct-parcelas" placeholder="Ex: 10" type="number"></div>
+        <div class="ff"><label>Valor por parcela</label><input id="ct-valor-parc" placeholder="Ex: 300" type="number"></div>
+        <div class="ff"><label>Vencimento 1ª parcela</label><input id="ct-venc" type="date"></div>
+      </div>
+      <!-- Ações -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+        <button class="btn btn-gray btn-sm" onclick="previewContrato()">👁 Preview</button>
+        <button class="btn btn-sm" style="background:#1D3461;color:#fff" onclick="downloadAmbos()">⬇ Baixar Ambos (HTML→PDF)</button>
+        <button class="btn btn-sm" style="background:#C9A84C;color:#fff" onclick="downloadContrato('contrato')">⬇ Só Contrato</button>
+        <button class="btn btn-sm" style="background:#8e44ad;color:#fff" onclick="downloadContrato('procuracao')">⬇ Só Procuração</button>
+        <button class="btn btn-primary btn-sm" id="ct-btn-email" onclick="enviarContratoEmail()">📧 Enviar por E-mail</button>
+      </div>
+      <!-- Preview -->
+      <div id="ct-preview-area" style="display:none;margin-top:20px;border:1px solid var(--border);border-radius:8px;padding:20px;background:#fafafa;max-height:400px;overflow-y:auto">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:12px;text-transform:uppercase">Preview dos documentos</div>
+        <div id="ct-preview-body"></div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-gray btn-sm" onclick="fecharModalContrato()">Fechar</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL PEDIR DOCUMENTOS -->
 <div class="modal-bg" id="modal-docs" onclick="if(event.target===this)fecharModalDocs()">
