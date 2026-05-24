@@ -1219,10 +1219,16 @@ function renderFunil(){
     const cards=g.slice(0,8).map(l=>{
       const idx=leads.findIndex(x=>x.id===l.id);
       const tel=l.telefone||l.tel||'';
+      const isQualif=et==='Qualificar e Agendar Reunião';
       const acoes=isEntrada
         ?`<div style="display:flex;gap:4px;margin-top:7px">
-            <button class="btn btn-xs" style="background:#27ae60;color:#fff;flex:1" onclick="moverEtapa(${idx},'Qualificar e Agendar Reunião');event.stopPropagation()" title="Qualificar lead">✅ Qualificar</button>
-            <button class="btn btn-xs" style="background:#e74c3c;color:#fff;flex:1" onclick="moverEtapa(${idx},'Leads Desqualificados');event.stopPropagation()" title="Desqualificar lead">❌ Desqualificar</button>
+            <button class="btn btn-xs" style="background:#27ae60;color:#fff;flex:1" onclick="moverEtapa(${idx},'Qualificar e Agendar Reunião');event.stopPropagation()">✅ Qualificar</button>
+            <button class="btn btn-xs" style="background:#e74c3c;color:#fff;flex:1" onclick="moverEtapa(${idx},'Leads Desqualificados');event.stopPropagation()">❌ Desqualif.</button>
+          </div>`
+        :isQualif
+        ?`<div style="display:flex;gap:4px;margin-top:7px">
+            <button class="btn btn-xs" style="background:#e67e22;color:#fff;flex:1" onclick="abrirModalAgenda(${idx});event.stopPropagation()">📅 Agendar Reunião</button>
+            <button class="btn btn-xs" style="background:#e74c3c;color:#fff" onclick="moverEtapa(${idx},'Leads Desqualificados');event.stopPropagation()">❌</button>
           </div>`
         :'';
       return`<div class="fc-card" onclick="abrirModal(${idx})" style="cursor:pointer">
@@ -1244,7 +1250,53 @@ function moverEtapa(idx,novaEtapa){
   if(idx<0||!leads[idx])return;
   leads[idx].etapa=novaEtapa;
   salvar();renderFunil();badges();
-  t(novaEtapa==='Leads Desqualificados'?'🗂 Lead movido para Desqualificados.':'✅ Lead qualificado!');
+  const msgs={'Leads Desqualificados':'🗂 Lead arquivado como desqualificado.','Qualificar e Agendar Reunião':'✅ Lead qualificado!','Reunião Agendada':'📅 Reunião agendada!'};
+  t(msgs[novaEtapa]||'✅ Etapa atualizada!');
+}
+
+let _agendaIdx=-1;
+function abrirModalAgenda(idx){
+  _agendaIdx=idx;
+  const l=leads[idx];
+  const m=document.getElementById('modal-agenda');
+  document.getElementById('ag-nome').textContent=l.nome||'Lead';
+  document.getElementById('ag-tel').textContent=l.telefone||l.tel||'';
+  // Pré-preenche com próximo dia útil 09:00
+  const amanha=new Date();amanha.setDate(amanha.getDate()+1);
+  document.getElementById('ag-data').value=amanha.toISOString().split('T')[0];
+  document.getElementById('ag-hora').value='09:00';
+  document.getElementById('ag-dur').value='60';
+  document.getElementById('ag-desc').value='Reunião de qualificação LCFO Advogados\nCliente: '+(l.nome||'')+(l.banco?'\nBanco: '+l.banco:'')+(l.divida&&l.divida!=='Não informado'?'\nDívida: '+l.divida:'');
+  m.classList.add('show');
+}
+function fecharModalAgenda(){
+  document.getElementById('modal-agenda').classList.remove('show');
+  _agendaIdx=-1;
+}
+function confirmarAgendamento(){
+  if(_agendaIdx<0)return;
+  const data=document.getElementById('ag-data').value;
+  const hora=document.getElementById('ag-hora').value;
+  const dur=parseInt(document.getElementById('ag-dur').value)||60;
+  const desc=document.getElementById('ag-desc').value;
+  if(!data||!hora){t('⚠️ Informe data e horário!',false);return;}
+  const l=leads[_agendaIdx];
+  // Monta datas no formato Google Calendar: YYYYMMDDTHHMMSS
+  const inicio=data.replace(/-/g,'')+`T${hora.replace(':','')}00`;
+  const fimDt=new Date(data+'T'+hora);fimDt.setMinutes(fimDt.getMinutes()+dur);
+  const fim=fimDt.toISOString().replace(/[-:]/g,'').split('.')[0];
+  const titulo=encodeURIComponent(`Reunião LCFO — ${l.nome||'Lead'}`);
+  const detalhes=encodeURIComponent(desc+`\nWhatsApp: ${l.telefone||l.tel||''}`);
+  const local=encodeURIComponent('LCFO Advogados — São Paulo/SP');
+  const gcUrl=`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${titulo}&dates=${inicio}/${fim}&details=${detalhes}&location=${local}`;
+  window.open(gcUrl,'_blank');
+  // Salva data da reunião e move etapa
+  leads[_agendaIdx].etapa='Reunião Agendada';
+  leads[_agendaIdx].reuniao_data=data;
+  leads[_agendaIdx].reuniao_hora=hora;
+  leads[_agendaIdx].followup=data; // Coloca no follow-up também
+  salvar();fecharModalAgenda();renderFunil();badges();
+  t('📅 Reunião agendada! Google Agenda aberto.');
 }
 function renderFollowup(){
   const hoje=new Date().toISOString().split('T')[0];
@@ -2081,6 +2133,46 @@ setTimeout(function(){syncLeadsMeta();setInterval(syncLeadsMeta,30000);},10000);
   }
 })();
 </script>
+
+<!-- MODAL AGENDAR REUNIÃO -->
+<div class="modal-bg" id="modal-agenda" onclick="if(event.target===this)fecharModalAgenda()">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-hd">
+      <div>
+        <h3>📅 Agendar Reunião</h3>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">
+          <span id="ag-nome" style="font-weight:600;color:var(--navy)"></span>
+          &nbsp;·&nbsp;<span id="ag-tel"></span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="fecharModalAgenda()">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div class="fg">
+        <div class="ff"><label>Data da Reunião *</label><input type="date" id="ag-data"></div>
+        <div class="ff"><label>Horário *</label><input type="time" id="ag-hora"></div>
+        <div class="ff"><label>Duração (minutos)</label>
+          <select id="ag-dur">
+            <option value="30">30 min</option>
+            <option value="60" selected>1 hora</option>
+            <option value="90">1h30</option>
+            <option value="120">2 horas</option>
+          </select>
+        </div>
+        <div class="ff" style="grid-column:1/-1"><label>Descrição do evento</label>
+          <textarea id="ag-desc" rows="3" style="resize:vertical"></textarea>
+        </div>
+      </div>
+      <div style="background:#eef3ff;border:1px solid #c5d5fb;border-radius:8px;padding:10px 14px;margin-top:8px;font-size:12px;color:#4a5568">
+        📌 Ao confirmar, o <strong>Google Agenda</strong> abrirá em nova aba com o evento pré-preenchido. Basta clicar em <strong>Salvar</strong> lá.
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-gray btn-sm" onclick="fecharModalAgenda()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmarAgendamento()" style="background:#e67e22">📅 Confirmar e Abrir Google Agenda</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL AUDIÊNCIA -->
 <div class="aud-edit-modal" id="modal-aud">
