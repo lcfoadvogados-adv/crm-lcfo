@@ -475,7 +475,7 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="panel-head"><h3>⚖️ Caso / Dívida</h3></div>
         <div class="panel-body">
           <div class="fg">
-            <div class="ff"><label>Etapa</label><select id="f-etapa"><option>Novo Lead</option><option>Primeiro Contato</option><option>Triagem</option><option>Proposta Enviada</option><option>Contrato Assinado</option><option>Em Andamento</option><option>Encerrado</option></select></div>
+            <div class="ff"><label>Etapa</label><select id="f-etapa"><option>Leads de Entrada</option><option>Primeiro Contato</option><option>Qualificar e Agendar</option><option>Reunião Agendada</option><option>Aguardando Documentos</option><option>Cliente em Dúvida</option><option>Contrato Assinado</option><option>Encerrado</option></select></div>
             <div class="ff"><label>Tipo de Dívida</label><select id="f-divida"><option>Não informado</option><option>Cartão de Crédito</option><option>Empréstimo Pessoal</option><option>Financiamento</option><option>Cheque Especial</option><option>Consignado</option><option>FGTS</option><option>Múltiplas Dívidas</option></select></div>
           </div>
           <div class="fg">
@@ -517,7 +517,7 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="panel-body">
           <div class="search-bar">
             <input id="busca" placeholder="🔍 Buscar por nome, CPF ou telefone..." oninput="renderLeads()">
-            <select id="f-etapa-fil" onchange="renderLeads()"><option value="">Todas as etapas</option><option>Novo Lead</option><option>Primeiro Contato</option><option>Triagem</option><option>Proposta Enviada</option><option>Contrato Assinado</option><option>Em Andamento</option><option>Encerrado</option></select>
+            <select id="f-etapa-fil" onchange="renderLeads()"><option value="">Todas as etapas</option><option>Leads de Entrada</option><option>Primeiro Contato</option><option>Qualificar e Agendar</option><option>Reunião Agendada</option><option>Aguardando Documentos</option><option>Cliente em Dúvida</option><option>Contrato Assinado</option><option>Encerrado</option></select>
           </div>
           <div class="tbl"><table><thead><tr><th>Nome</th><th>CPF</th><th>WhatsApp</th><th>Etapa</th><th>Dívida</th><th>Valor</th><th>Follow-up</th><th></th></tr></thead><tbody id="tbody"></tbody></table></div>
         </div>
@@ -917,7 +917,7 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="fg"><div class="ff"><label>Estado civil</label><select id="e-civil"><option value="">Selecione</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viúvo(a)</option><option>União Estável</option></select></div><div class="ff"><label>Profissão</label><input id="e-prof"></div></div>
       <div class="fg"><div class="ff"><label>WhatsApp</label><input id="e-tel"></div><div class="ff"><label>E-mail</label><input id="e-email" type="email"></div></div>
       <div class="fg"><div class="ff"><label>Endereço</label><input id="e-end"></div><div class="ff"><label>Telefone</label><input id="e-tel2"></div></div>
-      <div class="fg"><div class="ff"><label>Etapa</label><select id="e-etapa"><option>Novo Lead</option><option>Primeiro Contato</option><option>Triagem</option><option>Proposta Enviada</option><option>Contrato Assinado</option><option>Em Andamento</option><option>Encerrado</option></select></div><div class="ff"><label>Tipo de Dívida</label><select id="e-divida"><option>Não informado</option><option>Cartão de Crédito</option><option>Empréstimo Pessoal</option><option>Financiamento</option><option>Cheque Especial</option><option>Consignado</option><option>FGTS</option><option>Múltiplas Dívidas</option></select></div></div>
+      <div class="fg"><div class="ff"><label>Etapa</label><select id="e-etapa"><option>Leads de Entrada</option><option>Primeiro Contato</option><option>Qualificar e Agendar</option><option>Reunião Agendada</option><option>Aguardando Documentos</option><option>Cliente em Dúvida</option><option>Contrato Assinado</option><option>Encerrado</option></select></div><div class="ff"><label>Tipo de Dívida</label><select id="e-divida"><option>Não informado</option><option>Cartão de Crédito</option><option>Empréstimo Pessoal</option><option>Financiamento</option><option>Cheque Especial</option><option>Consignado</option><option>FGTS</option><option>Múltiplas Dívidas</option></select></div></div>
       <div class="fg"><div class="ff"><label>Banco(s)</label><input id="e-banco"></div><div class="ff"><label>Valor (R$)</label><input id="e-valor" type="number"></div></div>
       <div class="fg"><div class="ff"><label>Origem</label><select id="e-origem"><option>Meta Ads</option><option>WhatsApp Orgânico</option><option>Indicação</option><option>Instagram</option><option>Facebook</option><option>Outro</option></select></div><div class="ff"><label>Follow-up</label><input id="e-followup" type="date"></div></div>
       <div class="fg g1"><div class="ff"><label>Observações</label><input id="e-obs"></div></div>
@@ -936,15 +936,16 @@ let leads=[];let editIdx=-1;
 function carregar(){try{leads=JSON.parse(localStorage.getItem(KEY)||'[]');}catch{leads=[];}}
 function salvar(){try{localStorage.setItem(KEY,JSON.stringify(leads));}catch{t('Erro ao salvar!',false);}}
 carregar();
-const ETAPAS=['Novo Lead','Primeiro Contato','Triagem','Proposta Enviada','Contrato Assinado','Em Andamento','Encerrado'];
-const CORES={'Novo Lead':'#1D3461','Primeiro Contato':'#2A4A80','Triagem':'#3B6CB5','Proposta Enviada':'#C9A84C','Contrato Assinado':'#27ae60','Em Andamento':'#6B7A8D','Encerrado':'#95a5a6'};
+const ETAPAS=['Leads de Entrada','Primeiro Contato','Qualificar e Agendar','Reunião Agendada','Aguardando Documentos','Cliente em Dúvida','Contrato Assinado','Encerrado'];
+const CORES={'Leads de Entrada':'#1D3461','Primeiro Contato':'#2980b9','Qualificar e Agendar':'#8e44ad','Reunião Agendada':'#e67e22','Aguardando Documentos':'#d35400','Cliente em Dúvida':'#e74c3c','Contrato Assinado':'#27ae60','Encerrado':'#95a5a6'};
 const MSGS=[
-  {e:'Novo Lead',tt:'1º Contato — Boas-vindas',m:`Olá, [NOME]! 👋\nAqui é o Dr. Leonardo, da LCFO Advogados.\n\nVi que você demonstrou interesse em resolver sua situação com dívidas bancárias.\n\nPoderia me contar um pouco mais? Qual banco e qual tipo de dívida?\n\nEstou aqui para ajudar! 😊`},
+  {e:'Leads de Entrada',tt:'1º Contato — Boas-vindas',m:`Olá, [NOME]! 👋\nAqui é o Dr. Leonardo, da LCFO Advogados.\n\nVi que você demonstrou interesse em resolver sua situação com dívidas bancárias.\n\nPoderia me contar um pouco mais? Qual banco e qual tipo de dívida?\n\nEstou aqui para ajudar! 😊`},
   {e:'Primeiro Contato',tt:'Confirmação de Interesse',m:`Oi, [NOME]! Tudo bem?\n\nQueria confirmar se ainda tem interesse em analisar sua situação financeira.\n\nNa LCFO Advogados trabalhamos com dívidas bancárias e podemos verificar cobranças indevidas.\n\nPosso te explicar melhor?`},
-  {e:'Triagem',tt:'Coleta de Informações',m:`[NOME], para analisar seu caso com precisão preciso de:\n\n1️⃣ Nome do(s) banco(s)\n2️⃣ Valor aproximado da dívida\n3️⃣ Há quanto tempo em atraso?\n4️⃣ Já recebeu proposta de renegociação?\n\nCom isso faço uma análise completa! 📋`},
-  {e:'Proposta Enviada',tt:'Follow-up da Proposta',m:`Olá, [NOME]! Como vai?\n\nGostaria de saber se conseguiu analisar nossa proposta.\n\nTenho datas disponíveis essa semana. Qual horário seria melhor?\n\nEstou à disposição! ⚖️`},
+  {e:'Qualificar e Agendar',tt:'Coleta de Informações',m:`[NOME], para analisar seu caso com precisão preciso de:\n\n1️⃣ Nome do(s) banco(s)\n2️⃣ Valor aproximado da dívida\n3️⃣ Há quanto tempo em atraso?\n4️⃣ Já recebeu proposta de renegociação?\n\nCom isso faço uma análise completa! 📋`},
+  {e:'Reunião Agendada',tt:'Confirmação de Reunião',m:`Olá, [NOME]! 📅\n\nPassando para confirmar nossa reunião.\n\nEstamos prontos para analisar seu caso e apresentar as melhores opções para sua situação.\n\nQualquer dúvida, estou à disposição! ⚖️`},
+  {e:'Aguardando Documentos',tt:'Solicitação de Documentos',m:`Olá, [NOME]! Como vai?\n\nPara darmos continuidade ao seu caso, precisamos dos seguintes documentos:\n\n📄 RG ou CNH\n📄 CPF\n📄 Comprovante de residência\n📄 Extratos bancários (se disponível)\n\nPode me enviar por aqui mesmo! 😊`},
+  {e:'Cliente em Dúvida',tt:'Retomada — Cliente em Dúvida',m:`Oi, [NOME]! Tudo bem?\n\nSei que decisões assim exigem reflexão, então queria esclarecer qualquer dúvida que você tenha.\n\nEstou disponível para uma conversa sem compromisso. O que está te impedindo de avançar?\n\nEstou aqui para ajudar! ⚖️`},
   {e:'Contrato Assinado',tt:'Boas-vindas Cliente',m:`[NOME], seja muito bem-vindo(a) à LCFO Advogados! 🎉\n\nContrato assinado com sucesso. Cuidaremos do seu caso com total dedicação.\n\nEm breve entraremos em contato com os próximos passos. ⚖️`},
-  {e:'Em Andamento',tt:'Atualização do Processo',m:`Olá, [NOME]! Passando para dar um update. 📋\n\nEstamos trabalhando nas próximas etapas. Assim que houver novidades você será o(a) primeiro(a) a saber.\n\nAlguma dúvida?`},
   {e:'Encerrado',tt:'Pesquisa de Satisfação',m:`[NOME], seu caso foi concluído! 🎉\n\nFoi um prazer trabalhar com você!\n\nSe puder, me conta como foi sua experiência. E se conhecer alguém que precise de ajuda com dívidas bancárias, pode indicar! 🙏`},
 ];
 const ROTEIRO=[
@@ -1059,7 +1060,7 @@ function limparForm(){
   ['f-nome','f-cpf','f-rg','f-nasc','f-prof','f-tel','f-tel2','f-email','f-end','f-banco','f-valor','f-followup','f-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['f-gen','f-civil'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('f-nac').value='Brasileira';
-  document.getElementById('f-etapa').value='Novo Lead';
+  document.getElementById('f-etapa').value='Leads de Entrada';
   document.getElementById('f-divida').value='Não informado';
   document.getElementById('f-origem').value='Meta Ads';
   document.getElementById('ai-files').innerHTML='';limparTags();
@@ -1097,7 +1098,7 @@ function excluir(){
 }
 function renderDash(){
   const hoje=new Date().toISOString().split('T')[0];
-  const total=leads.length,novos=leads.filter(l=>l.etapa==='Novo Lead').length,ativos=leads.filter(l=>l.etapa==='Contrato Assinado'||l.etapa==='Em Andamento').length,urg=leads.filter(l=>l.followup&&l.followup<=hoje).length;
+  const total=leads.length,novos=leads.filter(l=>l.etapa==='Leads de Entrada').length,ativos=leads.filter(l=>l.etapa==='Contrato Assinado'||l.etapa==='Reunião Agendada').length,urg=leads.filter(l=>l.followup&&l.followup<=hoje).length;
   document.getElementById('cards-proc').innerHTML=`<div class="kpi"><div class="kpi-top"><span class="kpi-icon">👥</span></div><div class="kpi-num">${total}</div><div class="kpi-label">Total de Clientes</div></div><div class="kpi o"><div class="kpi-top"><span class="kpi-icon">🆕</span></div><div class="kpi-num">${novos}</div><div class="kpi-label">Novos Leads</div></div><div class="kpi g"><div class="kpi-top"><span class="kpi-icon">⚖️</span></div><div class="kpi-num">${ativos}</div><div class="kpi-label">Clientes Ativos</div></div><div class="kpi r"><div class="kpi-top"><span class="kpi-icon">🔔</span></div><div class="kpi-num">${urg}</div><div class="kpi-label">Follow-ups Urgentes</div></div>`;
   const ul=document.getElementById('dash-ul');
   const rec=[...leads].reverse().slice(0,5);
@@ -1136,7 +1137,7 @@ function renderRoteiro(){
 function copiar(id,btn){navigator.clipboard.writeText(document.getElementById(id).innerText).then(()=>{btn.textContent='✅ Copiado!';setTimeout(()=>btn.textContent='📋 Copiar',2000);});}
 function badges(){
   const b=document.getElementById('b-cli');if(b)b.textContent=leads.length;
-  const bp=document.getElementById('b-proc');if(bp)bp.textContent=leads.filter(l=>l.etapa==='Em Andamento'||l.etapa==='Contrato Assinado').length;
+  const bp=document.getElementById('b-proc');if(bp)bp.textContent=leads.filter(l=>l.etapa==='Contrato Assinado'||l.etapa==='Reunião Agendada').length;
   const hoje=new Date().toISOString().split('T')[0];
   const fu=leads.filter(l=>l.followup&&l.followup<=hoje).length;
   const bf=document.getElementById('b-fu');if(bf){bf.textContent=fu;bf.style.display=fu?'inline':'none';}
