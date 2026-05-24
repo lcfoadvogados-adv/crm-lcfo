@@ -525,7 +525,7 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="panel-head"><h3>⚖️ Caso / Dívida</h3></div>
         <div class="panel-body">
           <div class="fg">
-            <div class="ff"><label>Etapa</label><select id="f-etapa"><option>Leads de Entrada</option><option>Primeiro Contato</option><option>Qualificar e Agendar</option><option>Reunião Agendada</option><option>Aguardando Documentos</option><option>Cliente em Dúvida</option><option>Contrato Assinado</option><option>Encerrado</option></select></div>
+            <div class="ff"><label>Etapa</label><select id="f-etapa"><option>Leads de Entrada</option><option>Qualificar e Agendar Reunião</option><option>Reunião Agendada</option><option>Aguardando Documentos</option><option>Cliente em Dúvida</option><option>Contrato Assinado</option><option>Encerrado</option><option>Leads Desqualificados</option></select></div>
             <div class="ff"><label>Tipo de Dívida</label><select id="f-divida"><option>Não informado</option><option>Cartão de Crédito</option><option>Empréstimo Pessoal</option><option>Financiamento</option><option>Cheque Especial</option><option>Consignado</option><option>FGTS</option><option>Múltiplas Dívidas</option></select></div>
           </div>
           <div class="fg">
@@ -567,7 +567,7 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="panel-body">
           <div class="search-bar">
             <input id="busca" placeholder="🔍 Buscar por nome, CPF ou telefone..." oninput="renderLeads()">
-            <select id="f-etapa-fil" onchange="renderLeads()"><option value="">Todas as etapas</option><option>Leads de Entrada</option><option>Primeiro Contato</option><option>Qualificar e Agendar</option><option>Reunião Agendada</option><option>Aguardando Documentos</option><option>Cliente em Dúvida</option><option>Contrato Assinado</option><option>Encerrado</option></select>
+            <select id="f-etapa-fil" onchange="renderLeads()"><option value="">Todas as etapas</option><option>Leads de Entrada</option><option>Qualificar e Agendar Reunião</option><option>Reunião Agendada</option><option>Aguardando Documentos</option><option>Cliente em Dúvida</option><option>Contrato Assinado</option><option>Encerrado</option><option>Leads Desqualificados</option></select>
           </div>
           <div class="tbl"><table><thead><tr><th>Nome</th><th>CPF</th><th>WhatsApp</th><th>Etapa</th><th>Dívida</th><th>Valor</th><th>Follow-up</th><th></th></tr></thead><tbody id="tbody"></tbody></table></div>
         </div>
@@ -1012,7 +1012,7 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="fg"><div class="ff"><label>Estado civil</label><select id="e-civil"><option value="">Selecione</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viúvo(a)</option><option>União Estável</option></select></div><div class="ff"><label>Profissão</label><input id="e-prof"></div></div>
       <div class="fg"><div class="ff"><label>WhatsApp</label><input id="e-tel"></div><div class="ff"><label>E-mail</label><input id="e-email" type="email"></div></div>
       <div class="fg"><div class="ff"><label>Endereço</label><input id="e-end"></div><div class="ff"><label>Telefone</label><input id="e-tel2"></div></div>
-      <div class="fg"><div class="ff"><label>Etapa</label><select id="e-etapa"><option>Leads de Entrada</option><option>Primeiro Contato</option><option>Qualificar e Agendar</option><option>Reunião Agendada</option><option>Aguardando Documentos</option><option>Cliente em Dúvida</option><option>Contrato Assinado</option><option>Encerrado</option></select></div><div class="ff"><label>Tipo de Dívida</label><select id="e-divida"><option>Não informado</option><option>Cartão de Crédito</option><option>Empréstimo Pessoal</option><option>Financiamento</option><option>Cheque Especial</option><option>Consignado</option><option>FGTS</option><option>Múltiplas Dívidas</option></select></div></div>
+      <div class="fg"><div class="ff"><label>Etapa</label><select id="e-etapa"><option>Leads de Entrada</option><option>Qualificar e Agendar Reunião</option><option>Reunião Agendada</option><option>Aguardando Documentos</option><option>Cliente em Dúvida</option><option>Contrato Assinado</option><option>Encerrado</option><option>Leads Desqualificados</option></select></div><div class="ff"><label>Tipo de Dívida</label><select id="e-divida"><option>Não informado</option><option>Cartão de Crédito</option><option>Empréstimo Pessoal</option><option>Financiamento</option><option>Cheque Especial</option><option>Consignado</option><option>FGTS</option><option>Múltiplas Dívidas</option></select></div></div>
       <div class="fg"><div class="ff"><label>Banco(s)</label><input id="e-banco"></div><div class="ff"><label>Valor (R$)</label><input id="e-valor" type="number"></div></div>
       <div class="fg"><div class="ff"><label>Origem</label><select id="e-origem"><option>Meta Ads</option><option>WhatsApp Orgânico</option><option>Indicação</option><option>Instagram</option><option>Facebook</option><option>Outro</option></select></div><div class="ff"><label>Follow-up</label><input id="e-followup" type="date"></div></div>
       <div class="fg g1"><div class="ff"><label>Observações</label><input id="e-obs"></div></div>
@@ -1031,12 +1031,11 @@ let leads=[];let editIdx=-1;
 function carregar(){try{leads=JSON.parse(localStorage.getItem(KEY)||'[]');}catch{leads=[];}}
 function salvar(){try{localStorage.setItem(KEY,JSON.stringify(leads));}catch{t('Erro ao salvar!',false);}}
 carregar();
-const ETAPAS=['Leads de Entrada','Primeiro Contato','Qualificar e Agendar','Reunião Agendada','Aguardando Documentos','Cliente em Dúvida','Contrato Assinado','Encerrado'];
-const CORES={'Leads de Entrada':'#1D3461','Primeiro Contato':'#2980b9','Qualificar e Agendar':'#8e44ad','Reunião Agendada':'#e67e22','Aguardando Documentos':'#d35400','Cliente em Dúvida':'#e74c3c','Contrato Assinado':'#27ae60','Encerrado':'#95a5a6'};
+const ETAPAS=['Leads de Entrada','Qualificar e Agendar Reunião','Reunião Agendada','Aguardando Documentos','Cliente em Dúvida','Contrato Assinado','Encerrado','Leads Desqualificados'];
+const CORES={'Leads de Entrada':'#1D3461','Qualificar e Agendar Reunião':'#8e44ad','Reunião Agendada':'#e67e22','Aguardando Documentos':'#d35400','Cliente em Dúvida':'#e74c3c','Contrato Assinado':'#27ae60','Encerrado':'#95a5a6','Leads Desqualificados':'#95a5a6'};
 const MSGS=[
   {e:'Leads de Entrada',tt:'1º Contato — Boas-vindas',m:`Olá, [NOME]! 👋\nAqui é o Dr. Leonardo, da LCFO Advogados.\n\nVi que você demonstrou interesse em resolver sua situação com dívidas bancárias.\n\nPoderia me contar um pouco mais? Qual banco e qual tipo de dívida?\n\nEstou aqui para ajudar! 😊`},
-  {e:'Primeiro Contato',tt:'Confirmação de Interesse',m:`Oi, [NOME]! Tudo bem?\n\nQueria confirmar se ainda tem interesse em analisar sua situação financeira.\n\nNa LCFO Advogados trabalhamos com dívidas bancárias e podemos verificar cobranças indevidas.\n\nPosso te explicar melhor?`},
-  {e:'Qualificar e Agendar',tt:'Coleta de Informações',m:`[NOME], para analisar seu caso com precisão preciso de:\n\n1️⃣ Nome do(s) banco(s)\n2️⃣ Valor aproximado da dívida\n3️⃣ Há quanto tempo em atraso?\n4️⃣ Já recebeu proposta de renegociação?\n\nCom isso faço uma análise completa! 📋`},
+  {e:'Qualificar e Agendar Reunião',tt:'Coleta de Informações',m:`[NOME], para analisar seu caso com precisão preciso de:\n\n1️⃣ Nome do(s) banco(s)\n2️⃣ Valor aproximado da dívida\n3️⃣ Há quanto tempo em atraso?\n4️⃣ Já recebeu proposta de renegociação?\n\nCom isso faço uma análise completa! 📋`},
   {e:'Reunião Agendada',tt:'Confirmação de Reunião',m:`Olá, [NOME]! 📅\n\nPassando para confirmar nossa reunião.\n\nEstamos prontos para analisar seu caso e apresentar as melhores opções para sua situação.\n\nQualquer dúvida, estou à disposição! ⚖️`},
   {e:'Aguardando Documentos',tt:'Solicitação de Documentos',m:`Olá, [NOME]! Como vai?\n\nPara darmos continuidade ao seu caso, precisamos dos seguintes documentos:\n\n📄 RG ou CNH\n📄 CPF\n📄 Comprovante de residência\n📄 Extratos bancários (se disponível)\n\nPode me enviar por aqui mesmo! 😊`},
   {e:'Cliente em Dúvida',tt:'Retomada — Cliente em Dúvida',m:`Oi, [NOME]! Tudo bem?\n\nSei que decisões assim exigem reflexão, então queria esclarecer qualquer dúvida que você tenha.\n\nEstou disponível para uma conversa sem compromisso. O que está te impedindo de avançar?\n\nEstou aqui para ajudar! ⚖️`},
@@ -1212,9 +1211,40 @@ function renderDash(){
 }
 function renderFunil(){
   document.getElementById('funil-board').innerHTML=ETAPAS.map(et=>{
-    const g=leads.filter(l=>l.etapa===et);const cor=CORES[et]||'#999';
-    return`<div class="funil-col"><div class="fc-hd"><h4 style="background:${cor}">${et}<span class="fc-ct">${g.length}</span></h4></div>${g.length?g.slice(0,5).map(l=>`<div class="fc-card"><div class="cn">${l.nome}</div><div class="ct">📱 ${l.tel}</div></div>`).join('')+(g.length>5?`<p style="text-align:center;font-size:11px;color:#8695a7;padding:4px">+${g.length-5} mais</p>`:''): '<p style="text-align:center;font-size:12px;color:#8695a7;padding:12px">Vazio</p>'}</div>`;
+    const g=leads.filter(l=>l.etapa===et);
+    const cor=CORES[et]||'#999';
+    const isEntrada=et==='Leads de Entrada';
+    const isDesq=et==='Leads Desqualificados';
+    const colStyle=isDesq?'opacity:.65;filter:grayscale(.4)':'';
+    const cards=g.slice(0,8).map(l=>{
+      const idx=leads.findIndex(x=>x.id===l.id);
+      const tel=l.telefone||l.tel||'';
+      const acoes=isEntrada
+        ?`<div style="display:flex;gap:4px;margin-top:7px">
+            <button class="btn btn-xs" style="background:#27ae60;color:#fff;flex:1" onclick="moverEtapa(${idx},'Qualificar e Agendar Reunião');event.stopPropagation()" title="Qualificar lead">✅ Qualificar</button>
+            <button class="btn btn-xs" style="background:#e74c3c;color:#fff;flex:1" onclick="moverEtapa(${idx},'Leads Desqualificados');event.stopPropagation()" title="Desqualificar lead">❌ Desqualificar</button>
+          </div>`
+        :'';
+      return`<div class="fc-card" onclick="abrirModal(${idx})" style="cursor:pointer">
+        <div class="cn">${l.nome||'Sem nome'}</div>
+        ${tel?`<div class="ct">📱 ${tel}</div>`:''}
+        ${l.origem==='Meta Ads'?'<div style="font-size:10px;color:#C9A84C;margin-top:2px">🔥 Meta Ads</div>':''}
+        ${acoes}
+      </div>`;
+    }).join('');
+    const extra=g.length>8?`<p style="text-align:center;font-size:11px;color:#8695a7;padding:4px">+${g.length-8} mais</p>`:'';
+    const vazio='<p style="text-align:center;font-size:12px;color:#8695a7;padding:12px">Vazio</p>';
+    return`<div class="funil-col" style="${colStyle}">
+      <div class="fc-hd"><h4 style="background:${cor}">${isDesq?'🗂 ':''} ${et}<span class="fc-ct">${g.length}</span></h4></div>
+      ${g.length?cards+extra:vazio}
+    </div>`;
   }).join('');
+}
+function moverEtapa(idx,novaEtapa){
+  if(idx<0||!leads[idx])return;
+  leads[idx].etapa=novaEtapa;
+  salvar();renderFunil();badges();
+  t(novaEtapa==='Leads Desqualificados'?'🗂 Lead movido para Desqualificados.':'✅ Lead qualificado!');
 }
 function renderFollowup(){
   const hoje=new Date().toISOString().split('T')[0];
