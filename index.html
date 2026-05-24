@@ -1968,6 +1968,54 @@ function limparDJE(){
   badges();
   t('Histórico do DJE limpo.');
 }
+
+// ===== IMPORTAÇÃO DE LEAD VIA META ADS (?lead=BASE64) =====
+(function importarLeadMeta(){
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get('lead');
+    if (!raw) return;
+    // Remove o param da URL sem recarregar
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, '', cleanUrl);
+    const lead = JSON.parse(atob(decodeURIComponent(raw)));
+    if (!lead || (!lead.nome && !lead.telefone)) return;
+    carregar();
+    // Verifica duplicata por telefone
+    const dup = leads.find(function(l){ return l.telefone && l.telefone === lead.telefone; });
+    if (dup) {
+      t('⚠️ Lead já cadastrado: ' + (dup.nome || dup.telefone), false);
+      irPara('clientes', null, 'Clientes');
+      return;
+    }
+    const novoLead = {
+      id:       Date.now(),
+      nome:     lead.nome     || '',
+      telefone: lead.telefone || '',
+      email:    lead.email    || '',
+      cpf:      lead.cpf      || '',
+      endereco: lead.endereco || '',
+      obs:      lead.obs      || '',
+      etapa:    'Leads de Entrada',
+      origem:   'Meta Ads',
+      criado:   new Date().toLocaleDateString('pt-BR'),
+      followup: '',
+      divida:   'Não informado',
+      banco:    '',
+      valor:    '',
+    };
+    leads.unshift(novoLead);
+    salvar();
+    badges();
+    // Abre a seção de clientes com o lead destacado
+    irPara('clientes', null, 'Clientes');
+    setTimeout(function(){
+      t('🔥 Lead importado do Meta Ads: ' + (novoLead.nome || novoLead.telefone) + '!');
+    }, 400);
+  } catch(e) {
+    console.warn('[Meta Import] Erro ao importar lead:', e.message);
+  }
+})();
 </script>
 
 <!-- MODAL AUDIÊNCIA -->
