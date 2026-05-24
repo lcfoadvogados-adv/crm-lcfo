@@ -1658,7 +1658,7 @@ function audItemHTML(a){
     '<div class="aud-actions">'+
       '<span class="badge" style="background:'+cor+';color:'+txt+';font-size:10px">'+a.status+'</span>'+
       '<button class="btn btn-gray btn-xs" onclick="abrirModalAud('+idx+')">✏️</button>'+
-      (a.status==='Agendada'?'<button class="btn btn-success btn-xs" onclick="marcarAudStatus('+idx+','Realizada')">✅</button>':'')+
+      (a.status==='Agendada'?'<button class="btn btn-success btn-xs" onclick="marcarAudStatus('+idx+',\'Realizada\')">✅</button>':'')+
     '</div>'+
   '</div>';
 }
