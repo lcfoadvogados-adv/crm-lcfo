@@ -387,7 +387,7 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="nav-group">
       <div class="nav-group-label">Operação Jurídica</div>
       <button class="nav-item" onclick="irPara('processos',this,'Processos')"><span class="ni">📁</span>Processos<span class="nb blue" id="b-proc">0</span></button>
-      <button class="nav-item" onclick="irPara('eb',this,'Prazos')"><span class="ni">⏰</span>Prazos</button>
+      <button class="nav-item" onclick="irPara('processos',this,'Prazos');setTimeout(function(){trocarAbaProc('pab-prazos',document.querySelectorAll('.proc-tab')[2]);},50)"><span class="ni">⏰</span>Prazos</button>
       <button class="nav-item" onclick="irPara('audiencias',this,'Audiências e Perícias')"><span class="ni">⚖️</span>Audiências e Perícias<span class="nb" id="b-aud" style="display:none">0</span></button>
       <button class="nav-item" onclick="irPara('dje',this,'DJE / Intimações')"><span class="ni">📬</span>DJE / Intimações<span class="nb gold" id="b-dje" style="display:none">0</span></button>
     </div>
