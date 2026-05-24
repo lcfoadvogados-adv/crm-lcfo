@@ -1969,6 +1969,40 @@ function limparDJE(){
   t('Histórico do DJE limpo.');
 }
 
+// ===== SYNC AUTOMÁTICO — META ADS (polling a cada 30s) =====
+function syncLeadsMeta(){
+  if(document.hidden)return; // Não busca se a aba estiver em segundo plano
+  fetch('/api/leads-sync')
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(!res.ok||!res.leads||!res.leads.length)return;
+      carregar();
+      var novos=0;
+      res.leads.forEach(function(lead){
+        // Evita duplicata por telefone
+        var dup=leads.find(function(l){return l.telefone&&l.telefone===lead.telefone;});
+        if(dup)return;
+        leads.unshift(lead);
+        novos++;
+      });
+      if(novos>0){
+        salvar();badges();
+        var msg=novos===1
+          ?'🔥 Novo lead do Meta Ads: '+(res.leads[0].nome||res.leads[0].telefone||'sem nome')+'!'
+          :'🔥 '+novos+' novos leads do Meta Ads importados!';
+        t(msg);
+        // Atualiza lista se estiver na tela de clientes ou funil
+        var secCli=document.getElementById('sec-clientes');
+        var secFun=document.getElementById('sec-funil');
+        if(secCli&&secCli.classList.contains('active'))renderLeads();
+        if(secFun&&secFun.classList.contains('active'))renderFunil();
+      }
+    })
+    .catch(function(){}); // Silencia erros de rede
+}
+// Começa a verificar 10s após carregar a página, depois a cada 30s
+setTimeout(function(){syncLeadsMeta();setInterval(syncLeadsMeta,30000);},10000);
+
 // ===== IMPORTAÇÃO DE LEAD VIA META ADS (?lead=BASE64) =====
 (function importarLeadMeta(){
   try {

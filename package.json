@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "resend": "^3.5.0"
+    "resend": "^3.5.0",
+    "@vercel/kv": "^2.0.0"
   }
 }
