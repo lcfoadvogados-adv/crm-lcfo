@@ -482,6 +482,13 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
       </div>
       <div class="cards-grid" id="cards-proc" style="margin-bottom:20px"></div>
+      <!-- Integrações -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center">
+        <span style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Integrações:</span>
+        <div id="gdrive-status-btn">
+          <a href="/api/gdrive-auth" class="btn btn-sm" style="background:#0f9d58;color:#fff;text-decoration:none">📁 Conectar Google Drive</a>
+        </div>
+      </div>
       <div class="dash-2col">
         <div class="panel">
           <div class="panel-head"><h3>🕐 Últimos Leads</h3></div>
@@ -822,6 +829,12 @@ tbody tr:last-child td{border-bottom:none;}
               <div class="dp-body">
                 <div class="dp-row"><span class="dr-label">Cadastrado em</span><span class="dr-val" id="dp-criado2">—</span></div>
                 <div class="dp-row"><span class="dr-label">Última atualização</span><span class="dr-val" id="dp-update2">—</span></div>
+              </div>
+            </div>
+            <div class="detalhe-panel" id="dp-drive-panel">
+              <div class="dp-head"><h4>📁 Google Drive</h4></div>
+              <div class="dp-body" id="dp-drive-body">
+                <button class="btn btn-sm" style="background:#0f9d58;color:#fff;width:100%" onclick="criarPastaGDrive(_pfIdx)">📁 Criar Pasta no Drive</button>
               </div>
             </div>
             <div class="detalhe-panel">
@@ -1338,6 +1351,7 @@ function moverEtapa(idx,novaEtapa){
 // ── Mover para Aguardando Documentos + abrir pedido de docs ──
 function moverEtapaComDocs(idx){
   moverEtapa(idx,'Documentação & Contrato');
+  criarPastaGDrive(idx); // Cria pasta no Drive automaticamente
   setTimeout(function(){abrirModalPedirDocs(idx);},300);
 }
 
@@ -2499,6 +2513,85 @@ function enviarContratoEmail(){
   }).catch(function(){btn.textContent='📧 Enviar por E-mail';btn.disabled=false;t('⚠️ Erro de conexão.',false);});
 }
 
+// ===== PERFIL DO CLIENTE =====
+let _pfIdx=-1;
+function abrirPerfil(idx,showSuccess){
+  _pfIdx=idx;
+  const l=leads[idx];
+  if(!l)return;
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tp-titulo').textContent='Perfil — '+(l.nome||'Cliente');
+  fecharSb();
+  document.getElementById('sec-perfil').classList.add('active');
+  // Header
+  const av=document.getElementById('pf-av');if(av)av.textContent=(l.nome||'P')[0].toUpperCase();
+  const pn=document.getElementById('pf-nome');if(pn)pn.textContent=l.nome||'—';
+  const pc=document.getElementById('pf-cpf-sub');if(pc)pc.textContent=l.cpf||'';
+  const pc2=document.getElementById('pf-criado');if(pc2)pc2.textContent=l.criado||'—';
+  const pu=document.getElementById('pf-update');if(pu)pu.textContent=l.update||l.criado||'—';
+  // Campos de detalhe
+  const s=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v||'—';};
+  s('dp-nome',l.nome);s('dp-cpf',l.cpf);s('dp-rg',l.rg);
+  s('dp-nasc',l.nasc?new Date(l.nasc+'T12:00').toLocaleDateString('pt-BR'):'');
+  s('dp-gen',l.gen);s('dp-prof',l.prof||l.profissao);s('dp-nac',l.nac||l.nacionalidade||'Brasileira');
+  s('dp-tel',l.tel||l.telefone);s('dp-tel2',l.tel2);s('dp-email',l.email);
+  s('dp-end',l.end||l.endereco);s('dp-divida',l.divida);s('dp-banco',l.banco);
+  s('dp-valor',l.valor?'R$ '+Number(l.valor).toLocaleString('pt-BR'):'—');
+  s('dp-origem',l.origem);s('dp-obs',l.obs);s('dp-criado2',l.criado);s('dp-update2',l.update||l.criado);
+  const etEl=document.getElementById('dp-etapa');
+  if(etEl)etEl.innerHTML=`<span class="badge" style="background:${CORES[l.etapa]||'#999'};color:#fff">${l.etapa||'—'}</span>`;
+  // Tags
+  const tp=document.getElementById('dp-tags-panel'),tw=document.getElementById('dp-tags');
+  if(l.tags&&l.tags.length){if(tw)tw.innerHTML=l.tags.map(tg=>`<span class="tag-chip" style="background:${tg.cor||'#aaa'};color:#fff;padding:2px 9px;border-radius:12px;font-size:11px">${tg.n}</span>`).join('');if(tp)tp.style.display='';}
+  else{if(tp)tp.style.display='none';}
+  // Google Drive
+  atualizarDrivePanel();
+  // Reset à primeira aba
+  const firstTab=document.querySelector('.ptab');if(firstTab)trocarAba('dados',firstTab);
+  if(showSuccess){const m=document.getElementById('perfil-success-msg');if(m){m.style.display='block';setTimeout(()=>m.style.display='none',3000);}}
+}
+function editarPerfilAtual(){if(_pfIdx>=0)abrirModal(_pfIdx);}
+function atualizarDrivePanel(){
+  const l=leads[_pfIdx];
+  const bd=document.getElementById('dp-drive-body');
+  if(!bd||!l)return;
+  if(l.gdrive_pasta){
+    bd.innerHTML=`<a href="${l.gdrive_pasta}" target="_blank" class="btn btn-sm" style="background:#0f9d58;color:#fff;text-decoration:none;display:block;text-align:center">📁 Abrir Pasta no Drive</a>`;
+  } else {
+    bd.innerHTML=`<button class="btn btn-sm" style="background:#0f9d58;color:#fff;width:100%" onclick="criarPastaGDrive(${_pfIdx})">📁 Criar Pasta no Drive</button>`;
+  }
+}
+
+// ===== GOOGLE DRIVE — Criar pasta do cliente =====
+async function criarPastaGDrive(idx){
+  const l=leads[idx];
+  if(!l)return;
+  if(l.gdrive_pasta){window.open(l.gdrive_pasta,'_blank');return;}
+  t('📁 Criando pasta no Google Drive…');
+  try{
+    const res=await fetch('/api/gdrive-pasta',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({nome:l.nome||l.tel||l.telefone||'Cliente',cpf:l.cpf||''}),
+    });
+    const data=await res.json();
+    if(data.ok){
+      leads[idx].gdrive_pasta=data.folderUrl;
+      salvar();
+      t('📁 Pasta criada: '+data.folderName);
+      if(_pfIdx===idx)atualizarDrivePanel();
+      // Atualiza botão no funil se visível
+      const fc=document.querySelector('[data-lead-idx="'+idx+'"] .drive-btn');
+      if(fc){fc.textContent='📁 Drive';fc.onclick=function(){window.open(data.folderUrl,'_blank');};}
+    } else if(data.naoConectado){
+      t('⚠️ Google Drive não conectado. Clique em "Conectar Google Drive" no Dashboard.',false);
+    } else {
+      t('⚠️ Erro no Drive: '+(data.erro||'desconhecido'),false);
+    }
+  }catch(e){t('⚠️ Erro ao criar pasta no Drive.',false);}
+}
+
 // ===== SYNC AUTOMÁTICO — META ADS (polling a cada 30s) =====
 function syncLeadsMeta(){
   if(document.hidden)return; // Não busca se a aba estiver em segundo plano
@@ -2533,10 +2626,24 @@ function syncLeadsMeta(){
 // Começa a verificar 10s após carregar a página, depois a cada 30s
 setTimeout(function(){syncLeadsMeta();setInterval(syncLeadsMeta,30000);},10000);
 
-// ===== IMPORTAÇÃO DE LEAD VIA META ADS (?lead=BASE64) =====
+// ===== IMPORTAÇÃO DE LEAD VIA META ADS (?lead=BASE64) e retorno OAuth =====
 (function importarLeadMeta(){
   try {
     const params = new URLSearchParams(window.location.search);
+    // Retorno do OAuth Google Drive
+    const gdrive=params.get('gdrive');
+    if(gdrive){
+      window.history.replaceState({},'',window.location.pathname);
+      if(gdrive==='ok'){
+        // Atualiza botão no dashboard
+        const btn=document.getElementById('gdrive-status-btn');
+        if(btn)btn.innerHTML='<span style="font-size:12px;color:#0f9d58;font-weight:600">✅ Google Drive conectado</span>';
+        setTimeout(()=>t('✅ Google Drive conectado com sucesso!'),400);
+      } else {
+        const msg=params.get('msg')||'Erro desconhecido';
+        setTimeout(()=>t('⚠️ Erro ao conectar Drive: '+msg,false),400);
+      }
+    }
     const raw = params.get('lead');
     if (!raw) return;
     // Remove o param da URL sem recarregar
