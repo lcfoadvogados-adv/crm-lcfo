@@ -123,6 +123,9 @@ tbody tr:last-child td{border-bottom:none;}
 .search-bar input,.search-bar select{padding:7px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:12.5px;font-family:inherit;color:var(--text);background:var(--white);}
 .search-bar input{flex:1;min-width:160px;}
 .search-bar input:focus,.search-bar select:focus{outline:none;border-color:#8aabf5;}
+/* DASHBOARD 2COL */
+.dash-2col{display:grid;grid-template-columns:1fr 340px;gap:16px;}
+@media(max-width:900px){.dash-2col{grid-template-columns:1fr;}}
 /* FUNIL */
 .funil-board{display:flex;gap:11px;overflow-x:auto;padding-bottom:8px;}
 .funil-col{min-width:155px;flex:1;background:#f7f9fc;border-radius:10px;padding:11px;border:1px solid var(--border);}
@@ -356,7 +359,7 @@ tbody tr:last-child td{border-bottom:none;}
 <div class="toast" id="toast"></div>
 
 <aside class="sidebar" id="sidebar">
-  <div class="logo-wrap">
+  <div class="logo-wrap" onclick="irPara('home',null,'Início')" style="cursor:pointer" title="Ir para o início">
     <div class="logo-icon"><span class="li-main">LCFO</span><span class="li-sub">ADV</span></div>
     <div class="logo-text"><p>LCFO Advogados</p><span>Sistema Jurídico</span></div>
   </div>
@@ -370,7 +373,7 @@ tbody tr:last-child td{border-bottom:none;}
     </div>
     <div class="nav-group">
       <div class="nav-group-label">Atendimento e Comercial</div>
-      <button class="nav-item active" onclick="irPara('clientes',this,'Clientes')"><span class="ni">👥</span>Clientes<span class="nb gold" id="b-cli">0</span></button>
+      <button class="nav-item" onclick="irPara('clientes',this,'Clientes')"><span class="ni">👥</span>Clientes<span class="nb gold" id="b-cli">0</span></button>
       <button class="nav-item" onclick="irPara('eb',this,'Atendimentos / Reuniões')"><span class="ni">🤝</span>Atendimentos / Reuniões</button>
       <button class="nav-item" onclick="irPara('mensagens',this,'Mensagens')"><span class="ni">💬</span>Mensagens</button>
       <button class="nav-item" onclick="irPara('funil',this,'Funil / Pipeline')"><span class="ni">📐</span>Funil / Pipeline</button>
@@ -405,7 +408,7 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="topbar">
     <div class="topbar-l">
       <button class="hamburger" onclick="toggleSb()">☰</button>
-      <div class="breadcrumb">LCFO Advogados &rsaquo; <strong id="tp-titulo">Clientes</strong></div>
+      <div class="breadcrumb">LCFO Advogados &rsaquo; <strong id="tp-titulo">Início</strong></div>
     </div>
     <div class="topbar-r">
       <span class="top-date" id="tp-data"></span>
@@ -415,8 +418,35 @@ tbody tr:last-child td{border-bottom:none;}
 
   <div class="content">
 
+    <!-- HOME / DASHBOARD -->
+    <div class="section active" id="sec-home">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <div>
+          <h2 style="font-size:20px;font-weight:700;color:var(--text)" id="dash-saudacao">Olá, Dr. Leonardo!</h2>
+          <p style="font-size:12.5px;color:var(--text2);margin-top:3px" id="dash-data"></p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="irPara('clientes',document.querySelector('.nav-item[onclick*=clientes]'),'Clientes')">👤 Novo Cliente</button>
+          <button class="btn btn-gray btn-sm" onclick="irPara('funil',document.querySelector('.nav-item[onclick*=funil]'),'Funil / Pipeline')">📐 Funil</button>
+          <button class="btn btn-gray btn-sm" onclick="irPara('followup',document.querySelector('.nav-item[onclick*=followup]'),'Follow-ups')">🔔 Follow-ups</button>
+          <button class="btn btn-gray btn-sm" onclick="irPara('processos',document.querySelector('.nav-item[onclick*=processos]'),'Processos')">📁 Processos</button>
+        </div>
+      </div>
+      <div class="cards-grid" id="cards-proc" style="margin-bottom:20px"></div>
+      <div class="dash-2col">
+        <div class="panel">
+          <div class="panel-head"><h3>🕐 Últimos Leads</h3></div>
+          <div class="panel-body" id="dash-ul"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>🔔 Follow-ups Urgentes</h3></div>
+          <div class="panel-body" id="dash-fu"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- CLIENTES -->
-    <div class="section active" id="sec-clientes">
+    <div class="section" id="sec-clientes">
       <button class="ph-back">← Voltar</button>
       <div class="ph"><h2>Novo cliente — Pessoa Física</h2><p>Anexe um documento para preenchimento automático ou preencha manualmente. Campos com <span style="color:var(--red)">*</span> são obrigatórios.</p></div>
 
@@ -969,6 +999,7 @@ function irPara(id,btn,titulo){
   if(EM_BREVE.includes(id)){document.getElementById('sec-eb').classList.add('active');document.getElementById('eb-titulo').textContent=titulo+' — Em breve';return;}
   const s=document.getElementById('sec-'+id);
   if(s)s.classList.add('active');
+  if(id==='home')renderDash();
   if(id==='clientes')renderLeads();
   if(id==='processos')renderProcessos();
   if(id==='funil')renderFunil();
@@ -1097,6 +1128,10 @@ function excluir(){
   leads.splice(editIdx,1);salvar();fecharModal();renderLeads();badges();t('🗑 Cliente excluído.');
 }
 function renderDash(){
+  const hora=new Date().getHours();
+  const sauda=hora<12?'Bom dia':hora<18?'Boa tarde':'Boa noite';
+  const els=document.getElementById('dash-saudacao');if(els)els.textContent=sauda+', Dr. Leonardo!';
+  const eld=document.getElementById('dash-data');if(eld)eld.textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const hoje=new Date().toISOString().split('T')[0];
   const total=leads.length,novos=leads.filter(l=>l.etapa==='Leads de Entrada').length,ativos=leads.filter(l=>l.etapa==='Contrato Assinado'||l.etapa==='Reunião Agendada').length,urg=leads.filter(l=>l.followup&&l.followup<=hoje).length;
   document.getElementById('cards-proc').innerHTML=`<div class="kpi"><div class="kpi-top"><span class="kpi-icon">👥</span></div><div class="kpi-num">${total}</div><div class="kpi-label">Total de Clientes</div></div><div class="kpi o"><div class="kpi-top"><span class="kpi-icon">🆕</span></div><div class="kpi-num">${novos}</div><div class="kpi-label">Novos Leads</div></div><div class="kpi g"><div class="kpi-top"><span class="kpi-icon">⚖️</span></div><div class="kpi-num">${ativos}</div><div class="kpi-label">Clientes Ativos</div></div><div class="kpi r"><div class="kpi-top"><span class="kpi-icon">🔔</span></div><div class="kpi-num">${urg}</div><div class="kpi-label">Follow-ups Urgentes</div></div>`;
@@ -1563,7 +1598,7 @@ function atualizarBadgeProc(){
   b.textContent=u;b.style.display=u?'inline':'none';
 }
 
-carregarProc();badges();renderLeads();atualizarBadgeProc();
+carregarProc();badges();renderDash();atualizarBadgeProc();
 
 // ===== AUDIÊNCIAS E PERÍCIAS =====
 const KEY_AUD='crm_aud_v1';
