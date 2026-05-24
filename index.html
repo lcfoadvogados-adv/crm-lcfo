@@ -1314,7 +1314,14 @@ function salvarLead(){
   if(!nome||!tel){t('⚠️ Nome e WhatsApp são obrigatórios!',false);return;}
   leads.push({id:Date.now(),criado:new Date().toLocaleDateString('pt-BR'),nome,tags:JSON.parse(JSON.stringify(fTags)),cpf:g('f-cpf'),rg:g('f-rg'),nasc:g('f-nasc'),gen:g('f-gen'),civil:g('f-civil'),prof:g('f-prof'),nac:g('f-nac'),end:g('f-end'),tel,tel2:g('f-tel2'),email:g('f-email'),origem:g('f-origem'),etapa:g('f-etapa'),divida:g('f-divida'),banco:g('f-banco'),valor:g('f-valor'),followup:g('f-followup'),obs:g('f-obs')});
   const newIdx=leads.length-1;
-  if(leads[newIdx].etapa==='Leads de Entrada')iniciarBotLead(newIdx);
+  const etapa=leads[newIdx].etapa;
+  if(etapa==='Leads de Entrada')iniciarBotLead(newIdx);
+  // Clientes ativos: criar pasta no Drive e cadência de comunicação
+  const ETAPAS_DRIVE=['Documentação & Contrato','Encerrado com Acordo','Encerrado com Êxito Judicial','Encerrado sem Êxito'];
+  if(ETAPAS_DRIVE.includes(etapa)){
+    setTimeout(()=>criarPastaGDrive(newIdx),600);
+    if(etapa==='Documentação & Contrato')criarTarefasCliente(newIdx);
+  }
   salvar();badges();badgesAud();limparForm();renderLeads();
   setTimeout(()=>abrirPerfil(newIdx,true),100);
 }
@@ -1338,7 +1345,9 @@ function renderLeads(){
     const idx=leads.findIndex(x=>x.id===l.id);
     const cor=CORES[l.etapa]||'#999';
     const fu=l.followup?new Date(l.followup+'T12:00').toLocaleDateString('pt-BR'):'—';
-    return`<tr><td style="cursor:pointer" onclick="abrirPerfil(${idx})"><strong style="color:#1D3461">${l.nome}</strong><br><small style="color:#8695a7">${l.criado||''}</small></td><td>${l.cpf||'—'}</td><td><a href="https://wa.me/55${l.tel.replace(/\D/g,'')}" target="_blank" style="color:#253F6B">📱 ${l.tel}</a></td><td><span class="badge" style="background:${cor}">${l.etapa}</span></td><td>${l.divida||'—'}</td><td>${l.valor?'R$ '+Number(l.valor).toLocaleString('pt-BR'):'—'}</td><td>${fu}</td><td><button class="btn btn-gray btn-xs" onclick="abrirModal(${idx})">✏️</button></td></tr>`;
+    const driveBtnStyle=l.gdrive_pasta?'background:#0f9d58;color:#fff':'background:#edf0f5;color:#555';
+    const driveBtnTitle=l.gdrive_pasta?'Abrir pasta no Drive':'Criar pasta no Drive';
+    return`<tr><td style="cursor:pointer" onclick="abrirPerfil(${idx})"><strong style="color:#1D3461">${l.nome}</strong><br><small style="color:#8695a7">${l.criado||''}</small></td><td>${l.cpf||'—'}</td><td><a href="https://wa.me/55${l.tel.replace(/\D/g,'')}" target="_blank" style="color:#253F6B">📱 ${l.tel}</a></td><td><span class="badge" style="background:${cor}">${l.etapa}</span></td><td>${l.divida||'—'}</td><td>${l.valor?'R$ '+Number(l.valor).toLocaleString('pt-BR'):'—'}</td><td>${fu}</td><td style="white-space:nowrap"><button class="btn btn-gray btn-xs" onclick="abrirModal(${idx})">✏️</button> <button class="btn btn-xs" style="${driveBtnStyle}" onclick="criarPastaGDrive(${idx})" title="${driveBtnTitle}">📁</button></td></tr>`;
   }).join('');
 }
 function abrirModal(idx){
