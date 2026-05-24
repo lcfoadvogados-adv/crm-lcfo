@@ -526,7 +526,7 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="panel-head"><h3>⚖️ Caso / Dívida</h3></div>
         <div class="panel-body">
           <div class="fg">
-            <div class="ff"><label>Etapa</label><select id="f-etapa"><option>Leads de Entrada</option><option>Qualificar e Agendar Reunião</option><option>Cliente em Dúvida</option><option>Reunião Agendada</option><option>Aguardando Documentos</option><option>Contrato Assinado</option><option>Encerrado</option><option>Leads Desqualificados</option></select></div>
+            <div class="ff"><label>Etapa</label><select id="f-etapa"><option>Leads de Entrada</option><option>Qualificar e Agendar Reunião</option><option>Cliente em Dúvida s/ Reunião</option><option>Reunião Agendada</option><option>Cliente em Dúvida Pós-Reunião</option><option>Aguardando Documentos</option><option>Contrato Assinado</option><option>Encerrado</option><option>Leads Desqualificados</option></select></div>
             <div class="ff"><label>Tipo de Dívida</label><select id="f-divida"><option>Não informado</option><option>Cartão de Crédito</option><option>Empréstimo Pessoal</option><option>Financiamento</option><option>Cheque Especial</option><option>Consignado</option><option>FGTS</option><option>Múltiplas Dívidas</option></select></div>
           </div>
           <div class="fg">
@@ -568,7 +568,7 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="panel-body">
           <div class="search-bar">
             <input id="busca" placeholder="🔍 Buscar por nome, CPF ou telefone..." oninput="renderLeads()">
-            <select id="f-etapa-fil" onchange="renderLeads()"><option value="">Todas as etapas</option><option>Leads de Entrada</option><option>Qualificar e Agendar Reunião</option><option>Cliente em Dúvida</option><option>Reunião Agendada</option><option>Aguardando Documentos</option><option>Contrato Assinado</option><option>Encerrado</option><option>Leads Desqualificados</option></select>
+            <select id="f-etapa-fil" onchange="renderLeads()"><option value="">Todas as etapas</option><option>Leads de Entrada</option><option>Qualificar e Agendar Reunião</option><option>Cliente em Dúvida s/ Reunião</option><option>Reunião Agendada</option><option>Cliente em Dúvida Pós-Reunião</option><option>Aguardando Documentos</option><option>Contrato Assinado</option><option>Encerrado</option><option>Leads Desqualificados</option></select>
           </div>
           <div class="tbl"><table><thead><tr><th>Nome</th><th>CPF</th><th>WhatsApp</th><th>Etapa</th><th>Dívida</th><th>Valor</th><th>Follow-up</th><th></th></tr></thead><tbody id="tbody"></tbody></table></div>
         </div>
@@ -1013,7 +1013,7 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="fg"><div class="ff"><label>Estado civil</label><select id="e-civil"><option value="">Selecione</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viúvo(a)</option><option>União Estável</option></select></div><div class="ff"><label>Profissão</label><input id="e-prof"></div></div>
       <div class="fg"><div class="ff"><label>WhatsApp</label><input id="e-tel"></div><div class="ff"><label>E-mail</label><input id="e-email" type="email"></div></div>
       <div class="fg"><div class="ff"><label>Endereço</label><input id="e-end"></div><div class="ff"><label>Telefone</label><input id="e-tel2"></div></div>
-      <div class="fg"><div class="ff"><label>Etapa</label><select id="e-etapa"><option>Leads de Entrada</option><option>Qualificar e Agendar Reunião</option><option>Cliente em Dúvida</option><option>Reunião Agendada</option><option>Aguardando Documentos</option><option>Contrato Assinado</option><option>Encerrado</option><option>Leads Desqualificados</option></select></div><div class="ff"><label>Tipo de Dívida</label><select id="e-divida"><option>Não informado</option><option>Cartão de Crédito</option><option>Empréstimo Pessoal</option><option>Financiamento</option><option>Cheque Especial</option><option>Consignado</option><option>FGTS</option><option>Múltiplas Dívidas</option></select></div></div>
+      <div class="fg"><div class="ff"><label>Etapa</label><select id="e-etapa"><option>Leads de Entrada</option><option>Qualificar e Agendar Reunião</option><option>Cliente em Dúvida s/ Reunião</option><option>Reunião Agendada</option><option>Cliente em Dúvida Pós-Reunião</option><option>Aguardando Documentos</option><option>Contrato Assinado</option><option>Encerrado</option><option>Leads Desqualificados</option></select></div><div class="ff"><label>Tipo de Dívida</label><select id="e-divida"><option>Não informado</option><option>Cartão de Crédito</option><option>Empréstimo Pessoal</option><option>Financiamento</option><option>Cheque Especial</option><option>Consignado</option><option>FGTS</option><option>Múltiplas Dívidas</option></select></div></div>
       <div class="fg"><div class="ff"><label>Banco(s)</label><input id="e-banco"></div><div class="ff"><label>Valor (R$)</label><input id="e-valor" type="number"></div></div>
       <div class="fg"><div class="ff"><label>Origem</label><select id="e-origem"><option>Meta Ads</option><option>WhatsApp Orgânico</option><option>Indicação</option><option>Instagram</option><option>Facebook</option><option>Outro</option></select></div><div class="ff"><label>Follow-up</label><input id="e-followup" type="date"></div></div>
       <div class="fg g1"><div class="ff"><label>Observações</label><input id="e-obs"></div></div>
@@ -1032,14 +1032,14 @@ let leads=[];let editIdx=-1;
 function carregar(){try{leads=JSON.parse(localStorage.getItem(KEY)||'[]');}catch{leads=[];}}
 function salvar(){try{localStorage.setItem(KEY,JSON.stringify(leads));}catch{t('Erro ao salvar!',false);}}
 carregar();
-const ETAPAS=['Leads de Entrada','Qualificar e Agendar Reunião','Cliente em Dúvida','Reunião Agendada','Aguardando Documentos','Contrato Assinado','Encerrado','Leads Desqualificados'];
-const CORES={'Leads de Entrada':'#1D3461','Qualificar e Agendar Reunião':'#8e44ad','Reunião Agendada':'#e67e22','Aguardando Documentos':'#d35400','Cliente em Dúvida':'#e74c3c','Contrato Assinado':'#27ae60','Encerrado':'#95a5a6','Leads Desqualificados':'#95a5a6'};
+const ETAPAS=['Leads de Entrada','Qualificar e Agendar Reunião','Cliente em Dúvida s/ Reunião','Reunião Agendada','Cliente em Dúvida Pós-Reunião','Aguardando Documentos','Contrato Assinado','Encerrado','Leads Desqualificados'];
+const CORES={'Leads de Entrada':'#1D3461','Qualificar e Agendar Reunião':'#8e44ad','Cliente em Dúvida s/ Reunião':'#e74c3c','Reunião Agendada':'#e67e22','Cliente em Dúvida Pós-Reunião':'#c0392b','Aguardando Documentos':'#d35400','Contrato Assinado':'#27ae60','Encerrado':'#95a5a6','Leads Desqualificados':'#95a5a6'};
 const MSGS=[
   {e:'Leads de Entrada',tt:'1º Contato — Boas-vindas',m:`Olá, [NOME]! 👋\nAqui é o Dr. Leonardo, da LCFO Advogados.\n\nVi que você demonstrou interesse em resolver sua situação com dívidas bancárias.\n\nPoderia me contar um pouco mais? Qual banco e qual tipo de dívida?\n\nEstou aqui para ajudar! 😊`},
   {e:'Qualificar e Agendar Reunião',tt:'Coleta de Informações',m:`[NOME], para analisar seu caso com precisão preciso de:\n\n1️⃣ Nome do(s) banco(s)\n2️⃣ Valor aproximado da dívida\n3️⃣ Há quanto tempo em atraso?\n4️⃣ Já recebeu proposta de renegociação?\n\nCom isso faço uma análise completa! 📋`},
   {e:'Reunião Agendada',tt:'Confirmação de Reunião',m:`Olá, [NOME]! 📅\n\nPassando para confirmar nossa reunião.\n\nEstamos prontos para analisar seu caso e apresentar as melhores opções para sua situação.\n\nQualquer dúvida, estou à disposição! ⚖️`},
   {e:'Aguardando Documentos',tt:'Solicitação de Documentos',m:`Olá, [NOME]! Como vai?\n\nPara darmos continuidade ao seu caso, precisamos dos seguintes documentos:\n\n📄 RG ou CNH\n📄 CPF\n📄 Comprovante de residência\n📄 Extratos bancários (se disponível)\n\nPode me enviar por aqui mesmo! 😊`},
-  {e:'Cliente em Dúvida',tt:'Retomada — Cliente em Dúvida',m:`Oi, [NOME]! Tudo bem?\n\nSei que decisões assim exigem reflexão, então queria esclarecer qualquer dúvida que você tenha.\n\nEstou disponível para uma conversa sem compromisso. O que está te impedindo de avançar?\n\nEstou aqui para ajudar! ⚖️`},
+  {e:'Cliente em Dúvida s/ Reunião',tt:'Retomada — Cliente em Dúvida',m:`Oi, [NOME]! Tudo bem?\n\nSei que decisões assim exigem reflexão, então queria esclarecer qualquer dúvida que você tenha.\n\nEstou disponível para uma conversa sem compromisso. O que está te impedindo de avançar?\n\nEstou aqui para ajudar! ⚖️`},
   {e:'Contrato Assinado',tt:'Boas-vindas Cliente',m:`[NOME], seja muito bem-vindo(a) à LCFO Advogados! 🎉\n\nContrato assinado com sucesso. Cuidaremos do seu caso com total dedicação.\n\nEm breve entraremos em contato com os próximos passos. ⚖️`},
   {e:'Encerrado',tt:'Pesquisa de Satisfação',m:`[NOME], seu caso foi concluído! 🎉\n\nFoi um prazer trabalhar com você!\n\nSe puder, me conta como foi sua experiência. E se conhecer alguém que precise de ajuda com dívidas bancárias, pode indicar! 🙏`},
 ];
@@ -1220,21 +1220,22 @@ function renderFunil(){
     const cards=g.slice(0,8).map(l=>{
       const idx=leads.findIndex(x=>x.id===l.id);
       const tel=l.telefone||l.tel||'';
-      const isQualif=et==='Qualificar e Agendar Reunião';
-      const isDuvida=et==='Cliente em Dúvida';
+      const isQualif   = et==='Qualificar e Agendar Reunião';
+      const isDuvida   = et==='Cliente em Dúvida s/ Reunião';
+      const isReuniao  = et==='Reunião Agendada';
+      const isDuvPos   = et==='Cliente em Dúvida Pós-Reunião';
+      const isAguardDoc= et==='Aguardando Documentos';
       const hoje=new Date().toISOString().split('T')[0];
-      // Sinalização para Cliente em Dúvida
-      let sinalDuvida='';
-      if(isDuvida){
-        const fu=l.followup;
-        if(!fu){
-          sinalDuvida='<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:5px;padding:4px 8px;font-size:11px;color:#856404;margin-top:5px">⚠️ Sem follow-up definido</div>';
-        } else if(fu<hoje){
-          sinalDuvida=`<div style="background:#fde8e8;border:1px solid #e74c3c;border-radius:5px;padding:4px 8px;font-size:11px;color:#c0392b;margin-top:5px">🔴 Follow-up vencido: ${new Date(fu+'T12:00').toLocaleDateString('pt-BR')}</div>`;
-        } else {
-          sinalDuvida=`<div style="background:#e8f5e9;border:1px solid #27ae60;border-radius:5px;padding:4px 8px;font-size:11px;color:#1e7e34;margin-top:5px">📅 Follow-up: ${new Date(fu+'T12:00').toLocaleDateString('pt-BR')}</div>`;
-        }
+
+      // Sinalização follow-up para etapas de dúvida
+      function sinalFU(lead){
+        const fu=lead.followup;
+        if(!fu) return '<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:5px;padding:4px 8px;font-size:11px;color:#856404;margin-top:5px">⚠️ Sem follow-up definido</div>';
+        if(fu<hoje) return `<div style="background:#fde8e8;border:1px solid #e74c3c;border-radius:5px;padding:4px 8px;font-size:11px;color:#c0392b;margin-top:5px">🔴 Follow-up vencido: ${new Date(fu+'T12:00').toLocaleDateString('pt-BR')}</div>`;
+        return `<div style="background:#e8f5e9;border:1px solid #27ae60;border-radius:5px;padding:4px 8px;font-size:11px;color:#1e7e34;margin-top:5px">📅 Follow-up: ${new Date(fu+'T12:00').toLocaleDateString('pt-BR')}</div>`;
       }
+      const sinalDuvida=(isDuvida||isDuvPos)?sinalFU(l):'';
+
       const acoes=isEntrada
         ?`<div style="display:flex;gap:4px;margin-top:7px">
             <button class="btn btn-xs" style="background:#27ae60;color:#fff;flex:1" onclick="moverEtapa(${idx},'Qualificar e Agendar Reunião');event.stopPropagation()">✅ Qualificar</button>
@@ -1243,16 +1244,26 @@ function renderFunil(){
         :isQualif
         ?`<div style="display:flex;gap:4px;margin-top:7px;flex-wrap:wrap">
             <button class="btn btn-xs" style="background:#e67e22;color:#fff;flex:1;min-width:100px" onclick="abrirModalAgenda(${idx});event.stopPropagation()">📅 Agendar Reunião</button>
-            <button class="btn btn-xs" style="background:#8e44ad;color:#fff;flex:1;min-width:80px" onclick="moverEtapa(${idx},'Cliente em Dúvida');event.stopPropagation()">🤔 Em Dúvida</button>
-            <button class="btn btn-xs" style="background:#e74c3c;color:#fff" onclick="moverEtapa(${idx},'Leads Desqualificados');event.stopPropagation()">❌</button>
+            <button class="btn btn-xs" style="background:#e74c3c;color:#fff;flex:1;min-width:80px" onclick="moverEtapa(${idx},'Cliente em Dúvida s/ Reunião');event.stopPropagation()">🤔 Em Dúvida</button>
+            <button class="btn btn-xs" style="background:#95a5a6;color:#fff" onclick="moverEtapa(${idx},'Leads Desqualificados');event.stopPropagation()">❌</button>
           </div>`
-        :isDuvida
+        :(isDuvida||isDuvPos)
         ?`<div style="display:flex;gap:4px;margin-top:7px">
-            <button class="btn btn-xs" style="background:#1D3461;color:#fff;flex:1" onclick="abrirModalTarefa(${idx});event.stopPropagation()">📋 Criar Follow-up</button>
+            <button class="btn btn-xs" style="background:#1D3461;color:#fff;flex:1" onclick="abrirModalTarefa(${idx});event.stopPropagation()">📋 Follow-up</button>
             <button class="btn btn-xs" style="background:#e67e22;color:#fff;flex:1" onclick="abrirModalAgenda(${idx});event.stopPropagation()">📅 Agendar</button>
           </div>`
+        :isReuniao
+        ?`<div style="display:flex;gap:4px;margin-top:7px;flex-wrap:wrap">
+            <button class="btn btn-xs" style="background:#d35400;color:#fff;flex:1;min-width:110px" onclick="moverEtapaComDocs(${idx});event.stopPropagation()">📄 Aguardar Docs</button>
+            <button class="btn btn-xs" style="background:#c0392b;color:#fff;flex:1;min-width:80px" onclick="moverEtapa(${idx},'Cliente em Dúvida Pós-Reunião');event.stopPropagation()">🤔 Em Dúvida</button>
+          </div>`
+        :isAguardDoc
+        ?`<div style="display:flex;gap:4px;margin-top:7px">
+            <button class="btn btn-xs" style="background:#1D3461;color:#fff;flex:1" onclick="abrirModalPedirDocs(${idx});event.stopPropagation()">📋 Pedir Documentos</button>
+          </div>`
         :'';
-      return`<div class="fc-card${isDuvida?' fc-duvida':''}" onclick="abrirModal(${idx})" style="cursor:pointer">
+      const cardCls=(isDuvida||isDuvPos)?' fc-duvida':'';
+      return`<div class="fc-card${cardCls}" onclick="abrirModal(${idx})" style="cursor:pointer">
         <div class="cn">${l.nome||'Sem nome'}</div>
         ${tel?`<div class="ct">📱 ${tel}</div>`:''}
         ${l.origem==='Meta Ads'?'<div style="font-size:10px;color:#C9A84C;margin-top:2px">🔥 Meta Ads</div>':''}
@@ -1274,6 +1285,48 @@ function moverEtapa(idx,novaEtapa){
   salvar();renderFunil();badges();
   const msgs={'Leads Desqualificados':'🗂 Lead arquivado como desqualificado.','Qualificar e Agendar Reunião':'✅ Lead qualificado!','Reunião Agendada':'📅 Reunião agendada!'};
   t(msgs[novaEtapa]||'✅ Etapa atualizada!');
+}
+
+// ── Mover para Aguardando Documentos + abrir pedido de docs ──
+function moverEtapaComDocs(idx){
+  moverEtapa(idx,'Aguardando Documentos');
+  setTimeout(function(){abrirModalPedirDocs(idx);},300);
+}
+
+// ── Modal Pedir Documentos ──
+let _docsIdx=-1;
+function abrirModalPedirDocs(idx){
+  _docsIdx=idx;
+  const l=leads[idx];
+  document.getElementById('pd-nome').textContent=l.nome||'Cliente';
+  document.getElementById('pd-tel').textContent=l.telefone||l.tel||'';
+  const msg=`Olá, ${l.nome||''}! 👋\n\nPara darmos continuidade ao seu caso, precisamos dos seguintes documentos:\n\n📄 RG ou CNH\n📄 CPF\n📄 Comprovante de residência\n📄 Extratos bancários (se disponível)\n\nPode me enviar por aqui mesmo? Assim agilizamos o processo! 😊\n\nDr. Leonardo — LCFO Advogados ⚖️`;
+  document.getElementById('pd-msg').value=msg;
+  const fu=new Date();fu.setDate(fu.getDate()+3);
+  document.getElementById('pd-followup').value=fu.toISOString().split('T')[0];
+  document.getElementById('modal-docs').classList.add('show');
+}
+function fecharModalDocs(){
+  document.getElementById('modal-docs').classList.remove('show');
+  _docsIdx=-1;
+}
+function confirmarPedirDocs(){
+  if(_docsIdx<0)return;
+  const fu=document.getElementById('pd-followup').value;
+  const msg=document.getElementById('pd-msg').value;
+  if(fu){leads[_docsIdx].followup=fu;salvar();}
+  // Copia mensagem para clipboard
+  navigator.clipboard.writeText(msg).then(function(){
+    t('📋 Mensagem copiada! Cole no WhatsApp do cliente.');
+  }).catch(function(){
+    t('📋 Copie a mensagem acima e envie no WhatsApp.');
+  });
+  // Abre WhatsApp se tiver telefone
+  const tel=(leads[_docsIdx].telefone||leads[_docsIdx].tel||'').replace(/\D/g,'');
+  if(tel){
+    window.open('https://wa.me/55'+tel+'?text='+encodeURIComponent(msg),'_blank');
+  }
+  fecharModalDocs();renderFunil();
 }
 
 // ── Modal Follow-up (Cliente em Dúvida) ──
@@ -2181,6 +2234,39 @@ setTimeout(function(){syncLeadsMeta();setInterval(syncLeadsMeta,30000);},10000);
   }
 })();
 </script>
+
+<!-- MODAL PEDIR DOCUMENTOS -->
+<div class="modal-bg" id="modal-docs" onclick="if(event.target===this)fecharModalDocs()">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-hd">
+      <div>
+        <h3>📄 Solicitar Documentos</h3>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">
+          <span id="pd-nome" style="font-weight:600;color:var(--navy)"></span>
+          &nbsp;·&nbsp;<span id="pd-tel"></span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="fecharModalDocs()">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div class="ff" style="margin-bottom:12px">
+        <label>Mensagem para enviar ao cliente</label>
+        <textarea id="pd-msg" rows="8" style="resize:vertical;font-size:12px;line-height:1.6"></textarea>
+      </div>
+      <div class="ff">
+        <label>Follow-up — verificar em</label>
+        <input type="date" id="pd-followup">
+      </div>
+      <div style="background:#e8f5e9;border:1px solid #27ae60;border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:#1e7e34">
+        📌 Ao confirmar, a mensagem será <strong>copiada</strong> e o <strong>WhatsApp do cliente abrirá</strong> automaticamente com o texto pronto.
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-gray btn-sm" onclick="fecharModalDocs()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmarPedirDocs()" style="background:#d35400">📱 Copiar e Abrir WhatsApp</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL FOLLOW-UP (CLIENTE EM DÚVIDA) -->
 <div class="modal-bg" id="modal-tarefa" onclick="if(event.target===this)fecharModalTarefa()">
