@@ -388,7 +388,7 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="nav-group-label">Operação Jurídica</div>
       <button class="nav-item" onclick="irPara('processos',this,'Processos')"><span class="ni">📁</span>Processos<span class="nb blue" id="b-proc">0</span></button>
       <button class="nav-item" onclick="irPara('eb',this,'Prazos')"><span class="ni">⏰</span>Prazos</button>
-      <button class="nav-item" onclick="irPara('eb',this,'Audiências e Perícias')"><span class="ni">⚖️</span>Audiências e Perícias<span class="nb" style="display:none">1</span></button>
+      <button class="nav-item" onclick="irPara('audiencias',this,'Audiências e Perícias')"><span class="ni">⚖️</span>Audiências e Perícias<span class="nb" id="b-aud" style="display:none">0</span></button>
       <button class="nav-item" onclick="irPara('dje',this,'DJE / Intimações')"><span class="ni">📬</span>DJE / Intimações<span class="nb gold" id="b-dje" style="display:none">0</span></button>
     </div>
     <div class="nav-group">
@@ -1072,6 +1072,7 @@ function irPara(id,btn,titulo){
   if(id==='mensagens')renderMensagens();
   if(id==='roteiro')renderRoteiro();
   if(id==='dje')renderDJE();
+  if(id==='audiencias'){carregarAud();renderAudDash();renderListaAud();renderPericias();badgesAud();}
 }
 function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('mob-ov').classList.toggle('show');}
 function fecharSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mob-ov').classList.remove('show');}
@@ -1360,7 +1361,7 @@ function renderTodosPrazos(){
     const cls=cl?'pv-done':d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
     const pi=processos.findIndex(x=>x.id===p.id);
     const zi=(p.prazos||[]).findIndex(x=>x.id===pz.id);
-    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${pz.tipo}${pz.desc?` — ${pz.desc}`:''}</div><div style="font-size:12px;color:var(--text2)">⚖️ ${p.cliente||p.numero}</div>${pz.data?`<div style="font-size:11px;color:var(--text2)">📅 ${new Date(pz.data+'T12:00').toLocaleDateString('pt-BR')}</div>`:''}</div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px">${!cl?`<button class="btn btn-success btn-xs" onclick="concluirPrazo(${pi},${zi});event.stopPropagation()">✅</button>`:''}<button class="btn btn-gray btn-xs" onclick="abrirModalProc(${pi})">Ver</button></div></div>`;
+    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${pz.tipo}${pz.desc?` — ${pz.desc}`:''}</div><div style="font-size:12px;color:var(--text2)">⚖️ ${p.cliente||p.numero}</div>${pz.data?`<div style="font-size:11px;color:var(--text2)">📅 ${new Date(pz.data+'T12:00').toLocaleDateString('pt-BR')}</div>`:''}</div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px;flex-wrap:wrap">${!cl?`<button class="btn btn-success btn-xs" onclick="concluirPrazo(${pi},${zi});event.stopPropagation()">✅</button><button class="btn btn-xs" style="background:#8e44ad;color:#fff" onclick="agendarDePrazo(${pi},${zi},'audiencia');event.stopPropagation()" title="Criar Audiência">🎤</button><button class="btn btn-xs" style="background:#1a6fa8;color:#fff" onclick="agendarDePrazo(${pi},${zi},'pericia');event.stopPropagation()" title="Criar Perícia">🔬</button>`:''}<button class="btn btn-gray btn-xs" onclick="abrirModalProc(${pi})">Ver</button></div></div>`;
   }).join('');
 }
 function concluirPrazo(pi,zi){if(pi<0||!processos[pi]||!processos[pi].prazos[zi])return;processos[pi].prazos[zi].status='concluido';salvarProc();renderTodosPrazos();renderDashProc();atualizarBadgeProc();alerta('✅ Prazo concluído!');}
@@ -1421,7 +1422,7 @@ function renderPrazosModal(){
     const d=diasParaPrazo(z.data);const cl=z.status==='concluido';
     const cls=cl?'pv-done':d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
     const ri=pz.indexOf(z);
-    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${z.tipo}</div>${z.desc?`<div style="font-size:12px;color:var(--text2)">${z.desc}</div>`:''}<div style="font-size:11px;color:var(--text2)">📅 ${z.data?new Date(z.data+'T12:00').toLocaleDateString('pt-BR'):''}</div></div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px">${!cl?`<button class="btn btn-success btn-xs" onclick="concluirPrazoM(${ri})">✅</button>`:''}<button class="btn btn-danger btn-xs" onclick="excluirPrazoM(${ri})">🗑</button></div></div>`;
+    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${z.tipo}</div>${z.desc?`<div style="font-size:12px;color:var(--text2)">${z.desc}</div>`:''}<div style="font-size:11px;color:var(--text2)">📅 ${z.data?new Date(z.data+'T12:00').toLocaleDateString('pt-BR'):''}</div></div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px;flex-wrap:wrap">${!cl?`<button class="btn btn-success btn-xs" onclick="concluirPrazoM(${ri})">✅</button><button class="btn btn-xs" style="background:#8e44ad;color:#fff" onclick="agendarDePrazoModal(${ri},'audiencia')" title="Criar Audiência">🎤</button><button class="btn btn-xs" style="background:#1a6fa8;color:#fff" onclick="agendarDePrazoModal(${ri},'pericia')" title="Criar Perícia">🔬</button>`:''}<button class="btn btn-danger btn-xs" onclick="excluirPrazoM(${ri})">🗑</button></div></div>`;
   }).join('');
 }
 function concluirPrazoM(i){processos[procEditIdx].prazos[i].status='concluido';salvarProc();renderPrazosModal();renderDashProc();atualizarBadgeProc();}
@@ -1578,7 +1579,7 @@ function renderTodosPrazos(){
     const cls=cl?'pv-done':d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
     const pi=processos.findIndex(x=>x.id===p.id);
     const zi=(p.prazos||[]).findIndex(x=>x.id===pz.id);
-    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${pz.tipo}${pz.desc?` — ${pz.desc}`:''}</div><div style="font-size:12px;color:var(--text2)">⚖️ ${p.cliente||p.numero}</div>${pz.data?`<div style="font-size:11px;color:var(--text2)">📅 ${new Date(pz.data+'T12:00').toLocaleDateString('pt-BR')}</div>`:''}</div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px">${!cl?`<button class="btn btn-success btn-xs" onclick="concluirPrazo(${pi},${zi});event.stopPropagation()">✅</button>`:''}<button class="btn btn-gray btn-xs" onclick="abrirModalProc(${pi})">Ver</button></div></div>`;
+    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${pz.tipo}${pz.desc?` — ${pz.desc}`:''}</div><div style="font-size:12px;color:var(--text2)">⚖️ ${p.cliente||p.numero}</div>${pz.data?`<div style="font-size:11px;color:var(--text2)">📅 ${new Date(pz.data+'T12:00').toLocaleDateString('pt-BR')}</div>`:''}</div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px;flex-wrap:wrap">${!cl?`<button class="btn btn-success btn-xs" onclick="concluirPrazo(${pi},${zi});event.stopPropagation()">✅</button><button class="btn btn-xs" style="background:#8e44ad;color:#fff" onclick="agendarDePrazo(${pi},${zi},'audiencia');event.stopPropagation()" title="Criar Audiência">🎤</button><button class="btn btn-xs" style="background:#1a6fa8;color:#fff" onclick="agendarDePrazo(${pi},${zi},'pericia');event.stopPropagation()" title="Criar Perícia">🔬</button>`:''}<button class="btn btn-gray btn-xs" onclick="abrirModalProc(${pi})">Ver</button></div></div>`;
   }).join('');
 }
 function concluirPrazo(pi,zi){if(pi<0||!processos[pi]||!processos[pi].prazos[zi])return;processos[pi].prazos[zi].status='concluido';salvarProc();renderTodosPrazos();renderDashProc();atualizarBadgeProc();alerta('✅ Prazo concluído!');}
@@ -1639,7 +1640,7 @@ function renderPrazosModal(){
     const d=diasParaPrazo(z.data);const cl=z.status==='concluido';
     const cls=cl?'pv-done':d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
     const ri=pz.indexOf(z);
-    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${z.tipo}</div>${z.desc?`<div style="font-size:12px;color:var(--text2)">${z.desc}</div>`:''}<div style="font-size:11px;color:var(--text2)">📅 ${z.data?new Date(z.data+'T12:00').toLocaleDateString('pt-BR'):''}</div></div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px">${!cl?`<button class="btn btn-success btn-xs" onclick="concluirPrazoM(${ri})">✅</button>`:''}<button class="btn btn-danger btn-xs" onclick="excluirPrazoM(${ri})">🗑</button></div></div>`;
+    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${z.tipo}</div>${z.desc?`<div style="font-size:12px;color:var(--text2)">${z.desc}</div>`:''}<div style="font-size:11px;color:var(--text2)">📅 ${z.data?new Date(z.data+'T12:00').toLocaleDateString('pt-BR'):''}</div></div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px;flex-wrap:wrap">${!cl?`<button class="btn btn-success btn-xs" onclick="concluirPrazoM(${ri})">✅</button><button class="btn btn-xs" style="background:#8e44ad;color:#fff" onclick="agendarDePrazoModal(${ri},'audiencia')" title="Criar Audiência">🎤</button><button class="btn btn-xs" style="background:#1a6fa8;color:#fff" onclick="agendarDePrazoModal(${ri},'pericia')" title="Criar Perícia">🔬</button>`:''}<button class="btn btn-danger btn-xs" onclick="excluirPrazoM(${ri})">🗑</button></div></div>`;
   }).join('');
 }
 function concluirPrazoM(i){processos[procEditIdx].prazos[i].status='concluido';salvarProc();renderPrazosModal();renderDashProc();atualizarBadgeProc();}
@@ -1794,6 +1795,51 @@ function badgesAud(){
   var urg=audiencias.filter(function(a){return a.data>=hoje&&a.status==='Agendada';}).length;
   var nb=document.querySelector('[onclick*=audiencias] .nb');
   if(nb){nb.textContent=urg;nb.style.display=urg?'inline':'none';}
+}
+
+// ===== AGENDAR DE PRAZO =====
+function agendarDePrazo(pi,zi,tipo){
+  carregarProc();
+  var proc=processos[pi];
+  if(!proc)return;
+  var prazo=proc.prazos?proc.prazos[zi]:null;
+  // Fechar modal de processo se estiver aberto
+  var modalProc=document.getElementById('modal-proc');
+  if(modalProc&&modalProc.classList.contains('show'))fecharModalProc();
+  // Navegar para a aba de audiências
+  var audBtn=document.querySelector('[onclick*="irPara(\'audiencias\'"]');
+  irPara('audiencias',audBtn,'Audiências e Perícias');
+  // Aguardar render e pré-preencher o formulário
+  setTimeout(function(){
+    // Abrir aba "Nova Audiência"
+    var tabNova=document.querySelectorAll('.aud-tab')[2];
+    trocarAbaAud('aab-nova',tabNova);
+    // Tipo
+    var tipoEl=document.getElementById('na-tipo');
+    if(tipoEl)tipoEl.value=tipo==='pericia'?'Perícia':'Instrução e Julgamento';
+    // Data do prazo
+    if(prazo&&prazo.data){var dtEl=document.getElementById('na-data');if(dtEl)dtEl.value=prazo.data;}
+    // Processo
+    var procEl=document.getElementById('na-proc');
+    if(procEl)procEl.value=proc.numero||'';
+    // Cliente
+    var cliEl=document.getElementById('na-cliente');
+    if(cliEl)cliEl.value=proc.cliente||'';
+    // Parte contrária
+    var ctEl=document.getElementById('na-contraria');
+    if(ctEl)ctEl.value=proc.contraria||'';
+    // Local (comarca)
+    var locEl=document.getElementById('na-local');
+    if(locEl)locEl.value=proc.comarca||'';
+    // Observações
+    var obsEl=document.getElementById('na-obs');
+    if(obsEl)obsEl.value=(prazo&&prazo.tipo?'[Prazo: '+prazo.tipo+(prazo.desc?' — '+prazo.desc:'')+']':'');
+    t('✅ Formulário pré-preenchido! Confira os dados e salve.');
+  },100);
+}
+function agendarDePrazoModal(ri,tipo){
+  if(procEditIdx<0)return;
+  agendarDePrazo(procEditIdx,ri,tipo);
 }
 
 // ===== DJE / INTIMAÇÕES =====
