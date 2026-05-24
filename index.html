@@ -526,7 +526,7 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="panel-head"><h3>⚖️ Caso / Dívida</h3></div>
         <div class="panel-body">
           <div class="fg">
-            <div class="ff"><label>Etapa</label><select id="f-etapa"><option>Leads de Entrada</option><option>Qualificar e Agendar Reunião</option><option>Cliente em Dúvida s/ Reunião</option><option>Reunião Agendada</option><option>Cliente em Dúvida Pós-Reunião</option><option>Aguardando Documentos</option><option>Contrato Assinado</option><option>Encerrado</option><option>Leads Desqualificados</option></select></div>
+            <div class="ff"><label>Etapa</label><select id="f-etapa"><option>Leads de Entrada</option><option>Qualificar e Agendar Reunião</option><option>Cliente em Dúvida s/ Reunião</option><option>Reunião Agendada</option><option>Cliente em Dúvida Pós-Reunião</option><option>Documentação & Contrato</option><option>Encerrado com Acordo</option><option>Encerrado com Êxito Judicial</option><option>Encerrado sem Êxito</option><option>Leads Desqualificados</option></select></div>
             <div class="ff"><label>Tipo de Dívida</label><select id="f-divida"><option>Não informado</option><option>Cartão de Crédito</option><option>Empréstimo Pessoal</option><option>Financiamento</option><option>Cheque Especial</option><option>Consignado</option><option>FGTS</option><option>Múltiplas Dívidas</option></select></div>
           </div>
           <div class="fg">
@@ -568,7 +568,7 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="panel-body">
           <div class="search-bar">
             <input id="busca" placeholder="🔍 Buscar por nome, CPF ou telefone..." oninput="renderLeads()">
-            <select id="f-etapa-fil" onchange="renderLeads()"><option value="">Todas as etapas</option><option>Leads de Entrada</option><option>Qualificar e Agendar Reunião</option><option>Cliente em Dúvida s/ Reunião</option><option>Reunião Agendada</option><option>Cliente em Dúvida Pós-Reunião</option><option>Aguardando Documentos</option><option>Contrato Assinado</option><option>Encerrado</option><option>Leads Desqualificados</option></select>
+            <select id="f-etapa-fil" onchange="renderLeads()"><option value="">Todas as etapas</option><option>Leads de Entrada</option><option>Qualificar e Agendar Reunião</option><option>Cliente em Dúvida s/ Reunião</option><option>Reunião Agendada</option><option>Cliente em Dúvida Pós-Reunião</option><option>Documentação & Contrato</option><option>Encerrado com Acordo</option><option>Encerrado com Êxito Judicial</option><option>Encerrado sem Êxito</option><option>Leads Desqualificados</option></select>
           </div>
           <div class="tbl"><table><thead><tr><th>Nome</th><th>CPF</th><th>WhatsApp</th><th>Etapa</th><th>Dívida</th><th>Valor</th><th>Follow-up</th><th></th></tr></thead><tbody id="tbody"></tbody></table></div>
         </div>
@@ -1013,7 +1013,7 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="fg"><div class="ff"><label>Estado civil</label><select id="e-civil"><option value="">Selecione</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viúvo(a)</option><option>União Estável</option></select></div><div class="ff"><label>Profissão</label><input id="e-prof"></div></div>
       <div class="fg"><div class="ff"><label>WhatsApp</label><input id="e-tel"></div><div class="ff"><label>E-mail</label><input id="e-email" type="email"></div></div>
       <div class="fg"><div class="ff"><label>Endereço</label><input id="e-end"></div><div class="ff"><label>Telefone</label><input id="e-tel2"></div></div>
-      <div class="fg"><div class="ff"><label>Etapa</label><select id="e-etapa"><option>Leads de Entrada</option><option>Qualificar e Agendar Reunião</option><option>Cliente em Dúvida s/ Reunião</option><option>Reunião Agendada</option><option>Cliente em Dúvida Pós-Reunião</option><option>Aguardando Documentos</option><option>Contrato Assinado</option><option>Encerrado</option><option>Leads Desqualificados</option></select></div><div class="ff"><label>Tipo de Dívida</label><select id="e-divida"><option>Não informado</option><option>Cartão de Crédito</option><option>Empréstimo Pessoal</option><option>Financiamento</option><option>Cheque Especial</option><option>Consignado</option><option>FGTS</option><option>Múltiplas Dívidas</option></select></div></div>
+      <div class="fg"><div class="ff"><label>Etapa</label><select id="e-etapa"><option>Leads de Entrada</option><option>Qualificar e Agendar Reunião</option><option>Cliente em Dúvida s/ Reunião</option><option>Reunião Agendada</option><option>Cliente em Dúvida Pós-Reunião</option><option>Documentação & Contrato</option><option>Encerrado com Acordo</option><option>Encerrado com Êxito Judicial</option><option>Encerrado sem Êxito</option><option>Leads Desqualificados</option></select></div><div class="ff"><label>Tipo de Dívida</label><select id="e-divida"><option>Não informado</option><option>Cartão de Crédito</option><option>Empréstimo Pessoal</option><option>Financiamento</option><option>Cheque Especial</option><option>Consignado</option><option>FGTS</option><option>Múltiplas Dívidas</option></select></div></div>
       <div class="fg"><div class="ff"><label>Banco(s)</label><input id="e-banco"></div><div class="ff"><label>Valor (R$)</label><input id="e-valor" type="number"></div></div>
       <div class="fg"><div class="ff"><label>Origem</label><select id="e-origem"><option>Meta Ads</option><option>WhatsApp Orgânico</option><option>Indicação</option><option>Instagram</option><option>Facebook</option><option>Outro</option></select></div><div class="ff"><label>Follow-up</label><input id="e-followup" type="date"></div></div>
       <div class="fg g1"><div class="ff"><label>Observações</label><input id="e-obs"></div></div>
@@ -1032,16 +1032,18 @@ let leads=[];let editIdx=-1;
 function carregar(){try{leads=JSON.parse(localStorage.getItem(KEY)||'[]');}catch{leads=[];}}
 function salvar(){try{localStorage.setItem(KEY,JSON.stringify(leads));}catch{t('Erro ao salvar!',false);}}
 carregar();
-const ETAPAS=['Leads de Entrada','Qualificar e Agendar Reunião','Cliente em Dúvida s/ Reunião','Reunião Agendada','Cliente em Dúvida Pós-Reunião','Aguardando Documentos','Contrato Assinado','Encerrado','Leads Desqualificados'];
-const CORES={'Leads de Entrada':'#1D3461','Qualificar e Agendar Reunião':'#8e44ad','Cliente em Dúvida s/ Reunião':'#e74c3c','Reunião Agendada':'#e67e22','Cliente em Dúvida Pós-Reunião':'#c0392b','Aguardando Documentos':'#d35400','Contrato Assinado':'#27ae60','Encerrado':'#95a5a6','Leads Desqualificados':'#95a5a6'};
+const ETAPAS=['Leads de Entrada','Qualificar e Agendar Reunião','Cliente em Dúvida s/ Reunião','Reunião Agendada','Cliente em Dúvida Pós-Reunião','Documentação & Contrato','Encerrado com Acordo','Encerrado com Êxito Judicial','Encerrado sem Êxito','Leads Desqualificados'];
+const CORES={'Leads de Entrada':'#1D3461','Qualificar e Agendar Reunião':'#8e44ad','Cliente em Dúvida s/ Reunião':'#e74c3c','Reunião Agendada':'#e67e22','Cliente em Dúvida Pós-Reunião':'#c0392b','Documentação & Contrato':'#C9A84C','Encerrado com Acordo':'#27ae60','Encerrado com Êxito Judicial':'#2980b9','Encerrado sem Êxito':'#7f8c8d','Leads Desqualificados':'#95a5a6'};
 const MSGS=[
   {e:'Leads de Entrada',tt:'1º Contato — Boas-vindas',m:`Olá, [NOME]! 👋\nAqui é o Dr. Leonardo, da LCFO Advogados.\n\nVi que você demonstrou interesse em resolver sua situação com dívidas bancárias.\n\nPoderia me contar um pouco mais? Qual banco e qual tipo de dívida?\n\nEstou aqui para ajudar! 😊`},
   {e:'Qualificar e Agendar Reunião',tt:'Coleta de Informações',m:`[NOME], para analisar seu caso com precisão preciso de:\n\n1️⃣ Nome do(s) banco(s)\n2️⃣ Valor aproximado da dívida\n3️⃣ Há quanto tempo em atraso?\n4️⃣ Já recebeu proposta de renegociação?\n\nCom isso faço uma análise completa! 📋`},
   {e:'Reunião Agendada',tt:'Confirmação de Reunião',m:`Olá, [NOME]! 📅\n\nPassando para confirmar nossa reunião.\n\nEstamos prontos para analisar seu caso e apresentar as melhores opções para sua situação.\n\nQualquer dúvida, estou à disposição! ⚖️`},
-  {e:'Aguardando Documentos',tt:'Solicitação de Documentos',m:`Olá, [NOME]! Como vai?\n\nPara darmos continuidade ao seu caso, precisamos dos seguintes documentos:\n\n📄 RG ou CNH\n📄 CPF\n📄 Comprovante de residência\n📄 Extratos bancários (se disponível)\n\nPode me enviar por aqui mesmo! 😊`},
+  {e:'Documentação & Contrato',tt:'Solicitação de Documentos',m:`Olá, [NOME]! Como vai?\n\nPara darmos continuidade ao seu caso, precisamos dos seguintes documentos:\n\n📄 RG ou CNH\n📄 CPF\n📄 Comprovante de residência\n📄 Extratos bancários (se disponível)\n\nPode me enviar por aqui mesmo! 😊`},
   {e:'Cliente em Dúvida s/ Reunião',tt:'Retomada — Cliente em Dúvida',m:`Oi, [NOME]! Tudo bem?\n\nSei que decisões assim exigem reflexão, então queria esclarecer qualquer dúvida que você tenha.\n\nEstou disponível para uma conversa sem compromisso. O que está te impedindo de avançar?\n\nEstou aqui para ajudar! ⚖️`},
-  {e:'Contrato Assinado',tt:'Boas-vindas Cliente',m:`[NOME], seja muito bem-vindo(a) à LCFO Advogados! 🎉\n\nContrato assinado com sucesso. Cuidaremos do seu caso com total dedicação.\n\nEm breve entraremos em contato com os próximos passos. ⚖️`},
-  {e:'Encerrado',tt:'Pesquisa de Satisfação',m:`[NOME], seu caso foi concluído! 🎉\n\nFoi um prazer trabalhar com você!\n\nSe puder, me conta como foi sua experiência. E se conhecer alguém que precise de ajuda com dívidas bancárias, pode indicar! 🙏`},
+  {e:'Documentação & Contrato',tt:'Boas-vindas — Contrato Assinado',m:`[NOME], seja muito bem-vindo(a) à LCFO Advogados! 🎉\n\nContrato assinado com sucesso. Cuidaremos do seu caso com total dedicação.\n\nEm breve entraremos em contato com os próximos passos. ⚖️`},
+  {e:'Encerrado com Acordo',tt:'Encerramento — Acordo',m:`[NOME], seu caso foi encerrado com êxito por acordo! 🤝\n\nFoi um prazer trabalhar com você. Esperamos ter contribuído para resolver sua situação.\n\nSe precisar de nós novamente ou quiser indicar alguém, conte conosco! 🙏`},
+  {e:'Encerrado com Êxito Judicial',tt:'Encerramento — Êxito Judicial',m:`[NOME], seu caso foi encerrado com êxito judicial! ⚖️🎉\n\nFoi uma honra representá-lo(a). A decisão favorável é resultado do nosso trabalho conjunto.\n\nSe precisar de nós novamente ou quiser indicar alguém, estamos à disposição! 🙏`},
+  {e:'Encerrado sem Êxito',tt:'Encerramento — Sem Êxito',m:`[NOME], informamos que seu caso foi encerrado.\n\nMesmo sem o resultado esperado, fizemos tudo ao nosso alcance. Se desejar avaliar novas possibilidades, estamos à disposição.\n\nObrigado pela confiança depositada na LCFO Advogados. ⚖️`},
 ];
 const ROTEIRO=[
   {n:'1',h:'0h',tt:'Contato Imediato (até 5 min)',m:`Olá, [NOME]! 👋 Aqui é o Dr. Leonardo, da LCFO Advogados.\nRecebi seu contato agora e já quero te atender!\nPode me contar sua situação? Qual banco e qual tipo de dívida? 😊`},
@@ -1201,7 +1203,7 @@ function renderDash(){
     const els=document.getElementById('dash-saudacao');if(els)els.textContent=sauda+', Dr. Leonardo!';
     const eld=document.getElementById('dash-data');if(eld)eld.textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
     const hoje=new Date().toISOString().split('T')[0];
-    const total=leads.length,novos=leads.filter(l=>l.etapa==='Leads de Entrada').length,ativos=leads.filter(l=>l.etapa==='Contrato Assinado'||l.etapa==='Reunião Agendada').length,urg=leads.filter(l=>l.followup&&l.followup<=hoje).length;
+    const total=leads.length,novos=leads.filter(l=>l.etapa==='Leads de Entrada').length,ativos=leads.filter(l=>l.etapa==='Documentação & Contrato'||l.etapa==='Reunião Agendada').length,urg=leads.filter(l=>l.followup&&l.followup<=hoje).length;
     const kpi=document.getElementById('cards-proc');
     if(kpi)kpi.innerHTML=`<div class="kpi"><div class="kpi-top"><span class="kpi-icon">👥</span></div><div class="kpi-num">${total}</div><div class="kpi-label">Total de Clientes</div></div><div class="kpi o"><div class="kpi-top"><span class="kpi-icon">🆕</span></div><div class="kpi-num">${novos}</div><div class="kpi-label">Novos Leads</div></div><div class="kpi g"><div class="kpi-top"><span class="kpi-icon">⚖️</span></div><div class="kpi-num">${ativos}</div><div class="kpi-label">Clientes Ativos</div></div><div class="kpi r"><div class="kpi-top"><span class="kpi-icon">🔔</span></div><div class="kpi-num">${urg}</div><div class="kpi-label">Follow-ups Urgentes</div></div>`;
     const ul=document.getElementById('dash-ul');
@@ -1224,7 +1226,7 @@ function renderFunil(){
       const isDuvida   = et==='Cliente em Dúvida s/ Reunião';
       const isReuniao  = et==='Reunião Agendada';
       const isDuvPos   = et==='Cliente em Dúvida Pós-Reunião';
-      const isAguardDoc= et==='Aguardando Documentos';
+      const isAguardDoc= et==='Documentação & Contrato';
       const hoje=new Date().toISOString().split('T')[0];
 
       // Sinalização follow-up para etapas de dúvida
@@ -1290,7 +1292,7 @@ function moverEtapa(idx,novaEtapa){
 
 // ── Mover para Aguardando Documentos + abrir pedido de docs ──
 function moverEtapaComDocs(idx){
-  moverEtapa(idx,'Aguardando Documentos');
+  moverEtapa(idx,'Documentação & Contrato');
   setTimeout(function(){abrirModalPedirDocs(idx);},300);
 }
 
@@ -1424,7 +1426,7 @@ function renderRoteiro(){
 function copiar(id,btn){navigator.clipboard.writeText(document.getElementById(id).innerText).then(()=>{btn.textContent='✅ Copiado!';setTimeout(()=>btn.textContent='📋 Copiar',2000);});}
 function badges(){
   const b=document.getElementById('b-cli');if(b)b.textContent=leads.length;
-  const bp=document.getElementById('b-proc');if(bp)bp.textContent=leads.filter(l=>l.etapa==='Contrato Assinado'||l.etapa==='Reunião Agendada').length;
+  const bp=document.getElementById('b-proc');if(bp)bp.textContent=leads.filter(l=>l.etapa==='Documentação & Contrato'||l.etapa==='Reunião Agendada').length;
   const hoje=new Date().toISOString().split('T')[0];
   const fu=leads.filter(l=>l.followup&&l.followup<=hoje).length;
   const bf=document.getElementById('b-fu');if(bf){bf.textContent=fu;bf.style.display=fu?'inline':'none';}
