@@ -153,6 +153,7 @@ tbody tr:last-child td{border-bottom:none;}
 .fc-hd h4{font-size:11.5px;font-weight:700;color:var(--white);padding:4px 9px;border-radius:5px;flex:1;}
 .fc-ct{background:rgba(255,255,255,.25);border-radius:8px;padding:1px 6px;font-size:11px;color:var(--white);font-weight:700;}
 .fc-card{background:var(--white);border-radius:7px;padding:9px 11px;margin-bottom:7px;border:1px solid var(--border);border-left:3px solid var(--navy);font-size:12px;}
+.fc-card.fc-duvida{border-left:3px solid #e74c3c;background:#fffaf9;}
 .fc-card .cn{font-weight:600;color:var(--navy);margin-bottom:2px;}
 .fc-card .ct{color:var(--text2);font-size:11px;}
 /* FOLLOWUP */
@@ -1220,21 +1221,42 @@ function renderFunil(){
       const idx=leads.findIndex(x=>x.id===l.id);
       const tel=l.telefone||l.tel||'';
       const isQualif=et==='Qualificar e Agendar Reunião';
+      const isDuvida=et==='Cliente em Dúvida';
+      const hoje=new Date().toISOString().split('T')[0];
+      // Sinalização para Cliente em Dúvida
+      let sinalDuvida='';
+      if(isDuvida){
+        const fu=l.followup;
+        if(!fu){
+          sinalDuvida='<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:5px;padding:4px 8px;font-size:11px;color:#856404;margin-top:5px">⚠️ Sem follow-up definido</div>';
+        } else if(fu<hoje){
+          sinalDuvida=`<div style="background:#fde8e8;border:1px solid #e74c3c;border-radius:5px;padding:4px 8px;font-size:11px;color:#c0392b;margin-top:5px">🔴 Follow-up vencido: ${new Date(fu+'T12:00').toLocaleDateString('pt-BR')}</div>`;
+        } else {
+          sinalDuvida=`<div style="background:#e8f5e9;border:1px solid #27ae60;border-radius:5px;padding:4px 8px;font-size:11px;color:#1e7e34;margin-top:5px">📅 Follow-up: ${new Date(fu+'T12:00').toLocaleDateString('pt-BR')}</div>`;
+        }
+      }
       const acoes=isEntrada
         ?`<div style="display:flex;gap:4px;margin-top:7px">
             <button class="btn btn-xs" style="background:#27ae60;color:#fff;flex:1" onclick="moverEtapa(${idx},'Qualificar e Agendar Reunião');event.stopPropagation()">✅ Qualificar</button>
             <button class="btn btn-xs" style="background:#e74c3c;color:#fff;flex:1" onclick="moverEtapa(${idx},'Leads Desqualificados');event.stopPropagation()">❌ Desqualif.</button>
           </div>`
         :isQualif
-        ?`<div style="display:flex;gap:4px;margin-top:7px">
-            <button class="btn btn-xs" style="background:#e67e22;color:#fff;flex:1" onclick="abrirModalAgenda(${idx});event.stopPropagation()">📅 Agendar Reunião</button>
+        ?`<div style="display:flex;gap:4px;margin-top:7px;flex-wrap:wrap">
+            <button class="btn btn-xs" style="background:#e67e22;color:#fff;flex:1;min-width:100px" onclick="abrirModalAgenda(${idx});event.stopPropagation()">📅 Agendar Reunião</button>
+            <button class="btn btn-xs" style="background:#8e44ad;color:#fff;flex:1;min-width:80px" onclick="moverEtapa(${idx},'Cliente em Dúvida');event.stopPropagation()">🤔 Em Dúvida</button>
             <button class="btn btn-xs" style="background:#e74c3c;color:#fff" onclick="moverEtapa(${idx},'Leads Desqualificados');event.stopPropagation()">❌</button>
           </div>`
+        :isDuvida
+        ?`<div style="display:flex;gap:4px;margin-top:7px">
+            <button class="btn btn-xs" style="background:#1D3461;color:#fff;flex:1" onclick="abrirModalTarefa(${idx});event.stopPropagation()">📋 Criar Follow-up</button>
+            <button class="btn btn-xs" style="background:#e67e22;color:#fff;flex:1" onclick="abrirModalAgenda(${idx});event.stopPropagation()">📅 Agendar</button>
+          </div>`
         :'';
-      return`<div class="fc-card" onclick="abrirModal(${idx})" style="cursor:pointer">
+      return`<div class="fc-card${isDuvida?' fc-duvida':''}" onclick="abrirModal(${idx})" style="cursor:pointer">
         <div class="cn">${l.nome||'Sem nome'}</div>
         ${tel?`<div class="ct">📱 ${tel}</div>`:''}
         ${l.origem==='Meta Ads'?'<div style="font-size:10px;color:#C9A84C;margin-top:2px">🔥 Meta Ads</div>':''}
+        ${sinalDuvida}
         ${acoes}
       </div>`;
     }).join('');
@@ -1252,6 +1274,32 @@ function moverEtapa(idx,novaEtapa){
   salvar();renderFunil();badges();
   const msgs={'Leads Desqualificados':'🗂 Lead arquivado como desqualificado.','Qualificar e Agendar Reunião':'✅ Lead qualificado!','Reunião Agendada':'📅 Reunião agendada!'};
   t(msgs[novaEtapa]||'✅ Etapa atualizada!');
+}
+
+// ── Modal Follow-up (Cliente em Dúvida) ──
+let _tarefaIdx=-1;
+function abrirModalTarefa(idx){
+  _tarefaIdx=idx;
+  const l=leads[idx];
+  document.getElementById('tf-nome').textContent=l.nome||'Lead';
+  const amanha=new Date();amanha.setDate(amanha.getDate()+1);
+  document.getElementById('tf-data').value=l.followup||amanha.toISOString().split('T')[0];
+  document.getElementById('tf-nota').value=l.obs||'';
+  document.getElementById('modal-tarefa').classList.add('show');
+}
+function fecharModalTarefa(){
+  document.getElementById('modal-tarefa').classList.remove('show');
+  _tarefaIdx=-1;
+}
+function salvarTarefa(){
+  if(_tarefaIdx<0)return;
+  const data=document.getElementById('tf-data').value;
+  const nota=document.getElementById('tf-nota').value.trim();
+  if(!data){t('⚠️ Informe a data do follow-up!',false);return;}
+  leads[_tarefaIdx].followup=data;
+  if(nota)leads[_tarefaIdx].obs=nota;
+  salvar();fecharModalTarefa();renderFunil();badges();
+  t('📋 Follow-up agendado para '+new Date(data+'T12:00').toLocaleDateString('pt-BR')+'!');
 }
 
 let _agendaIdx=-1;
@@ -2133,6 +2181,38 @@ setTimeout(function(){syncLeadsMeta();setInterval(syncLeadsMeta,30000);},10000);
   }
 })();
 </script>
+
+<!-- MODAL FOLLOW-UP (CLIENTE EM DÚVIDA) -->
+<div class="modal-bg" id="modal-tarefa" onclick="if(event.target===this)fecharModalTarefa()">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-hd">
+      <div>
+        <h3>📋 Criar Follow-up</h3>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Cliente em Dúvida — <span id="tf-nome" style="font-weight:600;color:var(--navy)"></span></div>
+      </div>
+      <button class="modal-close" onclick="fecharModalTarefa()">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div class="fg">
+        <div class="ff" style="grid-column:1/-1">
+          <label>Data do Follow-up *</label>
+          <input type="date" id="tf-data">
+        </div>
+        <div class="ff" style="grid-column:1/-1">
+          <label>Anotação / Motivo da dúvida</label>
+          <textarea id="tf-nota" rows="3" placeholder="Ex: Cliente pediu prazo para pensar. Ligar na quinta para retomar..."></textarea>
+        </div>
+      </div>
+      <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px 14px;margin-top:8px;font-size:12px;color:#856404">
+        📌 O follow-up aparecerá na aba <strong>Follow-ups</strong> e no card do funil com indicador de cor.
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-gray btn-sm" onclick="fecharModalTarefa()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="salvarTarefa()">💾 Salvar Follow-up</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL AGENDAR REUNIÃO -->
 <div class="modal-bg" id="modal-agenda" onclick="if(event.target===this)fecharModalAgenda()">
