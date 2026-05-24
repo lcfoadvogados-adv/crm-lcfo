@@ -269,6 +269,28 @@ tbody tr:last-child td{border-bottom:none;}
 .msg-card input.msg-tt-edit:focus{outline:none;border-color:var(--navy);background:#f0f5ff;}
 .msg-actions{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap;align-items:center;}
 
+/* CADÊNCIA DE CLIENTES */
+.cad-tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);margin-bottom:16px;}
+.cad-tab{padding:8px 16px;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit;}
+.cad-tab.active{color:var(--navy);border-bottom-color:var(--navy);}
+.cad-task{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:9px;border-left:3px solid #8aabf5;}
+.cad-task.ct-hoje{border-left-color:var(--gold);}
+.cad-task.ct-atrasada{border-left-color:var(--red);background:#fffafa;}
+.cad-task.ct-feita{opacity:.5;border-left-color:#ccc;}
+.cad-task-top{display:flex;align-items:center;gap:10px;}
+.cad-av{width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
+.cad-info{flex:1;min-width:0;}
+.cad-nome{font-weight:600;color:var(--text);font-size:13.5px;}
+.cad-tipo{font-size:11.5px;color:var(--text2);margin-top:2px;}
+.cad-due{font-size:12px;font-weight:600;padding:3px 9px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
+.cad-due.d-atrasada{background:#fde8e8;color:var(--red);}
+.cad-due.d-hoje{background:#fff8e1;color:#8a6200;}
+.cad-due.d-proxima{background:#e8f4fd;color:#2980b9;}
+.cad-due.d-feita{background:#f0f0f0;color:#888;}
+.cad-msg{margin-top:10px;background:#f0f5ff;border-left:3px solid #8aabf5;padding:9px 12px;border-radius:0 7px 7px 0;font-size:12px;line-height:1.7;color:var(--text);display:none;white-space:pre-wrap;}
+.cad-msg.show{display:block;}
+.cad-actions{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap;align-items:center;}
+
 /* ETIQUETAS */
 .tags-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
 .tag-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:600;color:var(--white);}
@@ -463,6 +485,7 @@ tbody tr:last-child td{border-bottom:none;}
       <button class="nav-item" onclick="irPara('followup',this,'Follow-ups')"><span class="ni">🔔</span>Follow-ups<span class="nb" id="b-fu" style="display:none">0</span></button>
       <button class="nav-item" onclick="irPara('bot',this,'Bot de Follow-up')"><span class="ni">🤖</span>Bot de Follow-up<span class="nb" id="b-bot" style="display:none;background:#27ae60">0</span></button>
       <button class="nav-item" onclick="irPara('atendimentos',this,'Atendimentos / Reuniões')"><span class="ni">🤝</span>Atendimentos / Reuniões</button>
+      <button class="nav-item" onclick="irPara('cadencia',this,'Cadência de Clientes')"><span class="ni">📋</span>Cadência de Clientes<span class="nb gold" id="b-cad" style="display:none">0</span></button>
       <button class="nav-item" onclick="irPara('mensagens',this,'Modelos de Mensagens')"><span class="ni">💬</span>Modelos de Mensagens</button>
     </div>
     <div class="nav-group">
@@ -775,6 +798,19 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
       </div>
       <div id="reuniao-detail" style="display:none"></div>
+    </div>
+
+    <!-- CADÊNCIA DE CLIENTES -->
+    <div class="section" id="sec-cadencia">
+      <div class="ph"><h2>📋 Cadência de Clientes</h2><p>Lembretes internos para manter a comunicação ativa com seus clientes ativos</p></div>
+      <div class="cards-grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin-bottom:20px" id="cad-kpis"></div>
+      <div class="cad-tabs">
+        <button class="cad-tab active" onclick="filtrarCad('pendentes',this)">🔔 Pendentes</button>
+        <button class="cad-tab" onclick="filtrarCad('proximas',this)">📅 Próximas (7d)</button>
+        <button class="cad-tab" onclick="filtrarCad('todas',this)">📋 Todas</button>
+        <button class="cad-tab" onclick="filtrarCad('feitas',this)">✅ Concluídas</button>
+      </div>
+      <div id="cad-lista"></div>
     </div>
 
     <!-- ROTEIRO -->
@@ -1199,6 +1235,7 @@ function irPara(id,btn,titulo){
   if(id==='audiencias'){carregarAud();renderAudDash();renderListaAud();renderPericias();badgesAud();}
   if(id==='atendimentos')renderAtendimentos();
   if(id==='bot')renderBot();
+  if(id==='cadencia')renderCadencia();
 }
 function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('mob-ov').classList.toggle('show');}
 function fecharSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mob-ov').classList.remove('show');}
@@ -1411,7 +1448,8 @@ function moverEtapa(idx,novaEtapa){
   if(idx<0||!leads[idx])return;
   leads[idx].etapa=novaEtapa;
   salvar();renderFunil();badges();
-  const msgs={'Leads Desqualificados':'🗂 Lead arquivado como desqualificado.','Qualificar e Agendar Reunião':'✅ Lead qualificado!','Reunião Agendada':'📅 Reunião agendada!'};
+  if(novaEtapa==='Documentação & Contrato')criarTarefasCliente(idx);
+  const msgs={'Leads Desqualificados':'🗂 Lead arquivado como desqualificado.','Qualificar e Agendar Reunião':'✅ Lead qualificado!','Reunião Agendada':'📅 Reunião agendada!','Documentação & Contrato':'📋 Cliente ativo! Cadência de comunicação criada.'};
   t(msgs[novaEtapa]||'✅ Etapa atualizada!');
 }
 
@@ -1872,6 +1910,172 @@ function salvarNotasReuniao(idx){
   salvar();
   t('📝 Anotações salvas!');
 }
+
+// ===== CADÊNCIA DE CLIENTES =====
+const KEY_CAD='lcfo_tarefas_cli_v1';
+let _cadFiltro='pendentes';
+let tarefasCli=[];
+
+function carregarTarefasCli(){try{tarefasCli=JSON.parse(localStorage.getItem(KEY_CAD)||'[]');}catch(e){tarefasCli=[];}}
+function salvarTarefasCli(){localStorage.setItem(KEY_CAD,JSON.stringify(tarefasCli));}
+
+function criarTarefasCliente(idx){
+  const l=leads[idx];if(!l)return;
+  carregarTarefasCli();
+  // Evita duplicar: checa se já existem tarefas pendentes para este cliente
+  const tel=(l.telefone||l.tel||'').replace(/\D/g,'');
+  const nome=l.nome||'Cliente';
+  if(tel&&tarefasCli.some(tk=>tk.clienteTel===tel&&!tk.done))return;
+  const fn=nome.split(' ')[0];
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  function addD(d){const dt=new Date(hoje);dt.setDate(dt.getDate()+d);return dt.toISOString().split('T')[0];}
+  const DEFS=[
+    {tipo:'boas-vindas',label:'👋 Boas-vindas ao Escritório',dias:0,
+     msg:`Olá, ${fn}! 👋\n\nSeja muito bem-vindo(a) ao LCFO Advogados! Estamos muito felizes em atendê-lo(a).\n\nFique tranquilo(a), seu caso está em boas mãos e trabalharemos com total dedicação para obter o melhor resultado possível.\n\nQualquer dúvida, estou à disposição. Pode contar comigo! 😊\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+    {tipo:'quinzenal',label:'📆 Quinzenal 1 — Atualização (15 dias)',dias:15,
+     msg:`Olá, ${fn}! 👋\n\nPassamos para dar uma atualização rápida sobre o seu caso. Estamos trabalhando ativamente e em breve teremos novidades para compartilhar com você.\n\nCaso tenha alguma dúvida ou precise de algo, fique à vontade para entrar em contato!\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+    {tipo:'quinzenal',label:'📆 Quinzenal 2 — Atualização (30 dias)',dias:30,
+     msg:`Olá, ${fn}! Tudo bem?\n\nJá completamos um mês juntos e gostaríamos de reforçar nosso compromisso com o seu caso. Estamos acompanhando de perto cada movimentação.\n\nQualquer novidade, entro em contato imediatamente. Abraços!\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+    {tipo:'quinzenal',label:'📆 Quinzenal 3 — Atualização (45 dias)',dias:45,
+     msg:`Olá, ${fn}! Passando para dar um retorno.\n\nEstamos no acompanhamento contínuo do seu processo. Se tiver alguma dúvida sobre os próximos passos, não hesite em nos contatar.\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+    {tipo:'quinzenal',label:'📆 Quinzenal 4 — Atualização (60 dias)',dias:60,
+     msg:`Olá, ${fn}! Como vai?\n\nPassamos para manter você informado(a) sobre o andamento do seu caso. Estamos trabalhando para o melhor resultado possível.\n\nQualquer dúvida, estou à disposição!\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+    {tipo:'quinzenal',label:'📆 Quinzenal 5 — Atualização (75 dias)',dias:75,
+     msg:`Olá, ${fn}! Tudo bem?\n\nPassamos para dar mais uma atualização sobre o seu processo. Estamos atentos a todas as movimentações.\n\nSe precisar de qualquer informação adicional, entre em contato!\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+    {tipo:'quinzenal',label:'📆 Quinzenal 6 — Atualização (90 dias)',dias:90,
+     msg:`Olá, ${fn}! Completamos 3 meses juntos! 🎉\n\nGostaríamos de reforçar que estamos totalmente dedicados ao seu caso. A partir de agora, você receberá atualizações mensais sobre o andamento do processo.\n\nQualquer dúvida, estou à disposição!\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+    {tipo:'mensal',label:'🗓️ Mensal 1 — Retorno (4º mês)',dias:120,
+     msg:`Olá, ${fn}! Tudo bem?\n\nPassamos para o retorno mensal sobre o seu processo. Estamos acompanhando cada etapa com atenção e dedicação.\n\nCaso tenha dúvidas, estou aqui!\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+    {tipo:'mensal',label:'🗓️ Mensal 2 — Retorno (5º mês)',dias:150,
+     msg:`Olá, ${fn}! Passando para o acompanhamento mensal do seu caso. Continuamos trabalhando para o melhor resultado. Se tiver dúvidas, me avise!\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+    {tipo:'mensal',label:'🗓️ Mensal 3 — Retorno (6º mês)',dias:180,
+     msg:`Olá, ${fn}! 6 meses juntos! 🎉 Passamos para o retorno mensal e reforçar nosso comprometimento com o seu caso.\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+    {tipo:'mensal',label:'🗓️ Mensal 4 — Retorno (7º mês)',dias:210,
+     msg:`Olá, ${fn}! Retorno mensal sobre o andamento do seu processo. Qualquer novidade, entro em contato. Abraços!\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+    {tipo:'mensal',label:'🗓️ Mensal 5 — Retorno (8º mês)',dias:240,
+     msg:`Olá, ${fn}! Passando para o acompanhamento mensal. Estamos atentos ao seu processo!\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+    {tipo:'mensal',label:'🗓️ Mensal 6 — Retorno (9º mês)',dias:270,
+     msg:`Olá, ${fn}! Retorno do 9º mês de acompanhamento. Continuamos dedicados ao seu caso!\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+    {tipo:'mensal',label:'🗓️ Mensal 7 — Retorno (10º mês)',dias:300,
+     msg:`Olá, ${fn}! Passando para o acompanhamento mensal. Continuamos trabalhando no seu processo!\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+    {tipo:'mensal',label:'🗓️ Mensal 8 — Retorno (11º mês)',dias:330,
+     msg:`Olá, ${fn}! Retorno mensal do 11º mês. Estamos próximos de completar 1 ano juntos, continuamos com total dedicação ao seu caso!\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+    {tipo:'mensal',label:'🗓️ Mensal 9 — Retorno (1 ano)',dias:360,
+     msg:`Olá, ${fn}! 🎉 Completamos 1 ano juntos! Passamos para reforçar nosso compromisso e agradecer pela confiança depositada no LCFO Advogados. Continuamos trabalhando com dedicação no seu caso!\n\nDr. Leonardo — LCFO Advogados ⚖️`},
+  ];
+  DEFS.forEach(def=>{
+    tarefasCli.push({
+      id:'cad_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+      clienteTel:tel,clienteNome:nome,
+      tipo:def.tipo,label:def.label,msg:def.msg,
+      dueDate:addD(def.dias),done:false,doneAt:null,
+    });
+  });
+  salvarTarefasCli();
+  badgeCadencia();
+}
+
+function filtrarCad(filtro,btn){
+  _cadFiltro=filtro;
+  document.querySelectorAll('.cad-tab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderCadencia();
+}
+
+function renderCadencia(){
+  carregarTarefasCli();
+  const hoje=new Date().toISOString().split('T')[0];
+  const em7=new Date();em7.setDate(em7.getDate()+7);
+  const em7s=em7.toISOString().split('T')[0];
+
+  // KPIs
+  const atrasadas=tarefasCli.filter(tk=>!tk.done&&tk.dueDate<hoje).length;
+  const paraHoje=tarefasCli.filter(tk=>!tk.done&&tk.dueDate===hoje).length;
+  const proximas=tarefasCli.filter(tk=>!tk.done&&tk.dueDate>hoje&&tk.dueDate<=em7s).length;
+  const feitas=tarefasCli.filter(tk=>tk.done).length;
+  const kpiEl=document.getElementById('cad-kpis');
+  if(kpiEl)kpiEl.innerHTML=`
+    <div class="kpi r"><div class="kpi-top"><span class="kpi-icon">⚠️</span></div><div class="kpi-num">${atrasadas}</div><div class="kpi-label">Atrasadas</div></div>
+    <div class="kpi o"><div class="kpi-top"><span class="kpi-icon">🔔</span></div><div class="kpi-num">${paraHoje}</div><div class="kpi-label">Para Hoje</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-icon">📅</span></div><div class="kpi-num">${proximas}</div><div class="kpi-label">Próx. 7 dias</div></div>
+    <div class="kpi g"><div class="kpi-top"><span class="kpi-icon">✅</span></div><div class="kpi-num">${feitas}</div><div class="kpi-label">Concluídas</div></div>`;
+
+  let lista=[...tarefasCli];
+  if(_cadFiltro==='pendentes')lista=lista.filter(tk=>!tk.done&&tk.dueDate<=hoje);
+  else if(_cadFiltro==='proximas')lista=lista.filter(tk=>!tk.done&&tk.dueDate>hoje&&tk.dueDate<=em7s);
+  else if(_cadFiltro==='todas')lista=lista.filter(tk=>!tk.done);
+  else if(_cadFiltro==='feitas')lista=lista.filter(tk=>tk.done);
+  lista.sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
+
+  const el=document.getElementById('cad-lista');if(!el)return;
+  if(!lista.length){
+    const msgs={pendentes:'✅ Nenhuma tarefa pendente ou atrasada!',proximas:'📅 Nenhuma tarefa nos próximos 7 dias.',todas:'📋 Nenhuma tarefa cadastrada ainda.',feitas:'— Nenhuma tarefa concluída ainda.'};
+    el.innerHTML=`<div class="empty"><div class="ei">📋</div><p>${msgs[_cadFiltro]||'Nenhuma tarefa.'}</p></div>`;
+    return;
+  }
+  el.innerHTML=lista.map(task=>{
+    const isAt=!task.done&&task.dueDate<hoje;
+    const isHj=!task.done&&task.dueDate===hoje;
+    const cls=task.done?'ct-feita':isAt?'ct-atrasada':isHj?'ct-hoje':'';
+    const dueCls=task.done?'d-feita':isAt?'d-atrasada':isHj?'d-hoje':'d-proxima';
+    const dtFmt=dt=>new Date(dt+'T12:00').toLocaleDateString('pt-BR');
+    const dueLabel=task.done?`✅ ${dtFmt(task.doneAt?task.doneAt.split('T')[0]:task.dueDate)}`:isAt?`⚠️ ${dtFmt(task.dueDate)}`:isHj?'🔔 Hoje':`📅 ${dtFmt(task.dueDate)}`;
+    const av=(task.clienteNome||'C')[0].toUpperCase();
+    const avStyle=isHj?'background:var(--gold)':isAt?'background:var(--red)':'';
+    return `<div class="cad-task ${cls}">
+      <div class="cad-task-top">
+        <div class="cad-av" style="${avStyle}">${av}</div>
+        <div class="cad-info">
+          <div class="cad-nome">${task.clienteNome}</div>
+          <div class="cad-tipo">${task.label}</div>
+        </div>
+        <span class="cad-due ${dueCls}">${dueLabel}</span>
+      </div>
+      <div class="cad-msg" id="cad-msg-${task.id}">${(task.msg||'').replace(/</g,'&lt;')}</div>
+      <div class="cad-actions">
+        <button class="btn btn-gray btn-xs" onclick="toggleCadMsg('${task.id}')">👁 Ver mensagem</button>
+        ${!task.done
+          ?`<button class="btn btn-xs" style="background:var(--navy);color:#fff" onclick="copiarMsgCad('${task.id}')">📋 Copiar</button>
+            <button class="btn btn-xs btn-success" onclick="marcarTarefaFeita('${task.id}')">✅ Marcar enviada</button>`
+          :`<span style="font-size:11px;color:var(--text2)">Enviada em ${dtFmt(task.doneAt?task.doneAt.split('T')[0]:task.dueDate)}</span>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCadMsg(id){
+  const el=document.getElementById('cad-msg-'+id);
+  if(el)el.classList.toggle('show');
+}
+function copiarMsgCad(id){
+  carregarTarefasCli();
+  const task=tarefasCli.find(tk=>tk.id===id);
+  if(!task)return;
+  navigator.clipboard.writeText(task.msg||'').then(()=>t('📋 Mensagem copiada!'));
+}
+function marcarTarefaFeita(id){
+  carregarTarefasCli();
+  const task=tarefasCli.find(tk=>tk.id===id);
+  if(!task)return;
+  task.done=true;task.doneAt=new Date().toISOString();
+  salvarTarefasCli();
+  t('✅ Mensagem marcada como enviada!');
+  renderCadencia();
+  badgeCadencia();
+}
+function badgeCadencia(){
+  try{
+    carregarTarefasCli();
+    const hoje=new Date().toISOString().split('T')[0];
+    const n=tarefasCli.filter(tk=>!tk.done&&tk.dueDate<=hoje).length;
+    const bc=document.getElementById('b-cad');
+    if(bc){bc.textContent=n;bc.style.display=n?'inline':'none';}
+  }catch(e){}
+}
+// Inicializa badge na carga da página
+badgeCadencia();
+
 function renderRoteiro(){
   document.getElementById('rot-list').innerHTML=ROTEIRO.map((r,i)=>`<div class="rot-item"><div class="rot-badge"><div class="rb-n">${r.n}</div><div class="rb-t">${r.h||'DIA'}</div></div><div class="rot-body"><h4>${r.tt}</h4><div class="rot-msg" id="rt-${i}">${r.m}</div><button class="copy-btn" onclick="copiar('rt-${i}',this)">📋 Copiar</button></div></div>`).join('');
 }
@@ -1883,6 +2087,7 @@ function badges(){
   const fu=leads.filter(l=>l.followup&&l.followup<=hoje).length;
   const bf=document.getElementById('b-fu');if(bf){bf.textContent=fu;bf.style.display=fu?'inline':'none';}
   try{const djeLs=JSON.parse(localStorage.getItem('dje_lcfo_v1')||'[]');const djN=djeLs.filter(i=>i.status==='nova').length;const bd=document.getElementById('b-dje');if(bd){bd.textContent=djN;bd.style.display=djN?'inline':'none';}}catch(e){}
+  badgeCadencia();
 }
 function exportar(){
   const blob=new Blob([JSON.stringify({v:3,data:new Date().toISOString(),leads},null,2)],{type:'application/json'});
