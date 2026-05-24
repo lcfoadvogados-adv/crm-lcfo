@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>LCFO Advogados — Sistema Jurídico</title>
 <style>
 :root{
@@ -1128,19 +1131,20 @@ function excluir(){
   leads.splice(editIdx,1);salvar();fecharModal();renderLeads();badges();t('🗑 Cliente excluído.');
 }
 function renderDash(){
-  const hora=new Date().getHours();
-  const sauda=hora<12?'Bom dia':hora<18?'Boa tarde':'Boa noite';
-  const els=document.getElementById('dash-saudacao');if(els)els.textContent=sauda+', Dr. Leonardo!';
-  const eld=document.getElementById('dash-data');if(eld)eld.textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const hoje=new Date().toISOString().split('T')[0];
-  const total=leads.length,novos=leads.filter(l=>l.etapa==='Leads de Entrada').length,ativos=leads.filter(l=>l.etapa==='Contrato Assinado'||l.etapa==='Reunião Agendada').length,urg=leads.filter(l=>l.followup&&l.followup<=hoje).length;
-  document.getElementById('cards-proc').innerHTML=`<div class="kpi"><div class="kpi-top"><span class="kpi-icon">👥</span></div><div class="kpi-num">${total}</div><div class="kpi-label">Total de Clientes</div></div><div class="kpi o"><div class="kpi-top"><span class="kpi-icon">🆕</span></div><div class="kpi-num">${novos}</div><div class="kpi-label">Novos Leads</div></div><div class="kpi g"><div class="kpi-top"><span class="kpi-icon">⚖️</span></div><div class="kpi-num">${ativos}</div><div class="kpi-label">Clientes Ativos</div></div><div class="kpi r"><div class="kpi-top"><span class="kpi-icon">🔔</span></div><div class="kpi-num">${urg}</div><div class="kpi-label">Follow-ups Urgentes</div></div>`;
-  const ul=document.getElementById('dash-ul');
-  const rec=[...leads].reverse().slice(0,5);
-  ul.innerHTML=rec.length?`<div class="tbl"><table><thead><tr><th>Nome</th><th>Etapa</th><th>Origem</th><th>Data</th></tr></thead><tbody>${rec.map(l=>`<tr><td><strong>${l.nome}</strong></td><td><span class="badge" style="background:${CORES[l.etapa]||'#999'}">${l.etapa}</span></td><td>${l.origem||'—'}</td><td>${l.criado||'—'}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty"><div class="ei">📭</div><p>Nenhum lead ainda.</p></div>';
-  const fu=document.getElementById('dash-fu');
-  const urg2=leads.filter(l=>l.followup&&l.followup<=hoje).slice(0,4);
-  fu.innerHTML=urg2.length?urg2.map(l=>`<div class="fu-card" style="margin-bottom:8px"><div class="fu-av">${l.nome[0].toUpperCase()}</div><div class="fu-info"><div class="fu-nome">${l.nome}</div><div class="fu-det">📱 ${l.tel}</div></div><a href="https://wa.me/55${l.tel.replace(/\D/g,'')}" target="_blank" class="btn btn-success btn-sm">💬 WA</a></div>`).join(''):'<div class="empty" style="padding:20px"><p>✅ Nenhum follow-up urgente.</p></div>';
+  try{
+    const hora=new Date().getHours();
+    const sauda=hora<12?'Bom dia':hora<18?'Boa tarde':'Boa noite';
+    const els=document.getElementById('dash-saudacao');if(els)els.textContent=sauda+', Dr. Leonardo!';
+    const eld=document.getElementById('dash-data');if(eld)eld.textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const hoje=new Date().toISOString().split('T')[0];
+    const total=leads.length,novos=leads.filter(l=>l.etapa==='Leads de Entrada').length,ativos=leads.filter(l=>l.etapa==='Contrato Assinado'||l.etapa==='Reunião Agendada').length,urg=leads.filter(l=>l.followup&&l.followup<=hoje).length;
+    const kpi=document.getElementById('cards-proc');
+    if(kpi)kpi.innerHTML=`<div class="kpi"><div class="kpi-top"><span class="kpi-icon">👥</span></div><div class="kpi-num">${total}</div><div class="kpi-label">Total de Clientes</div></div><div class="kpi o"><div class="kpi-top"><span class="kpi-icon">🆕</span></div><div class="kpi-num">${novos}</div><div class="kpi-label">Novos Leads</div></div><div class="kpi g"><div class="kpi-top"><span class="kpi-icon">⚖️</span></div><div class="kpi-num">${ativos}</div><div class="kpi-label">Clientes Ativos</div></div><div class="kpi r"><div class="kpi-top"><span class="kpi-icon">🔔</span></div><div class="kpi-num">${urg}</div><div class="kpi-label">Follow-ups Urgentes</div></div>`;
+    const ul=document.getElementById('dash-ul');
+    if(ul){const rec=[...leads].reverse().slice(0,5);ul.innerHTML=rec.length?`<div class="tbl"><table><thead><tr><th>Nome</th><th>Etapa</th><th>Origem</th><th>Data</th></tr></thead><tbody>${rec.map(l=>`<tr><td><strong>${l.nome}</strong></td><td><span class="badge" style="background:${CORES[l.etapa]||'#999'}">${l.etapa}</span></td><td>${l.origem||'—'}</td><td>${l.criado||'—'}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty"><div class="ei">📭</div><p>Nenhum lead ainda.</p></div>';}
+    const fu=document.getElementById('dash-fu');
+    if(fu){const urg2=leads.filter(l=>l.followup&&l.followup<=hoje).slice(0,4);fu.innerHTML=urg2.length?urg2.map(l=>`<div class="fu-card" style="margin-bottom:8px"><div class="fu-av">${l.nome[0].toUpperCase()}</div><div class="fu-info"><div class="fu-nome">${l.nome}</div><div class="fu-det">📱 ${l.tel}</div></div><a href="https://wa.me/55${l.tel.replace(/\D/g,'')}" target="_blank" class="btn btn-success btn-sm">💬 WA</a></div>`).join(''):'<div class="empty" style="padding:20px"><p>✅ Nenhum follow-up urgente.</p></div>';}
+  }catch(e){console.error('renderDash erro:',e);}
 }
 function renderFunil(){
   document.getElementById('funil-board').innerHTML=ETAPAS.map(et=>{
