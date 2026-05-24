@@ -1314,15 +1314,11 @@ function salvarLead(){
   if(!nome||!tel){t('⚠️ Nome e WhatsApp são obrigatórios!',false);return;}
   leads.push({id:Date.now(),criado:new Date().toLocaleDateString('pt-BR'),nome,tags:JSON.parse(JSON.stringify(fTags)),cpf:g('f-cpf'),rg:g('f-rg'),nasc:g('f-nasc'),gen:g('f-gen'),civil:g('f-civil'),prof:g('f-prof'),nac:g('f-nac'),end:g('f-end'),tel,tel2:g('f-tel2'),email:g('f-email'),origem:g('f-origem'),etapa:g('f-etapa'),divida:g('f-divida'),banco:g('f-banco'),valor:g('f-valor'),followup:g('f-followup'),obs:g('f-obs')});
   const newIdx=leads.length-1;
-  const etapa=leads[newIdx].etapa;
-  if(etapa==='Leads de Entrada')iniciarBotLead(newIdx);
-  // Clientes ativos: criar pasta no Drive e cadência de comunicação
-  const ETAPAS_DRIVE=['Documentação & Contrato','Encerrado com Acordo','Encerrado com Êxito Judicial','Encerrado sem Êxito'];
-  if(ETAPAS_DRIVE.includes(etapa)){
-    setTimeout(()=>criarPastaGDrive(newIdx),600);
-    if(etapa==='Documentação & Contrato')criarTarefasCliente(newIdx);
-  }
+  if(leads[newIdx].etapa==='Leads de Entrada')iniciarBotLead(newIdx);
+  if(leads[newIdx].etapa==='Documentação & Contrato')criarTarefasCliente(newIdx);
   salvar();badges();badgesAud();limparForm();renderLeads();
+  // Aba Clientes: sempre cria pasta no Drive ao salvar
+  setTimeout(()=>criarPastaGDrive(newIdx),600);
   setTimeout(()=>abrirPerfil(newIdx,true),100);
 }
 function limparForm(){
