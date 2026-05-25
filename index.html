@@ -684,6 +684,7 @@ tbody tr:last-child td{border-bottom:none;}
       <button class="nav-item" onclick="irPara('financeiro',this,'Financeiro')"><span class="ni">💰</span>Financeiro</button>
       <button class="nav-item" onclick="irPara('metas',this,'Metas & KPIs')"><span class="ni">🎯</span>Metas & KPIs</button>
       <button class="nav-item" onclick="exportar()"><span class="ni">💾</span>Exportar Backup</button>
+      <button class="nav-item" onclick="definirPastaBackup()" title="Configurar pasta de backup no Google Drive"><span class="ni">📁</span>Pasta de Backup</button>
       <button class="nav-item" onclick="document.getElementById('imp').click()"><span class="ni">📂</span>Importar Backup</button>
       <input type="file" id="imp" accept=".json" style="display:none" onchange="importar(event)">
     </div>
@@ -708,10 +709,7 @@ tbody tr:last-child td{border-bottom:none;}
     </div>
     <div class="topbar-r">
       <span class="top-date" id="tp-data"></span>
-      <div style="display:flex;align-items:center;gap:4px">
-        <button class="btn-bk" onclick="exportar()" id="btn-bk-main" title="Fazer backup agora">⬇ Backup<span id="bk-pasta-label" style="font-size:10px;opacity:.7;margin-left:4px"></span></button>
-        <button class="btn-bk" onclick="definirPastaBackup()" title="Configurar pasta de backup" style="padding:5px 8px;font-size:14px">📁</button>
-      </div>
+      <button class="btn-bk" onclick="exportar()" id="btn-bk-main" title="Fazer backup agora">⬇ Backup<span id="bk-pasta-label" style="font-size:10px;opacity:.7;margin-left:4px"></span></button>
     </div>
   </div>
 
@@ -3703,7 +3701,7 @@ async function exportar(silencioso){
   const payload={v:4,sistema:'LCFO CRM',data:new Date().toISOString(),dados:{}};
   _BK_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!=null)payload.dados[k]=v;});
   const json=JSON.stringify(payload,null,2);
-  const filename='backup_lcfo_'+new Date().toISOString().slice(0,10)+'.json';
+  const filename='backup_lcfo.json'; // nome fixo — sempre sobrescreve o mesmo arquivo
   const dir=await _getBkDir();
   if(dir){
     try{
@@ -3711,16 +3709,18 @@ async function exportar(silencioso){
       const wr=await fh.createWritable();
       await wr.write(json);await wr.close();
       localStorage.setItem('lcfo_last_autobackup',new Date().toISOString());
-      if(!silencioso)t('✅ Backup salvo em: '+dir.name+'/'+filename);
+      if(!silencioso)t('✅ Backup salvo em '+dir.name+' ('+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+')');
       return;
-    }catch(e){/* fallback */}
+    }catch(e){/* fallback abaixo */}
   }
+  // Fallback: download direto (sem "salvar como") — vai para a pasta padrão do Chrome
+  if(!silencioso&&!dir)t('💡 Dica: clique em 📁 no menu lateral para salvar direto no Google Drive.');
   const blob=new Blob([json],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download=filename;document.body.appendChild(a);a.click();
   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},300);
   localStorage.setItem('lcfo_last_autobackup',new Date().toISOString());
-  if(!silencioso)t('✅ Backup exportado!');
+  if(!silencioso)t('✅ Backup salvo!');
 }
 function importar(e){
   const file=e.target.files[0];if(!file)return;
