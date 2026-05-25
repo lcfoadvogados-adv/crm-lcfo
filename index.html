@@ -521,7 +521,6 @@ tbody tr:last-child td{border-bottom:none;}
       <button class="nav-item" onclick="irPara('tarefas',this,'Tarefas')"><span class="ni">✅</span>Tarefas<span class="nb" id="b-tar" style="display:none">0</span></button>
       <button class="nav-item" onclick="irPara('agenda',this,'Agenda')"><span class="ni">📅</span>Agenda</button>
       <button class="nav-item" onclick="irPara('documentos',this,'Documentos')"><span class="ni">📄</span>Documentos</button>
-      <button class="nav-item" onclick="irPara('roteiro',this,'Roteiro')"><span class="ni">📋</span>Roteiro</button>
     </div>
     <div class="nav-group">
       <div class="nav-group-label">Gestão</div>
@@ -807,8 +806,17 @@ tbody tr:last-child td{border-bottom:none;}
 
     <!-- MENSAGENS -->
     <div class="section" id="sec-mensagens">
-      <div class="ph"><h2>Mensagens Prontas</h2><p>Copie e envie pelo WhatsApp</p></div>
-      <div class="msgs-grid" id="msgs-grid"></div>
+      <div class="ph"><h2>💬 Mensagens Prontas</h2><p>Copie e envie pelo WhatsApp</p></div>
+      <div class="tar-tabs" style="margin-bottom:18px">
+        <button class="tar-tab active" onclick="msgAba('cadencia',this)">📋 Cadência de Clientes</button>
+        <button class="tar-tab" onclick="msgAba('followup',this)">🔄 Followups / Leads</button>
+      </div>
+      <div id="msgs-aba-cadencia">
+        <div class="msgs-grid" id="msgs-grid"></div>
+      </div>
+      <div id="msgs-aba-followup" style="display:none">
+        <div class="rot-list" id="rot-list"></div>
+      </div>
     </div>
 
     <!-- ATENDIMENTOS / REUNIÕES -->
@@ -840,11 +848,6 @@ tbody tr:last-child td{border-bottom:none;}
       <div id="cad-lista"></div>
     </div>
 
-    <!-- ROTEIRO -->
-    <div class="section" id="sec-roteiro">
-      <div class="ph"><h2>Roteiro de Follow-up</h2><p>Siga desde o primeiro contato</p></div>
-      <div class="rot-list" id="rot-list"></div>
-    </div>
 
 
     <!-- PERFIL DO CLIENTE -->
@@ -1314,7 +1317,6 @@ function irPara(id,btn,titulo){
   if(id==='funil')renderFunil();
   if(id==='followup')renderFollowup();
   if(id==='mensagens')renderMensagens();
-  if(id==='roteiro')renderRoteiro();
   if(id==='dje')renderDJE();
   if(id==='audiencias'){carregarAud();renderAudDash();renderListaAud();renderPericias();badgesAud();}
   if(id==='atendimentos')renderAtendimentos();
@@ -1675,7 +1677,20 @@ function renderFollowup(){
     return`<div class="fu-card"><div class="fu-av">${l.nome[0].toUpperCase()}</div><div class="fu-info"><div class="fu-nome">${l.nome}</div><div class="fu-det">📱 ${l.tel} · <span class="badge" style="background:${CORES[l.etapa]||'#999'};font-size:10px;padding:2px 7px">${l.etapa}</span>${l.obs?' · '+l.obs:''}</div></div><div class="fu-right"><span class="tag ${cls}">${txt}</span><a href="https://wa.me/55${l.tel.replace(/\D/g,'')}" target="_blank" class="btn btn-success btn-sm">💬 WA</a><button class="btn btn-gray btn-sm" onclick="abrirModal(${idx})">✏️</button></div></div>`;
   }).join('');
 }
+function msgAba(aba,btn){
+  document.querySelectorAll('#sec-mensagens .tar-tab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  document.getElementById('msgs-aba-cadencia').style.display=aba==='cadencia'?'':'none';
+  document.getElementById('msgs-aba-followup').style.display=aba==='followup'?'':'none';
+  if(aba==='followup')renderRoteiro();
+}
+
 function renderMensagens(){
+  // garantir aba cadencia ativa ao abrir
+  const tabs=document.querySelectorAll('#sec-mensagens .tar-tab');
+  tabs.forEach((b,i)=>b.classList.toggle('active',i===0));
+  const ac=document.getElementById('msgs-aba-cadencia');const af=document.getElementById('msgs-aba-followup');
+  if(ac)ac.style.display='';if(af)af.style.display='none';
   const custom=JSON.parse(localStorage.getItem('lcfo_msgs_custom'))||{};
   document.getElementById('msgs-grid').innerHTML=MSGS.map((m,i)=>{
     const tt=(custom[i]?.tt!==undefined?custom[i].tt:m.tt).replace(/"/g,'&quot;').replace(/</g,'&lt;');
