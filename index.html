@@ -2594,7 +2594,41 @@ function badgeCadencia(){
 badgeCadencia();
 
 function renderRoteiro(){
-  document.getElementById('rot-list').innerHTML=ROTEIRO.map((r,i)=>`<div class="rot-item"><div class="rot-badge"><div class="rb-n">${r.n}</div><div class="rb-t">${r.h||'DIA'}</div></div><div class="rot-body"><h4>${r.tt}</h4><div class="rot-msg" id="rt-${i}">${r.m}</div><button class="copy-btn" onclick="copiar('rt-${i}',this)">📋 Copiar</button></div></div>`).join('');
+  const custom=JSON.parse(localStorage.getItem('lcfo_rot_custom'))||{};
+  document.getElementById('rot-list').innerHTML=ROTEIRO.map((r,i)=>{
+    const tt=(custom[i]?.tt!==undefined?custom[i].tt:r.tt).replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    const msg=(custom[i]?.m!==undefined?custom[i].m:r.m).replace(/</g,'&lt;');
+    const editado=!!custom[i];
+    return`<div class="rot-item">
+      <div class="rot-badge"><div class="rb-n">${r.n}</div><div class="rb-t">${r.h||'DIA'}</div></div>
+      <div class="rot-body">
+        <input class="msg-tt-edit" value="${tt}" oninput="salvarRotCampo(${i},'tt',this.value)" title="Clique para editar o título">
+        <div class="msg-etapa">📍 Dia ${r.n}${r.h?' · '+r.h:''}</div>
+        <textarea class="msg-edit" id="rg-${i}" rows="4" oninput="salvarRotCampo(${i},'m',this.value)">${msg}</textarea>
+        <div class="msg-actions">
+          <button class="copy-btn" onclick="copiarRotEdit(${i})">📋 Copiar</button>
+          ${editado?`<button class="btn btn-xs" style="background:#e74c3c;color:#fff;font-size:11px;padding:5px 11px;border-radius:6px;border:none;cursor:pointer" onclick="resetarRot(${i})">↩ Resetar</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function salvarRotCampo(i,campo,valor){
+  const custom=JSON.parse(localStorage.getItem('lcfo_rot_custom'))||{};
+  if(!custom[i])custom[i]={};
+  custom[i][campo]=valor;
+  localStorage.setItem('lcfo_rot_custom',JSON.stringify(custom));
+}
+function resetarRot(i){
+  const custom=JSON.parse(localStorage.getItem('lcfo_rot_custom'))||{};
+  delete custom[i];
+  localStorage.setItem('lcfo_rot_custom',JSON.stringify(custom));
+  renderRoteiro();
+  t('↩ Mensagem restaurada ao padrão');
+}
+function copiarRotEdit(i){
+  const v=document.getElementById('rg-'+i)?.value;
+  if(v!==undefined)navigator.clipboard.writeText(v).then(()=>t('📋 Copiado!'));
 }
 
 // ── Roteiros de Vídeo ─────────────────────────────────────────────────────────
