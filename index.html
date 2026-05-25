@@ -269,6 +269,24 @@ tbody tr:last-child td{border-bottom:none;}
 .msg-card input.msg-tt-edit:focus{outline:none;border-color:var(--navy);background:#f0f5ff;}
 .msg-actions{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap;align-items:center;}
 
+/* ===== TAREFAS ===== */
+.tar-sel{border:none;border-radius:20px;font-size:11.5px;font-weight:700;padding:4px 12px;cursor:pointer;font-family:inherit;-webkit-appearance:none;appearance:none;color:#fff;background:#aaa;outline:none;min-width:92px;text-align:center;}
+.tar-sel:focus{box-shadow:0 0 0 3px rgba(29,52,97,.15);}
+.tar-inp{border:none;background:transparent;font-size:13px;font-family:inherit;color:var(--text);width:100%;padding:4px 6px;border-radius:5px;box-sizing:border-box;}
+.tar-inp:focus{outline:none;background:#f0f5ff;}
+.tar-date{border:1.5px solid var(--border);background:var(--white);font-size:12px;font-family:inherit;padding:4px 8px;border-radius:6px;color:var(--text);}
+.tar-date:focus{outline:none;border-color:var(--navy);}
+.tar-tbl{width:100%;border-collapse:collapse;}
+.tar-tbl thead th{background:#f7f9fc;color:var(--text2);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:10px 12px;border-bottom:2px solid var(--border);white-space:nowrap;text-align:left;}
+.tar-tbl tbody td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.tar-tbl tbody tr:hover td{background:#f9fbff;}
+.tar-tbl tr.tar-feita td{opacity:.5;}
+.tar-tbl tr.tar-feita .tar-inp{text-decoration:line-through;color:var(--text2);}
+.tar-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px;}
+.tar-tab{padding:8px 15px;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit;white-space:nowrap;}
+.tar-tab:hover{color:var(--navy);}
+.tar-tab.active{color:var(--navy);border-bottom-color:var(--navy);}
+
 /* CADÊNCIA DE CLIENTES */
 .cad-tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);margin-bottom:16px;}
 .cad-tab{padding:8px 16px;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit;}
@@ -490,7 +508,7 @@ tbody tr:last-child td{border-bottom:none;}
     </div>
     <div class="nav-group">
       <div class="nav-group-label">Produtividade</div>
-      <button class="nav-item" onclick="irPara('eb',this,'Tarefas')"><span class="ni">✅</span>Tarefas</button>
+      <button class="nav-item" onclick="irPara('tarefas',this,'Tarefas')"><span class="ni">✅</span>Tarefas<span class="nb" id="b-tar" style="display:none">0</span></button>
       <button class="nav-item" onclick="irPara('eb',this,'Agenda')"><span class="ni">📅</span>Agenda</button>
       <button class="nav-item" onclick="irPara('eb',this,'Chat')"><span class="ni">💭</span>Chat</button>
       <button class="nav-item" onclick="irPara('eb',this,'Documentos')"><span class="ni">📄</span>Documentos</button>
@@ -1074,6 +1092,28 @@ tbody tr:last-child td{border-bottom:none;}
       </div>
     </div>
 
+<!-- TAREFAS -->
+    <div class="section" id="sec-tarefas">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px">
+        <div class="ph" style="margin:0"><h2>✅ Tarefas</h2><p>Gerencie suas tarefas do dia — status, prioridade e categoria em um clique</p></div>
+        <button class="btn btn-primary" onclick="novaTarefa()">➕ Nova Tarefa</button>
+      </div>
+      <div class="cards-grid" id="tar-kpis" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin-bottom:16px"></div>
+      <div class="tar-tabs">
+        <button class="tar-tab active" onclick="filtrarTar('todas',this)">📋 Todas</button>
+        <button class="tar-tab" onclick="filtrarTar('pendentes',this)">🔴 Pendentes</button>
+        <button class="tar-tab" onclick="filtrarTar('andamento',this)">🟡 Em andamento</button>
+        <button class="tar-tab" onclick="filtrarTar('hoje',this)">📅 Para hoje</button>
+        <button class="tar-tab" onclick="filtrarTar('feitas',this)">✅ Feitas</button>
+      </div>
+      <div style="margin-bottom:12px">
+        <input id="tar-busca" placeholder="🔍 Buscar tarefa..." oninput="renderTarefas()" style="padding:7px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:12.5px;font-family:inherit;width:100%;max-width:340px;box-sizing:border-box">
+      </div>
+      <div class="panel">
+        <div class="panel-body" style="padding:0"><div id="tar-wrap" style="overflow-x:auto"></div></div>
+      </div>
+    </div>
+
 <!-- EM BREVE -->
     <div class="section" id="sec-eb">
       <div class="em-breve"><div class="eb-ic">🚀</div><h3 id="eb-titulo">Em desenvolvimento</h3><p>Esta funcionalidade estará disponível em breve.</p></div>
@@ -1214,7 +1254,7 @@ const ROTEIRO=[
   {n:'30',h:'',tt:'Follow-up Final',m:`[NOME], passando para um último contato.\nSe precisar de assessoria jurídica em dívidas bancárias, pode nos procurar a qualquer momento.\nGuarde nosso contato! ⚖️ LCFO Advogados`},
 ];
 
-const EM_BREVE=['tarefas','agenda','chat','documentos','financeiro','metas'];
+const EM_BREVE=['agenda','chat','documentos','financeiro','metas'];
 function irPara(id,btn,titulo){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
@@ -1236,6 +1276,7 @@ function irPara(id,btn,titulo){
   if(id==='atendimentos')renderAtendimentos();
   if(id==='bot')renderBot();
   if(id==='cadencia')renderCadencia();
+  if(id==='tarefas')renderTarefas();
 }
 function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('mob-ov').classList.toggle('show');}
 function fecharSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mob-ov').classList.remove('show');}
@@ -1916,6 +1957,125 @@ function salvarNotasReuniao(idx){
   t('📝 Anotações salvas!');
 }
 
+// ===== TAREFAS =====
+const KEY_TAR='lcfo_tarefas_v1';
+let tarefas=[];
+let _tarFiltro='todas';
+
+const TAR_S={'Pendente':'#e74c3c','Em andamento':'#e67e22','Feito':'#27ae60','Delegada':'#3498db'};
+const TAR_C={'LCFO Advogados':'#1D3461','Pessoal':'#e74c3c','Rochinha':'#27ae60'};
+const TAR_P={'Urgente':'#e74c3c','Normal':'#27ae60'};
+
+function carregarTar(){try{tarefas=JSON.parse(localStorage.getItem(KEY_TAR)||'[]');}catch(e){tarefas=[];}}
+function salvarTar(){localStorage.setItem(KEY_TAR,JSON.stringify(tarefas));}
+
+function novaTarefa(){
+  carregarTar();
+  tarefas.unshift({id:Date.now(),tarefa:'',status:'Pendente',data:'',categoria:'LCFO Advogados',prioridade:'Normal',obs:'',criado:new Date().toISOString().split('T')[0]});
+  salvarTar();renderTarefas();
+  setTimeout(()=>{const el=document.querySelector('#tar-wrap .tar-inp');if(el)el.focus();},60);
+}
+
+function excluirTarefa(id){
+  if(!confirm('Excluir esta tarefa?'))return;
+  carregarTar();
+  tarefas=tarefas.filter(tk=>tk.id!==id);
+  salvarTar();renderTarefas();badgeTarefas();
+}
+
+function tarFieldChange(id,campo,valor,rerender){
+  carregarTar();
+  const tk=tarefas.find(t=>t.id===id);
+  if(!tk)return;
+  tk[campo]=valor;
+  salvarTar();
+  if(rerender)renderTarefas();
+  badgeTarefas();
+}
+
+function tarAplicarCores(wrap){
+  wrap.querySelectorAll('.tar-sel[data-cfg]').forEach(sel=>{
+    const cfg=sel.dataset.cfg==='s'?TAR_S:sel.dataset.cfg==='c'?TAR_C:TAR_P;
+    sel.style.background=cfg[sel.value]||'#b2bec3';
+    sel.style.color='#fff';
+  });
+}
+
+function filtrarTar(f,btn){
+  _tarFiltro=f;
+  document.querySelectorAll('.tar-tab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderTarefas();
+}
+
+function renderTarefas(){
+  carregarTar();
+  const hoje=new Date().toISOString().split('T')[0];
+  const bq=(document.getElementById('tar-busca')?.value||'').toLowerCase().trim();
+
+  // KPIs
+  const pend=tarefas.filter(tk=>tk.status==='Pendente').length;
+  const em=tarefas.filter(tk=>tk.status==='Em andamento').length;
+  const feitas=tarefas.filter(tk=>tk.status==='Feito').length;
+  const urg=tarefas.filter(tk=>tk.prioridade==='Urgente'&&tk.status!=='Feito').length;
+  const kEl=document.getElementById('tar-kpis');
+  if(kEl)kEl.innerHTML=`
+    <div class="kpi r"><div class="kpi-top"><span class="kpi-icon">🔴</span></div><div class="kpi-num">${pend}</div><div class="kpi-label">Pendentes</div></div>
+    <div class="kpi o"><div class="kpi-top"><span class="kpi-icon">🟡</span></div><div class="kpi-num">${em}</div><div class="kpi-label">Em andamento</div></div>
+    <div class="kpi g"><div class="kpi-top"><span class="kpi-icon">✅</span></div><div class="kpi-num">${feitas}</div><div class="kpi-label">Feitas</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-icon">⚡</span></div><div class="kpi-num">${urg}</div><div class="kpi-label">Urgentes</div></div>`;
+
+  let lista=[...tarefas];
+  if(_tarFiltro==='pendentes')lista=lista.filter(tk=>tk.status==='Pendente');
+  else if(_tarFiltro==='andamento')lista=lista.filter(tk=>tk.status==='Em andamento');
+  else if(_tarFiltro==='feitas')lista=lista.filter(tk=>tk.status==='Feito');
+  else if(_tarFiltro==='hoje')lista=lista.filter(tk=>tk.data===hoje&&tk.status!=='Feito');
+  if(bq)lista=lista.filter(tk=>(tk.tarefa||'').toLowerCase().includes(bq)||(tk.obs||'').toLowerCase().includes(bq));
+
+  const wrap=document.getElementById('tar-wrap');
+  if(!wrap)return;
+  if(!lista.length){
+    wrap.innerHTML='<div class="empty" style="padding:32px"><div class="ei">✅</div><p>Nenhuma tarefa encontrada.</p></div>';
+    return;
+  }
+
+  function opts(cfg,val){return Object.keys(cfg).map(k=>`<option value="${k}"${k===val?' selected':''}>${k}</option>`).join('');}
+
+  wrap.innerHTML=`<table class="tar-tbl">
+    <thead><tr>
+      <th style="min-width:200px">TAREFA</th>
+      <th>STATUS</th>
+      <th>DATA DE ENTREGA</th>
+      <th>CATEGORIA</th>
+      <th>PRIORIDADE</th>
+      <th style="min-width:140px">OBSERVAÇÃO</th>
+      <th style="width:32px"></th>
+    </tr></thead>
+    <tbody>${lista.map(tk=>`
+    <tr class="${tk.status==='Feito'?'tar-feita':''}">
+      <td><input class="tar-inp" value="${(tk.tarefa||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}" placeholder="Nome da tarefa..." oninput="tarFieldChange(${tk.id},'tarefa',this.value,false)"></td>
+      <td><select class="tar-sel" data-cfg="s" onchange="tarFieldChange(${tk.id},'status',this.value,true)">${opts(TAR_S,tk.status||'Pendente')}</select></td>
+      <td><input type="date" class="tar-date" value="${tk.data||''}" onchange="tarFieldChange(${tk.id},'data',this.value,false)"></td>
+      <td><select class="tar-sel" data-cfg="c" onchange="tarFieldChange(${tk.id},'categoria',this.value,false);this.style.background=TAR_C[this.value]||'#b2bec3'">${opts(TAR_C,tk.categoria||'LCFO Advogados')}</select></td>
+      <td><select class="tar-sel" data-cfg="p" onchange="tarFieldChange(${tk.id},'prioridade',this.value,false);this.style.background=TAR_P[this.value]||'#b2bec3'">${opts(TAR_P,tk.prioridade||'Normal')}</select></td>
+      <td><input class="tar-inp" value="${(tk.obs||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}" placeholder="—" oninput="tarFieldChange(${tk.id},'obs',this.value,false)"></td>
+      <td><button class="btn btn-xs" style="background:#fde8e8;color:#c0392b" onclick="excluirTarefa(${tk.id})" title="Excluir">✕</button></td>
+    </tr>`).join('')}
+    </tbody>
+  </table>`;
+  tarAplicarCores(wrap);
+}
+
+function badgeTarefas(){
+  try{
+    carregarTar();
+    const n=tarefas.filter(tk=>tk.status!=='Feito').length;
+    const bt=document.getElementById('b-tar');
+    if(bt){bt.textContent=n;bt.style.display=n?'inline':'none';}
+  }catch(e){}
+}
+badgeTarefas();
+
 // ===== CADÊNCIA DE CLIENTES =====
 const KEY_CAD='lcfo_tarefas_cli_v1';
 let _cadFiltro='pendentes';
@@ -2117,6 +2277,7 @@ function badges(){
   const bf=document.getElementById('b-fu');if(bf){bf.textContent=fu;bf.style.display=fu?'inline':'none';}
   try{const djeLs=JSON.parse(localStorage.getItem('dje_lcfo_v1')||'[]');const djN=djeLs.filter(i=>i.status==='nova').length;const bd=document.getElementById('b-dje');if(bd){bd.textContent=djN;bd.style.display=djN?'inline':'none';}}catch(e){}
   badgeCadencia();
+  badgeTarefas();
 }
 function exportar(){
   const blob=new Blob([JSON.stringify({v:3,data:new Date().toISOString(),leads},null,2)],{type:'application/json'});
