@@ -15,21 +15,24 @@ function kvCreds() {
 async function kvGet(key) {
   const { url, token } = kvCreds();
   if (!url || !token) return null;
-  const res = await fetch(`${url}/get/${encodeURIComponent(key)}`, {
-    headers: { Authorization: `Bearer ${token}` },
+  // Usa formato pipeline do Upstash (mais confiável)
+  const res = await fetch(`${url}/pipeline`, {
+    method:  'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body:    JSON.stringify([['GET', key]]),
   });
   if (!res.ok) return null;
   const data = await res.json();
-  return data.result;
+  return data[0]?.result ?? null;
 }
 
 async function kvSet(key, value) {
   const { url, token } = kvCreds();
   if (!url || !token) return false;
-  const res = await fetch(`${url}/set/${encodeURIComponent(key)}`, {
+  const res = await fetch(`${url}/pipeline`, {
     method:  'POST',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body:    JSON.stringify(value),
+    body:    JSON.stringify([['SET', key, value]]),
   });
   return res.ok;
 }
