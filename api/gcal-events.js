@@ -76,8 +76,16 @@ export default async function handler(req, res) {
       'https://www.googleapis.com/calendar/v3/users/me/calendarList?maxResults=25',
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
+    if (!calListRes.ok) {
+      const err = await calListRes.json().catch(() => ({}));
+      const semScope = calListRes.status === 403 || (err.error?.status === 'PERMISSION_DENIED');
+      throw new Error(semScope
+        ? 'Permissão do Google Agenda não concedida. Acesse /api/gdrive-auth para reconectar.'
+        : `Erro ao listar calendários: ${calListRes.status}`);
+    }
     const calList = await calListRes.json();
     const calendars = (calList.items || []).filter(c => c.selected !== false);
+    console.log(`[GCal] ${calendars.length} calendários encontrados`);
 
     const timeMin = encodeURIComponent(start + 'T00:00:00-03:00');
     const timeMax = encodeURIComponent(end   + 'T23:59:59-03:00');

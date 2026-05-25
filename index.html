@@ -1287,6 +1287,7 @@ tbody tr:last-child td{border-bottom:none;}
             <h3 id="ag-titulo">—</h3>
             <button class="btn btn-gray btn-sm" onclick="navAgMes(1)" style="font-size:16px;padding:4px 12px">›</button>
           </div>
+          <div id="gcal-status" style="font-size:11px;color:var(--text2);text-align:right;margin-bottom:4px;min-height:16px"></div>
           <div class="cal-grid" id="ag-grid"></div>
         </div>
       </div>
@@ -2510,29 +2511,41 @@ let _agMes=new Date().getMonth(),_agAno=new Date().getFullYear();
 let _gcalEvents={};      // { 'YYYY-MM-DD': [{summary,start,end,calendarColor,...}] }
 let _gcalLastFetched=''; // 'YYYY-MM' do último fetch
 
+function _gcalSetStatus(msg){const el=document.getElementById('gcal-status');if(el)el.innerHTML=msg;}
+
 async function fetchGCalEvents(ano,mes){
   const chave=`${ano}-${String(mes+1).padStart(2,'0')}`;
-  if(_gcalLastFetched===chave)return; // já buscou este mês
+  if(_gcalLastFetched===chave)return;
   _gcalLastFetched=chave;
   const start=`${ano}-${String(mes+1).padStart(2,'0')}-01`;
   const ultimo=new Date(ano,mes+1,0).getDate();
   const end=`${ano}-${String(mes+1).padStart(2,'0')}-${String(ultimo).padStart(2,'0')}`;
+  _gcalSetStatus('🔄 Sincronizando Google Agenda…');
   try{
     const r=await fetch(`/api/gcal-events?start=${start}&end=${end}`);
     const data=await r.json();
-    if(data.ok&&data.events){
+    if(data.ok&&data.events!=null){
       _gcalEvents={};
       data.events.forEach(ev=>{
-        const dt=(ev.start&&(ev.start.date||ev.start.dateTime||'').substring(0,10))||'';
+        const dt=(ev.start&&(ev.start.date||(ev.start.dateTime||'').substring(0,10)))||'';
         if(!dt)return;
         if(!_gcalEvents[dt])_gcalEvents[dt]=[];
         _gcalEvents[dt].push(ev);
       });
-      renderAgenda(); // re-renderiza com os eventos do Google
+      const total=data.events.length;
+      _gcalSetStatus(total>0
+        ?`📅 ${total} compromisso${total>1?'s':''} do Google Agenda`
+        :'📅 Google Agenda: nenhum compromisso neste mês');
+      renderAgenda();
     } else if(data.naoConectado){
-      console.info('[GCal] Ainda não autorizado — acesse /api/gdrive-auth');
+      _gcalSetStatus('⚠️ Google Agenda não conectado — <a href="/api/gdrive-auth" target="_blank" style="color:var(--ai-blue)">Clique para autorizar</a>');
+    } else {
+      _gcalSetStatus('⚠️ Erro ao buscar Google Agenda: '+(data.erro||'desconhecido'));
     }
-  }catch(e){console.error('[GCal]',e);}
+  }catch(e){
+    _gcalSetStatus('⚠️ Falha na conexão com Google Agenda');
+    console.error('[GCal]',e);
+  }
 }
 function navAgMes(d){
   _gcalLastFetched=''; // força nova busca ao mudar de mês
