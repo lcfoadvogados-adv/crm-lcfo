@@ -5,9 +5,15 @@
 
 // ─── Vercel KV ────────────────────────────────────────────────────────────────
 
+// Aceita Vercel KV (KV_REST_API_URL) ou Upstash direto (UPSTASH_REDIS_REST_URL)
+function kvCreds() {
+  const url   = process.env.KV_REST_API_URL   || process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  return { url, token };
+}
+
 async function kvGet(key) {
-  const url   = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
+  const { url, token } = kvCreds();
   if (!url || !token) return null;
   const res = await fetch(`${url}/get/${encodeURIComponent(key)}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -18,8 +24,7 @@ async function kvGet(key) {
 }
 
 async function kvSet(key, value) {
-  const url   = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
+  const { url, token } = kvCreds();
   if (!url || !token) return false;
   const res = await fetch(`${url}/set/${encodeURIComponent(key)}`, {
     method:  'POST',
