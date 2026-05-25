@@ -1754,16 +1754,21 @@ function aiFiles(input){
       document.getElementById('ai-anal').style.display='none';
       if(res.success && res.dados){
         const d=res.dados;
-        if(d.nome) document.getElementById('f-nome').value=d.nome;
-        if(d.cpf) document.getElementById('f-cpf').value=d.cpf;
-        if(d.rg) document.getElementById('f-rg').value=d.rg;
-        if(d.nascimento) document.getElementById('f-nasc').value=d.nascimento;
-        if(d.genero) document.getElementById('f-gen').value=d.genero;
-        if(d.profissao) document.getElementById('f-prof').value=d.profissao;
-        if(d.nacionalidade) document.getElementById('f-nac').value=d.nacionalidade;
-        if(d.endereco) document.getElementById('f-end').value=d.endereco;
-        if(d.email) document.getElementById('f-email').value=d.email;
-        if(d.telefone) document.getElementById('f-tel').value=d.telefone;
+        // helper: aceita string ou objeto aninhado
+        const str=v=>(!v||v==='null')?'':typeof v==='object'?Object.values(v).filter(Boolean).join(', '):String(v);
+        // nome pode vir como "nome", "nome_completo" ou "nome completo"
+        const nome=d.nome||d['nome_completo']||d['nome completo']||'';
+        if(nome) document.getElementById('f-nome').value=str(nome);
+        if(d.cpf) document.getElementById('f-cpf').value=str(d.cpf);
+        if(d.rg) document.getElementById('f-rg').value=str(d.rg);
+        if(d.nascimento) document.getElementById('f-nasc').value=str(d.nascimento);
+        if(d.genero) document.getElementById('f-gen').value=str(d.genero);
+        if(d.profissao) document.getElementById('f-prof').value=str(d.profissao);
+        if(d.nacionalidade) document.getElementById('f-nac').value=str(d.nacionalidade);
+        const end=d.endereco||d['endereço']||'';
+        if(end) document.getElementById('f-end').value=str(end);
+        if(d.email) document.getElementById('f-email').value=str(d.email);
+        if(d.telefone) document.getElementById('f-tel').value=str(d.telefone);
         t('✅ Campos preenchidos automaticamente! Revise antes de salvar.');
         // Highlight filled fields
         ['f-nome','f-cpf','f-rg','f-nasc','f-gen','f-prof','f-nac','f-end','f-email','f-tel'].forEach(id=>{

@@ -30,7 +30,21 @@ export default async function handler(req, res) {
     }),
     {
       type: 'text',
-      text: 'Analise estes documentos brasileiros (RG, CPF, CNH, comprovante de residencia) e extraia os dados cadastrais: nome completo, cpf, rg, nascimento (formato YYYY-MM-DD), genero (Masculino/Feminino), profissao, nacionalidade, endereco completo (logradouro, numero, bairro, cidade, estado, CEP), email, telefone. Retorne SOMENTE um JSON valido com esses campos exatos (use null para campos nao encontrados). Nenhum texto antes ou depois do JSON.'
+      text: `Analise estes documentos brasileiros (RG, CPF, CNH, comprovante de residencia) e extraia os dados.
+Retorne SOMENTE o JSON abaixo, sem nenhum texto antes ou depois, usando exatamente estas chaves:
+{
+  "nome": "nome completo da pessoa",
+  "cpf": "000.000.000-00",
+  "rg": "numero do RG com orgao emissor",
+  "nascimento": "YYYY-MM-DD",
+  "genero": "Masculino ou Feminino",
+  "profissao": "profissao ou ocupacao",
+  "nacionalidade": "Brasileiro ou Brasileira",
+  "endereco": "Rua X, 123, Bairro, Cidade - UF, CEP 00000-000",
+  "email": "email se houver",
+  "telefone": "telefone se houver"
+}
+Use null para campos nao encontrados. O campo "endereco" deve ser uma unica string de texto, nunca um objeto.`
     }
   ];
 
