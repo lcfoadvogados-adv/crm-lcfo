@@ -3630,12 +3630,6 @@ function atualizarBadgeProc(){
   b.textContent=u;b.style.display=u?'inline':'none';
 }
 
-carregarProc();badges();renderLeads();atualizarBadgeProc();t('✅ '+leads.length+' clientes importados!');
-      }else t('⚠️ Arquivo inválido.',false);
-    }catch{t('⚠️ Erro ao ler arquivo.',false);}
-  };r.readAsText(file);e.target.value='';
-}
-
 // ETIQUETAS
 let fTags=[];
 const TAG_CORES={materia:'#2980b9',processual:'#8e44ad',parceria:'#27ae60',geral:'#e67e22'};
