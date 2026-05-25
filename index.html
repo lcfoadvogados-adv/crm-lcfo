@@ -298,6 +298,7 @@ tbody tr:last-child td{border-bottom:none;}
 .vers-ticker{background:linear-gradient(135deg,#1a4d3a 0%,#2d6a52 100%);}
 .fv-texto{margin:0 0 3px;font-size:13.5px;font-weight:500;line-height:1.55;font-style:italic;transition:opacity .5s ease;}
 .fv-autor{font-size:11px;color:rgba(255,255,255,.55);font-weight:700;text-transform:uppercase;letter-spacing:.8px;transition:opacity .5s ease;}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 /* META CARDS */
 .meta-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px 20px;}
 .meta-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;}
@@ -3390,19 +3391,61 @@ function badges(){
   badgeCadencia();
   badgeTarefas();
 }
-function exportar(){
-  const blob=new Blob([JSON.stringify({v:3,data:new Date().toISOString(),leads},null,2)],{type:'application/json'});
+// ── Backup Completo ───────────────────────────────────────────────────────────
+const _BK_KEYS=['crm_lcfo_v3','lcfo_tarefas_cli_v1','lcfo_tarefas_v1','lcfo_bot_v1','dje_lcfo_v1','proc_lcfo_v1','lcfo_docs_rep_v1','lcfo_rot_custom','lcfo_msgs_custom','lcfo_roteiros_v2','lcfo_fin_contratos_v1','lcfo_fin_fluxo_v1','lcfo_fin_despesas_v1','lcfo_metas_cfg_v1'];
+function exportar(silencioso){
+  const payload={v:4,sistema:'LCFO CRM',data:new Date().toISOString(),dados:{}};
+  _BK_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!=null)payload.dados[k]=v;});
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='backup_lcfo_'+new Date().toISOString().split('T')[0]+'.json';a.click();
-  t('✅ Backup exportado!');
+  a.download='backup_lcfo_'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},300);
+  localStorage.setItem('lcfo_last_autobackup',new Date().toISOString());
+  if(!silencioso)t('✅ Backup completo exportado com sucesso!');
 }
 function importar(e){
   const file=e.target.files[0];if(!file)return;
   const r=new FileReader();r.onload=ev=>{
-    try{const p=JSON.parse(ev.target.result);
-      if(p.leads&&Array.isArray(p.leads)){
+    try{
+      const p=JSON.parse(ev.target.result);
+      if(p.dados&&typeof p.dados==='object'){
+        const qtd=Object.keys(p.dados).length;
+        const dt=p.data?new Date(p.data).toLocaleDateString('pt-BR'):'?';
+        if(!confirm('Importar backup de '+dt+'?\n'+qtd+' módulos serão restaurados.\n\nOs dados atuais serão substituídos.'))return;
+        Object.entries(p.dados).forEach(([k,v])=>localStorage.setItem(k,v));
+        t('✅ Backup importado com sucesso! Recarregando...');
+        setTimeout(()=>location.reload(),1500);
+      }else if(p.leads&&Array.isArray(p.leads)){
         if(!confirm('Importar '+p.leads.length+' clientes? Os dados atuais serão substituídos.'))return;
         leads=p.leads;salvar();
+        t('✅ Backup importado!');
+        setTimeout(()=>location.reload(),1500);
+      }else{t('⚠️ Arquivo de backup inválido!',false);}
+    }catch(err){t('⚠️ Erro ao ler arquivo: '+err.message,false);}
+    e.target.value='';
+  };
+  r.readAsText(file);
+}
+function verificarAutoBackup(){
+  const last=localStorage.getItem('lcfo_last_autobackup');
+  const TRES_DIAS=3*24*60*60*1000;
+  if(last&&Date.now()-new Date(last).getTime()<TRES_DIAS)return;
+  setTimeout(()=>{
+    const div=document.createElement('div');
+    div.id='auto-bk-banner';
+    div.style.cssText='position:fixed;bottom:80px;right:24px;background:#1D3461;color:#fff;border-radius:14px;padding:18px 20px;z-index:9999;box-shadow:0 6px 28px rgba(0,0,0,.28);max-width:310px;animation:slideUp .4s ease';
+    const ultimoStr=last?'Último backup: '+new Date(last).toLocaleDateString('pt-BR'):'Nenhum backup realizado ainda';
+    div.innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:22px">⏰</span><div><div style="font-weight:700;font-size:14px">Backup automático</div><div style="font-size:11px;color:rgba(255,255,255,.6)">${ultimoStr}</div></div></div>
+      <div style="font-size:12.5px;color:rgba(255,255,255,.85);margin-bottom:14px">Já se passaram 3 dias sem backup. Salve uma cópia completa do sistema agora.</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="exportar();document.getElementById('auto-bk-banner')?.remove()" style="flex:1;background:#27ae60;color:#fff;border:none;border-radius:8px;padding:9px;cursor:pointer;font-weight:700;font-size:13px">💾 Fazer Backup</button>
+        <button onclick="document.getElementById('auto-bk-banner')?.remove()" style="background:rgba(255,255,255,.12);color:#fff;border:none;border-radius:8px;padding:9px 14px;cursor:pointer;font-size:13px">Depois</button>
+      </div>`;
+    document.body.appendChild(div);
+    setTimeout(()=>{document.getElementById('auto-bk-banner')?.remove();},60000);
+  },3000);
+}
 // ===== PROCESSOS & PRAZOS =====
 const KEY_PROC='proc_lcfo_v1';
 let processos=[];
@@ -3811,7 +3854,7 @@ function atualizarBadgeProc(){
   b.textContent=u;b.style.display=u?'inline':'none';
 }
 
-carregarProc();badges();renderDash();atualizarBadgeProc();iniciarFrasesTicker();
+carregarProc();badges();renderDash();atualizarBadgeProc();iniciarFrasesTicker();verificarAutoBackup();
 
 // ===== AUDIÊNCIAS E PERÍCIAS =====
 const KEY_AUD='crm_aud_v1';
