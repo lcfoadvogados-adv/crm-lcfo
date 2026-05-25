@@ -2507,7 +2507,35 @@ function excluirDocRepo(i){
 
 // ── Agenda (calendário unificado: tarefas + reuniões) ──────────────────────────
 let _agMes=new Date().getMonth(),_agAno=new Date().getFullYear();
+let _gcalEvents={};      // { 'YYYY-MM-DD': [{summary,start,end,calendarColor,...}] }
+let _gcalLastFetched=''; // 'YYYY-MM' do último fetch
+
+async function fetchGCalEvents(ano,mes){
+  const chave=`${ano}-${String(mes+1).padStart(2,'0')}`;
+  if(_gcalLastFetched===chave)return; // já buscou este mês
+  _gcalLastFetched=chave;
+  const start=`${ano}-${String(mes+1).padStart(2,'0')}-01`;
+  const ultimo=new Date(ano,mes+1,0).getDate();
+  const end=`${ano}-${String(mes+1).padStart(2,'0')}-${String(ultimo).padStart(2,'0')}`;
+  try{
+    const r=await fetch(`/api/gcal-events?start=${start}&end=${end}`);
+    const data=await r.json();
+    if(data.ok&&data.events){
+      _gcalEvents={};
+      data.events.forEach(ev=>{
+        const dt=(ev.start&&(ev.start.date||ev.start.dateTime||'').substring(0,10))||'';
+        if(!dt)return;
+        if(!_gcalEvents[dt])_gcalEvents[dt]=[];
+        _gcalEvents[dt].push(ev);
+      });
+      renderAgenda(); // re-renderiza com os eventos do Google
+    } else if(data.naoConectado){
+      console.info('[GCal] Ainda não autorizado — acesse /api/gdrive-auth');
+    }
+  }catch(e){console.error('[GCal]',e);}
+}
 function navAgMes(d){
+  _gcalLastFetched=''; // força nova busca ao mudar de mês
   _agMes+=d;
   if(_agMes>11){_agMes=0;_agAno++;}
   if(_agMes<0){_agMes=11;_agAno--;}
@@ -2539,6 +2567,18 @@ function renderAgenda(){
     const hora=l.reuniao_hora?` ${l.reuniao_hora}`:'';
     addEv(l.reuniao_data,{label:`🤝 ${fn}${hora}`,bg:'#1D3461',done:false,tipo:'reuniao',idx});
   });
+  // Google Calendar
+  Object.entries(_gcalEvents).forEach(([dt,evs])=>{
+    evs.forEach(ev=>{
+      const hora=ev.start&&ev.start.dateTime
+        ?new Date(ev.start.dateTime).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'})+' '
+        :'';
+      const label=hora+(ev.summary||'Compromisso');
+      addEv(dt,{label,bg:ev.calendarColor||'#1a73e8',done:false,tipo:'gcal',ev});
+    });
+  });
+  // Busca eventos do Google (assíncrono — re-renderiza ao completar)
+  fetchGCalEvents(_agAno,_agMes);
 
   const grid=document.getElementById('ag-grid');
   if(!grid)return;
@@ -2569,7 +2609,8 @@ function abrirDiaAg(ds){
   const det=document.getElementById('ag-detail');if(!det)return;
   const tks=tarefas.filter(tk=>tk.data===ds);
   const reuns=leads.filter(l=>l.reuniao_data===ds);
-  if(!tks.length&&!reuns.length){det.style.display='none';return;}
+  const gcals=_gcalEvents[ds]||[];
+  if(!tks.length&&!reuns.length&&!gcals.length){det.style.display='none';return;}
   const dataFmt=new Date(ds+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
   let html=`<div class="reuniao-panel" style="margin-top:14px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -2599,6 +2640,25 @@ function abrirDiaAg(ds){
         <span style="background:${bg};color:#fff;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:600;flex-shrink:0">${tk.categoria||'—'}</span>
         <span style="flex:1;font-size:13px;color:var(--text)${done?';text-decoration:line-through':''}">${tk.tarefa||'(sem título)'}</span>
         <span style="background:${stBg};color:${stCol};border-radius:10px;padding:2px 8px;font-size:11px;font-weight:600;white-space:nowrap">${tk.status}</span>
+      </div>`;
+    });
+    html+='</div>';
+  }
+  html+='</div>';
+  // Google Calendar
+  if(gcals.length){
+    html+=`<div style="margin-top:10px"><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📅 Google Agenda</div>`;
+    gcals.forEach(ev=>{
+      const isAllDay=!!(ev.start&&ev.start.date&&!ev.start.dateTime);
+      const hora=isAllDay?'Dia todo':new Date(ev.start.dateTime).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'});
+      const cor=ev.calendarColor||'#1a73e8';
+      html+=`<div style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:#f0f6ff;border-radius:8px;margin-bottom:6px;border-left:3px solid ${cor}">
+        <span style="background:${cor};color:#fff;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:600;flex-shrink:0;white-space:nowrap">${hora}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ev.summary||'(sem título)'}</div>
+          ${ev.location?`<div style="font-size:11px;color:var(--text2);margin-top:2px">📍 ${ev.location}</div>`:''}
+          <div style="font-size:10px;color:var(--text2);margin-top:1px">${ev.calendarName||''}</div>
+        </div>
       </div>`;
     });
     html+='</div>';

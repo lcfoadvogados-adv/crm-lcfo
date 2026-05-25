@@ -10,7 +10,11 @@ export default function handler(req, res) {
     return res.status(500).send('⚠️ GDRIVE_CLIENT_ID não configurada no Vercel.');
   }
 
-  const scope = 'https://www.googleapis.com/auth/drive';
+  // Drive + Google Calendar (leitura)
+  const scope = [
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/calendar.readonly',
+  ].join(' ');
   const url   = 'https://accounts.google.com/o/oauth2/v2/auth'
     + `?client_id=${encodeURIComponent(clientId)}`
     + `&redirect_uri=${encodeURIComponent(redirectUri)}`
