@@ -287,6 +287,16 @@ tbody tr:last-child td{border-bottom:none;}
 .tar-tab:hover{color:var(--navy);}
 .tar-tab.active{color:var(--navy);border-bottom-color:var(--navy);}
 
+/* DOCUMENTOS */
+.doc-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.doc-table th{background:#f0f3f8;color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:8px 10px;text-align:left;border-bottom:2px solid var(--border);white-space:nowrap;}
+.doc-table td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.doc-table tr:hover td{background:#f8f9ff;}
+.doc-inp{border:1px solid transparent;background:transparent;padding:4px 6px;border-radius:4px;font-size:12px;font-family:inherit;width:100%;box-sizing:border-box;min-width:90px;}
+.doc-inp:focus{border-color:var(--accent);background:#fff;outline:none;}
+.doc-sel{border:1px solid transparent;background:transparent;padding:4px 6px;border-radius:4px;font-size:12px;font-family:inherit;width:100%;box-sizing:border-box;cursor:pointer;}
+.doc-sel:focus{border-color:var(--accent);outline:none;}
+
 /* CADÊNCIA DE CLIENTES */
 .cad-tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);margin-bottom:16px;}
 .cad-tab{padding:8px 16px;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit;}
@@ -510,7 +520,7 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="nav-group-label">Produtividade</div>
       <button class="nav-item" onclick="irPara('tarefas',this,'Tarefas')"><span class="ni">✅</span>Tarefas<span class="nb" id="b-tar" style="display:none">0</span></button>
       <button class="nav-item" onclick="irPara('agenda',this,'Agenda')"><span class="ni">📅</span>Agenda</button>
-      <button class="nav-item" onclick="irPara('eb',this,'Documentos')"><span class="ni">📄</span>Documentos</button>
+      <button class="nav-item" onclick="irPara('documentos',this,'Documentos')"><span class="ni">📄</span>Documentos</button>
       <button class="nav-item" onclick="irPara('roteiro',this,'Roteiro')"><span class="ni">📋</span>Roteiro</button>
     </div>
     <div class="nav-group">
@@ -1135,6 +1145,19 @@ tbody tr:last-child td{border-bottom:none;}
       </div>
     </div>
 
+<!-- DOCUMENTOS -->
+    <div class="section" id="sec-documentos">
+      <div class="ph"><h2>📄 Documentos</h2><p>Planilhas consolidadas de clientes e leads, mais repositório geral de documentos</p></div>
+      <div class="tar-tabs" style="margin-bottom:18px">
+        <button class="tar-tab active" onclick="docAba('clientes',this)">👥 Planilha de Clientes</button>
+        <button class="tar-tab" onclick="docAba('leads',this)">📥 Planilha de Leads</button>
+        <button class="tar-tab" onclick="docAba('repositorio',this)">📁 Repositório</button>
+      </div>
+      <div id="doc-clientes"></div>
+      <div id="doc-leads" style="display:none"></div>
+      <div id="doc-repo" style="display:none"></div>
+    </div>
+
 <!-- EM BREVE -->
     <div class="section" id="sec-eb">
       <div class="em-breve"><div class="eb-ic">🚀</div><h3 id="eb-titulo">Em desenvolvimento</h3><p>Esta funcionalidade estará disponível em breve.</p></div>
@@ -1275,7 +1298,7 @@ const ROTEIRO=[
   {n:'30',h:'',tt:'Follow-up Final',m:`[NOME], passando para um último contato.\nSe precisar de assessoria jurídica em dívidas bancárias, pode nos procurar a qualquer momento.\nGuarde nosso contato! ⚖️ LCFO Advogados`},
 ];
 
-const EM_BREVE=['documentos','financeiro','metas'];
+const EM_BREVE=['financeiro','metas'];
 function irPara(id,btn,titulo){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
@@ -1296,6 +1319,7 @@ function irPara(id,btn,titulo){
   if(id==='audiencias'){carregarAud();renderAudDash();renderListaAud();renderPericias();badgesAud();}
   if(id==='atendimentos')renderAtendimentos();
   if(id==='agenda')renderAgenda();
+  if(id==='documentos')renderDocumentos();
   if(id==='bot')renderBot();
   if(id==='cadencia')renderCadencia();
   if(id==='tarefas')renderTarefas();
@@ -1878,6 +1902,128 @@ function verificarBots(){
 }
 // Roda verificação a cada 5 minutos
 setInterval(function(){verificarBots();const bb=document.getElementById('b-bot');if(bb){const n=leads.filter(l=>l.etapa==='Leads de Entrada'&&l.bot_inicio&&!l.bot_pausado).length;bb.textContent=n;bb.style.display=n?'inline':'none';}},300000);
+
+// ── Documentos ────────────────────────────────────────────────────────────────
+const KEY_REPO='lcfo_docs_rep_v1';let docsRepo=[];
+let _docAba='clientes';
+function carregarRepo(){try{docsRepo=JSON.parse(localStorage.getItem(KEY_REPO))||[];}catch(e){docsRepo=[];}}
+function salvarRepo(){localStorage.setItem(KEY_REPO,JSON.stringify(docsRepo));}
+function docEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function docAba(aba,btn){
+  _docAba=aba;
+  document.querySelectorAll('#sec-documentos .tar-tab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  document.getElementById('doc-clientes').style.display=aba==='clientes'?'':'none';
+  document.getElementById('doc-leads').style.display=aba==='leads'?'':'none';
+  document.getElementById('doc-repo').style.display=aba==='repositorio'?'':'none';
+  if(aba==='clientes')renderDocClientes();
+  else if(aba==='leads')renderDocLeads();
+  else if(aba==='repositorio')renderDocRepo();
+}
+
+function renderDocumentos(){
+  _docAba='clientes';
+  const tabs=document.querySelectorAll('#sec-documentos .tar-tab');
+  tabs.forEach((b,i)=>b.classList.toggle('active',i===0));
+  ['doc-clientes','doc-leads','doc-repo'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.style.display=i===0?'':'none';});
+  renderDocClientes();
+}
+
+function renderDocClientes(){
+  const wrap=document.getElementById('doc-clientes');if(!wrap)return;
+  const lista=leads.filter(l=>l.gdrive_pasta);
+  const DIVS=['Não informado','Cartão de Crédito','Empréstimo Pessoal','Financiamento','Cheque Especial','Consignado','FGTS','Múltiplas Dívidas'];
+  const rows=lista.map(l=>{
+    const idx=leads.indexOf(l);
+    const divOpts=DIVS.map(o=>`<option${(l.divida||'Não informado')===o?' selected':''}>${o}</option>`).join('');
+    return`<tr>
+      <td style="text-align:center;color:var(--text2);font-size:11px">${lista.indexOf(l)+1}</td>
+      <td><input class="doc-inp" value="${docEsc(l.nome)}" oninput="leads[${idx}].nome=this.value;salvar()"></td>
+      <td><input class="doc-inp" value="${docEsc(l.cpf)}" placeholder="000.000.000-00" oninput="leads[${idx}].cpf=this.value;salvar()"></td>
+      <td><input class="doc-inp" value="${docEsc(l.email)}" placeholder="email@exemplo.com" oninput="leads[${idx}].email=this.value;salvar()"></td>
+      <td><input class="doc-inp" value="${docEsc(l.banco)}" placeholder="Ex: Bradesco, Itaú" oninput="leads[${idx}].banco=this.value;salvar()"></td>
+      <td><select class="doc-sel" onchange="leads[${idx}].divida=this.value;salvar()">${divOpts}</select></td>
+      <td style="text-align:center">${l.gdrive_pasta?`<a href="${l.gdrive_pasta}" target="_blank" class="btn btn-xs" style="background:#0f9d58;color:#fff;text-decoration:none;padding:3px 8px">📁</a>`:''}</td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <div style="background:#e8f5e9;color:#1b5e20;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600">👥 ${lista.length} clientes com pasta no Drive</div>
+      <div style="font-size:12px;color:var(--text2)">Clique nos campos para editar</div>
+    </div>
+    <div class="panel"><div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="doc-table">
+        <thead><tr><th>#</th><th>Nome completo</th><th>CPF</th><th>E-mail</th><th>Banco(s)</th><th>Tipo de Dívida</th><th>Drive</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text2)">Nenhum cliente com pasta criada ainda.<br><small>Clientes recebem pasta ao serem salvos em Clientes ou ao avançar para Documentação & Contrato.</small></td></tr>'}</tbody>
+      </table>
+    </div></div>`;
+}
+
+function renderDocLeads(){
+  const wrap=document.getElementById('doc-leads');if(!wrap)return;
+  const lista=leads.filter(l=>l.etapa==='Leads de Entrada');
+  const rows=lista.map((l,i)=>`<tr>
+    <td style="text-align:center;color:var(--text2);font-size:11px">${i+1}</td>
+    <td style="font-weight:500">${docEsc(l.nome||'—')}</td>
+    <td>${docEsc(l.tel||l.telefone||'—')}</td>
+    <td>${docEsc(l.criado||'—')}</td>
+  </tr>`).join('');
+  wrap.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <div style="background:#fff3e0;color:#e65100;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600">📥 ${lista.length} leads na entrada do funil</div>
+    </div>
+    <div class="panel"><div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="doc-table">
+        <thead><tr><th>#</th><th>Nome</th><th>Telefone (WhatsApp)</th><th>Data de Entrada</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text2)">Nenhum lead na entrada do funil ainda.</td></tr>'}</tbody>
+      </table>
+    </div></div>`;
+}
+
+function renderDocRepo(){
+  const wrap=document.getElementById('doc-repo');if(!wrap)return;
+  carregarRepo();
+  const rows=docsRepo.map((d,i)=>`<tr>
+    <td style="font-weight:500">${docEsc(d.nome)}</td>
+    <td><a href="${docEsc(d.url)}" target="_blank" style="color:var(--accent);word-break:break-all;font-size:12px">${docEsc(d.url)}</a></td>
+    <td style="white-space:nowrap;font-size:12px;color:var(--text2)">${docEsc(d.criado)}</td>
+    <td style="text-align:center"><button class="btn btn-xs" style="background:#fde8e8;color:#c0392b" onclick="excluirDocRepo(${i})">✕</button></td>
+  </tr>`).join('');
+  wrap.innerHTML=`
+    <div class="panel" style="margin-bottom:16px"><div class="panel-body" style="padding:18px">
+      <div style="font-weight:600;color:var(--navy);margin-bottom:12px">➕ Adicionar documento</div>
+      <div style="display:grid;grid-template-columns:1fr 2fr auto;gap:10px;align-items:end">
+        <div class="ff"><label>Nome do documento</label><input id="repo-nome" class="form-control" placeholder="Ex: Contrato padrão 2025"></div>
+        <div class="ff"><label>Link (URL)</label><input id="repo-url" class="form-control" placeholder="https://drive.google.com/..."></div>
+        <button class="btn btn-primary" onclick="adicionarDocRepo()" style="height:36px;align-self:flex-end">💾 Salvar</button>
+      </div>
+    </div></div>
+    <div class="panel"><div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="doc-table">
+        <thead><tr><th>Nome</th><th>Link</th><th>Adicionado em</th><th></th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text2)">Nenhum documento salvo ainda.<br><small>Adicione links de documentos do Drive, Notion, etc.</small></td></tr>'}</tbody>
+      </table>
+    </div></div>`;
+}
+
+function adicionarDocRepo(){
+  const nome=(document.getElementById('repo-nome')?.value||'').trim();
+  const url=(document.getElementById('repo-url')?.value||'').trim();
+  if(!nome||!url){t('⚠️ Preencha o nome e o link do documento!',false);return;}
+  carregarRepo();
+  docsRepo.push({id:Date.now(),nome,url,criado:new Date().toLocaleDateString('pt-BR')});
+  salvarRepo();
+  t('📄 Documento salvo no repositório!');
+  renderDocRepo();
+}
+
+function excluirDocRepo(i){
+  carregarRepo();
+  docsRepo.splice(i,1);
+  salvarRepo();
+  renderDocRepo();
+}
 
 // ── Agenda (calendário unificado: tarefas + reuniões) ──────────────────────────
 let _agMes=new Date().getMonth(),_agAno=new Date().getFullYear();
