@@ -525,7 +525,7 @@ tbody tr:last-child td{border-bottom:none;}
     </div>
     <div class="nav-group">
       <div class="nav-group-label">Gestão</div>
-      <button class="nav-item" onclick="irPara('eb',this,'Financeiro')"><span class="ni">💰</span>Financeiro</button>
+      <button class="nav-item" onclick="irPara('financeiro',this,'Financeiro')"><span class="ni">💰</span>Financeiro</button>
       <button class="nav-item" onclick="irPara('eb',this,'Metas')"><span class="ni">🎯</span>Metas</button>
       <button class="nav-item" onclick="exportar()"><span class="ni">💾</span>Exportar Backup</button>
       <button class="nav-item" onclick="document.getElementById('imp').click()"><span class="ni">📂</span>Importar Backup</button>
@@ -1171,6 +1171,80 @@ tbody tr:last-child td{border-bottom:none;}
       <div id="rot-vid-list"></div>
     </div>
 
+<!-- FINANCEIRO -->
+    <div class="section" id="sec-financeiro">
+      <div class="ph"><h2>💰 Financeiro</h2><p>Contratos, recorrências mês a mês, fluxo de caixa e despesas fixas</p></div>
+      <div class="cards-grid" id="fin-kpis" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:18px"></div>
+      <div class="tar-tabs" style="margin-bottom:18px">
+        <button class="tar-tab active" onclick="finAba('contratos',this)">📋 Contratos</button>
+        <button class="tar-tab" onclick="finAba('recorrencias',this)">📅 Recorrências</button>
+        <button class="tar-tab" onclick="finAba('fluxo',this)">🔄 Fluxo de Caixa</button>
+        <button class="tar-tab" onclick="finAba('despesas',this)">🏢 Despesas Fixas</button>
+      </div>
+      <div id="fin-a-contratos"></div>
+      <div id="fin-a-recorrencias" style="display:none"></div>
+      <div id="fin-a-fluxo" style="display:none"></div>
+      <div id="fin-a-despesas" style="display:none"></div>
+    </div>
+
+    <!-- MODAL: NOVO CONTRATO -->
+    <div id="modal-fin-contrato" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:9999;overflow-y:auto;padding:20px;box-sizing:border-box">
+      <div style="max-width:540px;margin:30px auto;background:#fff;border-radius:14px;padding:28px 30px;box-shadow:0 8px 40px rgba(0,0,0,.25)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <h3 style="margin:0;color:var(--navy)">📋 Novo Contrato</h3>
+          <button onclick="fecharModalFinContrato()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);line-height:1">×</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="ff" style="grid-column:1/-1"><label>Cliente *</label>
+            <input id="fc-cliente" list="fc-lista-cli" class="form-control" placeholder="Nome do cliente...">
+            <datalist id="fc-lista-cli"></datalist>
+          </div>
+          <div class="ff"><label>Data do Contrato</label><input id="fc-data" type="date" class="form-control"></div>
+          <div class="ff"><label>Forma de Pagamento</label>
+            <select id="fc-forma" class="form-control"><option>Pix</option><option>Boleto</option><option>Cartão</option><option>Cheque</option><option>Transferência</option></select>
+          </div>
+          <div class="ff"><label>Valor Total (R$) *</label><input id="fc-total" type="number" step="0.01" min="0" class="form-control" placeholder="0,00" oninput="calcParcelaFin()"></div>
+          <div class="ff"><label>Valor da Entrada (R$)</label><input id="fc-entrada" type="number" step="0.01" min="0" class="form-control" placeholder="0,00" oninput="calcParcelaFin()"></div>
+          <div class="ff"><label>Nº de Parcelas</label><input id="fc-nparcelas" type="number" min="0" class="form-control" placeholder="0" oninput="calcParcelaFin()"></div>
+          <div class="ff"><label>Valor por Parcela</label><input id="fc-vparcela" class="form-control" readonly style="background:#f0f3f8;font-weight:700;color:var(--navy)"></div>
+          <div class="ff"><label>Dia de Vencimento</label><input id="fc-diavcto" type="number" min="1" max="28" class="form-control" value="10"></div>
+          <div class="ff"><label>Status</label>
+            <select id="fc-status" class="form-control"><option value="ativo">Ativo</option><option value="quitado">Quitado</option><option value="cancelado">Cancelado</option></select>
+          </div>
+          <div class="ff" style="grid-column:1/-1"><label>Observações</label><input id="fc-obs" class="form-control" placeholder="Descrição do caso, acordo, etc."></div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+          <button class="btn btn-gray" onclick="fecharModalFinContrato()">Cancelar</button>
+          <button class="btn btn-primary" onclick="salvarNovoContrato()">💾 Salvar Contrato</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: FLUXO DE CAIXA -->
+    <div id="modal-fin-fluxo" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:9999;overflow-y:auto;padding:20px;box-sizing:border-box">
+      <div style="max-width:440px;margin:30px auto;background:#fff;border-radius:14px;padding:28px 30px;box-shadow:0 8px 40px rgba(0,0,0,.25)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <h3 id="ff-titulo" style="margin:0;color:var(--navy)">📥 Nova Entrada</h3>
+          <button onclick="fecharModalFluxo()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text2);line-height:1">×</button>
+        </div>
+        <div style="display:grid;gap:12px">
+          <div class="ff"><label>Data *</label><input id="ff-data" type="date" class="form-control"></div>
+          <div class="ff"><label>Valor (R$) *</label><input id="ff-valor" type="number" step="0.01" min="0" class="form-control" placeholder="0,00"></div>
+          <div class="ff"><label>Descrição *</label><input id="ff-descricao" class="form-control" placeholder="Ex: Parcela — João Silva"></div>
+          <div class="ff" id="ff-origem-wrap"><label>Origem / Cliente</label><input id="ff-origem" class="form-control" placeholder="Ex: João Silva, Acordo judicial..."></div>
+          <div class="ff" id="ff-cat-wrap" style="display:none"><label>Categoria</label>
+            <select id="ff-categoria" class="form-control">
+              <option>Aluguel</option><option>Marketing</option><option>Sistemas</option><option>Pessoal</option><option>Impostos</option><option>Bancário</option><option>Outros</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+          <button class="btn btn-gray" onclick="fecharModalFluxo()">Cancelar</button>
+          <button id="ff-btn-salvar" class="btn btn-primary" onclick="salvarFluxo()" style="background:#27ae60">💾 Salvar</button>
+        </div>
+      </div>
+    </div>
+
 <!-- EM BREVE -->
     <div class="section" id="sec-eb">
       <div class="em-breve"><div class="eb-ic">🚀</div><h3 id="eb-titulo">Em desenvolvimento</h3><p>Esta funcionalidade estará disponível em breve.</p></div>
@@ -1311,7 +1385,7 @@ const ROTEIRO=[
   {n:'30',h:'',tt:'Follow-up Final',m:`[NOME], passando para um último contato.\nSe precisar de assessoria jurídica em dívidas bancárias, pode nos procurar a qualquer momento.\nGuarde nosso contato! ⚖️ LCFO Advogados`},
 ];
 
-const EM_BREVE=['financeiro','metas'];
+const EM_BREVE=['metas'];
 function irPara(id,btn,titulo){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
@@ -1333,6 +1407,7 @@ function irPara(id,btn,titulo){
   if(id==='agenda')renderAgenda();
   if(id==='documentos')renderDocumentos();
   if(id==='roteiro')renderRoteiroVideos();
+  if(id==='financeiro')renderFinanceiro();
   if(id==='bot')renderBot();
   if(id==='cadencia')renderCadencia();
   if(id==='tarefas')renderTarefas();
@@ -2630,6 +2705,377 @@ function copiarRotEdit(i){
   const v=document.getElementById('rg-'+i)?.value;
   if(v!==undefined)navigator.clipboard.writeText(v).then(()=>t('📋 Copiado!'));
 }
+
+// ── Financeiro ────────────────────────────────────────────────────────────────
+const KEY_FIN_CON='lcfo_fin_contratos_v1',KEY_FIN_FLUXO='lcfo_fin_fluxo_v1',KEY_FIN_DESP='lcfo_fin_despesas_v1';
+let finContratos=[],finFluxo=[],finDesp=[];
+let _finMes=new Date().getMonth(),_finAno=new Date().getFullYear();
+let _finAba='contratos',_ffTipo='entrada';
+const _MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function brl(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function fmtDt(s){return s?new Date(s+'T12:00').toLocaleDateString('pt-BR'):'—';}
+function inMes(data,mes,ano){if(!data)return false;const d=new Date(data+'T12:00');return d.getMonth()===mes&&d.getFullYear()===ano;}
+
+function carregarFinCon(){try{finContratos=JSON.parse(localStorage.getItem(KEY_FIN_CON))||[];}catch(e){finContratos=[];}}
+function salvarFinCon(){localStorage.setItem(KEY_FIN_CON,JSON.stringify(finContratos));}
+function carregarFinFluxo(){try{finFluxo=JSON.parse(localStorage.getItem(KEY_FIN_FLUXO))||[];}catch(e){finFluxo=[];}}
+function salvarFinFluxo(){localStorage.setItem(KEY_FIN_FLUXO,JSON.stringify(finFluxo));}
+function carregarFinDesp(){try{finDesp=JSON.parse(localStorage.getItem(KEY_FIN_DESP))||[];}catch(e){finDesp=[];}}
+function salvarFinDesp(){localStorage.setItem(KEY_FIN_DESP,JSON.stringify(finDesp));}
+
+function finAba(aba,btn){
+  _finAba=aba;
+  document.querySelectorAll('#sec-financeiro .tar-tab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  ['contratos','recorrencias','fluxo','despesas'].forEach(a=>{const el=document.getElementById('fin-a-'+a);if(el)el.style.display=a===aba?'':'none';});
+  finRenderAba();
+}
+function finRenderAba(){
+  if(_finAba==='contratos')renderFinContratos();
+  else if(_finAba==='recorrencias')renderFinRecorrencias();
+  else if(_finAba==='fluxo')renderFinFluxo();
+  else if(_finAba==='despesas')renderFinDespesas();
+}
+function finNavMes(d){
+  _finMes+=d;
+  if(_finMes>11){_finMes=0;_finAno++;}
+  if(_finMes<0){_finMes=11;_finAno--;}
+  finRenderAba();
+}
+function renderFinanceiro(){
+  _finAba='contratos';
+  _finMes=new Date().getMonth();_finAno=new Date().getFullYear();
+  document.querySelectorAll('#sec-financeiro .tar-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
+  ['contratos','recorrencias','fluxo','despesas'].forEach((a,i)=>{const el=document.getElementById('fin-a-'+a);if(el)el.style.display=i===0?'':'none';});
+  renderFinKpis();renderFinContratos();
+}
+
+function renderFinKpis(){
+  carregarFinCon();
+  const hoje=new Date(),ma=hoje.getMonth(),ya=hoje.getFullYear();
+  const totalCon=finContratos.reduce((s,c)=>s+Number(c.valorTotal||0),0);
+  let recMes=0,aRecMes=0,totalRec=0;
+  finContratos.forEach(c=>{
+    totalRec+=Number(c.valorEntrada||0);
+    if(c.dataContrato&&inMes(c.dataContrato,ma,ya))recMes+=Number(c.valorEntrada||0);
+    (c.parcelas||[]).forEach(p=>{
+      if(p.pago){totalRec+=Number(p.valor||0);if(p.dataPagamento&&inMes(p.dataPagamento,ma,ya))recMes+=Number(p.valor||0);}
+      else if(p.vencimento&&inMes(p.vencimento,ma,ya))aRecMes+=Number(p.valor||0);
+    });
+  });
+  const el=document.getElementById('fin-kpis');if(!el)return;
+  el.innerHTML=[
+    {l:'Total em Contratos',v:brl(totalCon),c:'#1D3461',i:'📋'},
+    {l:'Recebido este mês',v:brl(recMes),c:'#27ae60',i:'✅'},
+    {l:'A Receber este mês',v:brl(aRecMes),c:'#e67e22',i:'⏳'},
+    {l:'Total Recebido',v:brl(totalRec),c:'#8695a7',i:'💰'},
+  ].map(k=>`<div class="panel" style="padding:14px 18px;border-left:4px solid ${k.c}"><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">${k.i} ${k.l}</div><div style="font-size:18px;font-weight:700;color:${k.c}">${k.v}</div></div>`).join('');
+}
+
+// ── Contratos ──
+function renderFinContratos(){
+  renderFinKpis();carregarFinCon();
+  const wrap=document.getElementById('fin-a-contratos');if(!wrap)return;
+  const hoje=new Date().toISOString().split('T')[0];
+  const rows=finContratos.map((c,i)=>{
+    const pagas=(c.parcelas||[]).filter(p=>p.pago).length;
+    const tot=Number(c.numParcelas||0);
+    const prox=(c.parcelas||[]).find(p=>!p.pago&&p.vencimento);
+    const vencida=prox&&prox.vencimento<hoje;
+    const pct=tot>0?Math.round(pagas/tot*100):100;
+    const stC=c.status==='quitado'?'#27ae60':c.status==='cancelado'?'#b2bec3':'#1D3461';
+    const stL={'ativo':'Ativo','quitado':'Quitado','cancelado':'Cancelado'}[c.status]||c.status;
+    return`<tr>
+      <td style="font-weight:600">${docEsc(c.clienteNome||'—')}</td>
+      <td style="white-space:nowrap;font-size:12px">${fmtDt(c.dataContrato)}</td>
+      <td style="text-align:right;font-weight:600">${brl(c.valorTotal)}</td>
+      <td style="text-align:right;color:#27ae60">${brl(c.valorEntrada)}</td>
+      <td style="min-width:110px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:3px"><span>${pagas}/${tot}</span><span>${pct}%</span></div>
+        <div style="background:#edf0f5;border-radius:4px;height:6px;overflow:hidden"><div style="background:#27ae60;height:100%;width:${pct}%;border-radius:4px"></div></div>
+      </td>
+      <td style="text-align:right">${brl(c.valorParcela)}</td>
+      <td style="color:${vencida?'#e74c3c':'var(--text)'};white-space:nowrap">${prox?fmtDt(prox.vencimento):'—'}${vencida?' ⚠️':''}</td>
+      <td><span style="background:${stC};color:#fff;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700">${stL}</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-xs" style="background:#e8f0fe;color:#1D3461;margin-right:3px" onclick="abrirDetalheContrato(${i})" title="Ver parcelas">📋</button>
+        <button class="btn btn-xs" style="background:#fde8e8;color:#c0392b" onclick="excluirContrato(${i})">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML=`
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="abrirModalNovoContrato()">➕ Novo Contrato</button>
+      <button class="btn btn-sm" onclick="exportarFinContratos()" style="background:#217346;color:#fff;font-weight:600">📊 Exportar</button>
+    </div>
+    <div class="panel"><div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="doc-table">
+        <thead><tr><th>Cliente</th><th>Data</th><th>Valor Total</th><th>Entrada</th><th>Parcelas</th><th>Vlr Parcela</th><th>Próx. Vcto</th><th>Status</th><th></th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text2)">Nenhum contrato cadastrado.<br><small>Clique em "Novo Contrato" para começar.</small></td></tr>'}</tbody>
+      </table>
+    </div></div>
+    <div id="fin-detalhe-contrato" style="margin-top:16px"></div>`;
+}
+
+function abrirDetalheContrato(i){
+  carregarFinCon();const c=finContratos[i];if(!c)return;
+  const hoje=new Date().toISOString().split('T')[0];
+  const wrap=document.getElementById('fin-detalhe-contrato');if(!wrap)return;
+  const rows=(c.parcelas||[]).map((p,pi)=>{
+    const vencida=!p.pago&&p.vencimento&&p.vencimento<hoje;
+    return`<tr style="${p.pago?'opacity:.6':''}">
+      <td style="text-align:center;color:var(--text2)">${p.numero}</td>
+      <td style="color:${vencida?'#e74c3c':'var(--text)'};white-space:nowrap">${fmtDt(p.vencimento)}${vencida?' ⚠️':''}</td>
+      <td style="text-align:right;font-weight:600">${brl(p.valor)}</td>
+      <td>
+        <label style="cursor:pointer;display:flex;align-items:center;gap:6px">
+          <input type="checkbox" ${p.pago?'checked':''} onchange="marcarParcelaPaga(${i},${pi},this.checked)" style="width:16px;height:16px;cursor:pointer">
+          <span style="font-size:11px;font-weight:600;color:${p.pago?'#27ae60':'#e67e22'}">${p.pago?'✅ Pago':'Pendente'}</span>
+        </label>
+      </td>
+      <td style="font-size:11px;color:var(--text2)">${p.pago&&p.dataPagamento?fmtDt(p.dataPagamento):'—'}</td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML=`<div class="panel" style="border-left:4px solid #1D3461"><div class="panel-body" style="padding:16px 18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-weight:700;color:var(--navy)">📋 Parcelas — ${docEsc(c.clienteNome)} · ${docEsc(c.formaPagamento||'')}</div>
+      <button class="btn btn-gray btn-xs" onclick="document.getElementById('fin-detalhe-contrato').innerHTML=''">✕ Fechar</button>
+    </div>
+    <div style="overflow-x:auto"><table class="doc-table">
+      <thead><tr><th>#</th><th>Vencimento</th><th style="text-align:right">Valor</th><th>Status</th><th>Data Pgto</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="5" style="text-align:center;padding:16px">Sem parcelas</td></tr>'}</tbody>
+    </table></div>
+  </div></div>`;
+  wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function marcarParcelaPaga(conIdx,parIdx,pago){
+  carregarFinCon();
+  if(!finContratos[conIdx]?.parcelas?.[parIdx])return;
+  finContratos[conIdx].parcelas[parIdx].pago=pago;
+  finContratos[conIdx].parcelas[parIdx].dataPagamento=pago?new Date().toISOString().split('T')[0]:'';
+  const todasPagas=(finContratos[conIdx].parcelas||[]).every(p=>p.pago);
+  if(todasPagas)finContratos[conIdx].status='quitado';
+  else if(finContratos[conIdx].status==='quitado')finContratos[conIdx].status='ativo';
+  salvarFinCon();
+  if(_finAba==='contratos'){renderFinContratos();setTimeout(()=>abrirDetalheContrato(conIdx),60);}
+  else renderFinRecorrencias();
+  t(pago?'✅ Parcela marcada como paga!':'↩ Parcela desmarcada');
+}
+
+function excluirContrato(i){
+  if(!confirm('Excluir este contrato e todas as suas parcelas?'))return;
+  carregarFinCon();finContratos.splice(i,1);salvarFinCon();renderFinContratos();t('🗑 Contrato excluído');
+}
+
+function abrirModalNovoContrato(){
+  const dl=document.getElementById('fc-lista-cli');
+  if(dl)dl.innerHTML=leads.map(l=>`<option value="${docEsc(l.nome)}">`).join('');
+  const fd=document.getElementById('fc-data');if(fd&&!fd.value)fd.value=new Date().toISOString().split('T')[0];
+  document.getElementById('modal-fin-contrato').style.display='';
+}
+function fecharModalFinContrato(){
+  document.getElementById('modal-fin-contrato').style.display='none';
+  ['fc-cliente','fc-total','fc-entrada','fc-nparcelas','fc-vparcela','fc-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const el=document.getElementById('fc-diavcto');if(el)el.value='10';
+  const es=document.getElementById('fc-status');if(es)es.value='ativo';
+}
+function calcParcelaFin(){
+  const total=parseFloat(document.getElementById('fc-total')?.value)||0;
+  const entrada=parseFloat(document.getElementById('fc-entrada')?.value)||0;
+  const n=parseInt(document.getElementById('fc-nparcelas')?.value)||0;
+  const vp=document.getElementById('fc-vparcela');
+  if(vp)vp.value=n>0?brl((total-entrada)/n):'—';
+}
+function salvarNovoContrato(){
+  const nome=(document.getElementById('fc-cliente')?.value||'').trim();
+  const total=parseFloat(document.getElementById('fc-total')?.value)||0;
+  if(!nome||!total){t('⚠️ Nome do cliente e valor total são obrigatórios!',false);return;}
+  const entrada=parseFloat(document.getElementById('fc-entrada')?.value)||0;
+  const n=parseInt(document.getElementById('fc-nparcelas')?.value)||0;
+  const vp=n>0?Math.round((total-entrada)/n*100)/100:0;
+  const data=document.getElementById('fc-data')?.value||new Date().toISOString().split('T')[0];
+  const dia=Math.min(parseInt(document.getElementById('fc-diavcto')?.value)||10,28);
+  const parcelas=[];
+  for(let i=0;i<n;i++){
+    const d=new Date(data+'T12:00');d.setMonth(d.getMonth()+i+1);
+    const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+    d.setDate(Math.min(dia,last));
+    parcelas.push({numero:i+1,valor:vp,vencimento:d.toISOString().split('T')[0],pago:false,dataPagamento:''});
+  }
+  carregarFinCon();
+  finContratos.unshift({id:Date.now(),clienteNome:nome,dataContrato:data,valorTotal:total,valorEntrada:entrada,numParcelas:n,valorParcela:vp,formaPagamento:document.getElementById('fc-forma')?.value||'Pix',diaVencimento:dia,status:document.getElementById('fc-status')?.value||'ativo',obs:document.getElementById('fc-obs')?.value||'',criado:new Date().toLocaleDateString('pt-BR'),parcelas});
+  salvarFinCon();fecharModalFinContrato();
+  t('✅ Contrato salvo'+(n>0?' com '+n+' parcelas geradas!':'!'));
+  renderFinContratos();
+}
+function exportarFinContratos(){
+  carregarFinCon();
+  const cab=['Cliente','Data','Valor Total','Entrada','Nº Parcelas','Vlr Parcela','Forma Pgto','Status','Obs'];
+  const lin=finContratos.map(c=>[c.clienteNome||'',c.dataContrato||'',c.valorTotal||0,c.valorEntrada||0,c.numParcelas||0,c.valorParcela||0,c.formaPagamento||'',c.status||'',c.obs||'']);
+  exportarCSV(cab,lin,'Contratos_LCFO_'+new Date().toISOString().slice(0,10));
+}
+
+// ── Recorrências ──
+function renderFinRecorrencias(){
+  renderFinKpis();carregarFinCon();
+  const wrap=document.getElementById('fin-a-recorrencias');if(!wrap)return;
+  const mesStr=`${_MESES[_finMes]} ${_finAno}`;
+  const hoje=new Date().toISOString().split('T')[0];
+  const items=[];
+  finContratos.forEach(c=>{
+    (c.parcelas||[]).forEach((p,pi)=>{
+      if(!p.vencimento)return;
+      if(inMes(p.vencimento,_finMes,_finAno))
+        items.push({cliente:c.clienteNome,desc:`Parcela ${p.numero}/${c.numParcelas}`,forma:c.formaPagamento||'',valor:p.valor,vencimento:p.vencimento,pago:p.pago,conIdx:finContratos.indexOf(c),parIdx:pi});
+    });
+  });
+  items.sort((a,b)=>a.vencimento.localeCompare(b.vencimento));
+  const total=items.reduce((s,i)=>s+Number(i.valor||0),0);
+  const pago=items.filter(i=>i.pago).reduce((s,i)=>s+Number(i.valor||0),0);
+  const rows=items.map(item=>{
+    const vencida=!item.pago&&item.vencimento<hoje;
+    return`<tr style="${item.pago?'opacity:.65':''}">
+      <td style="font-weight:600">${docEsc(item.cliente)}</td>
+      <td style="font-size:12px;color:var(--text2)">${docEsc(item.desc)}</td>
+      <td style="font-size:12px">${docEsc(item.forma)}</td>
+      <td style="color:${vencida?'#e74c3c':'var(--text)'};white-space:nowrap">${fmtDt(item.vencimento)}${vencida?' ⚠️':''}</td>
+      <td style="text-align:right;font-weight:600;color:${item.pago?'#27ae60':'var(--navy)'}">${brl(item.valor)}</td>
+      <td><label style="cursor:pointer;display:flex;align-items:center;gap:6px">
+        <input type="checkbox" ${item.pago?'checked':''} onchange="marcarParcelaPaga(${item.conIdx},${item.parIdx},this.checked)" style="width:16px;height:16px;cursor:pointer">
+        <span style="font-size:11px;font-weight:600;color:${item.pago?'#27ae60':'#e67e22'}">${item.pago?'✅ Pago':'Pendente'}</span>
+      </label></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn btn-gray btn-sm" onclick="finNavMes(-1)" style="font-size:18px;padding:3px 14px">‹</button>
+      <h3 style="margin:0;color:var(--navy);min-width:170px;text-align:center">${mesStr}</h3>
+      <button class="btn btn-gray btn-sm" onclick="finNavMes(1)" style="font-size:18px;padding:3px 14px">›</button>
+    </div>
+    <div class="cards-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:16px">
+      <div class="panel" style="padding:14px 18px;border-left:4px solid #1D3461"><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;margin-bottom:4px">📋 Total do Mês</div><div style="font-size:18px;font-weight:700;color:#1D3461">${brl(total)}</div><div style="font-size:11px;color:var(--text2);margin-top:3px">${items.length} parcelas</div></div>
+      <div class="panel" style="padding:14px 18px;border-left:4px solid #27ae60"><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;margin-bottom:4px">✅ Recebido</div><div style="font-size:18px;font-weight:700;color:#27ae60">${brl(pago)}</div><div style="font-size:11px;color:var(--text2);margin-top:3px">${items.filter(i=>i.pago).length} pagas</div></div>
+      <div class="panel" style="padding:14px 18px;border-left:4px solid #e67e22"><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;margin-bottom:4px">⏳ A Receber</div><div style="font-size:18px;font-weight:700;color:#e67e22">${brl(total-pago)}</div><div style="font-size:11px;color:var(--text2);margin-top:3px">${items.filter(i=>!i.pago).length} pendentes</div></div>
+    </div>
+    <div class="panel"><div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="doc-table">
+        <thead><tr><th>Cliente</th><th>Parcela</th><th>Forma</th><th>Vencimento</th><th>Valor</th><th>Status</th></tr></thead>
+        <tbody>${rows||`<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text2)">Nenhuma parcela em ${mesStr}.<br><small>Cadastre contratos parcelados na aba Contratos.</small></td></tr>`}</tbody>
+      </table>
+    </div></div>`;
+}
+
+// ── Fluxo de Caixa ──
+function renderFinFluxo(){
+  renderFinKpis();carregarFinFluxo();
+  const wrap=document.getElementById('fin-a-fluxo');if(!wrap)return;
+  const mesStr=`${_MESES[_finMes]} ${_finAno}`;
+  const mesE=finFluxo.filter(e=>e.tipo==='entrada'&&inMes(e.data,_finMes,_finAno));
+  const mesS=finFluxo.filter(e=>e.tipo==='saida'&&inMes(e.data,_finMes,_finAno));
+  const totE=mesE.reduce((s,e)=>s+Number(e.valor||0),0);
+  const totS=mesS.reduce((s,e)=>s+Number(e.valor||0),0);
+  const saldo=totE-totS;
+  const mkRow=(e,cols)=>{const gi=finFluxo.indexOf(e);return`<tr><td style="white-space:nowrap;font-size:12px">${fmtDt(e.data)}</td><td>${docEsc(e.descricao||'')}</td><td style="font-size:11px;color:var(--text2)">${docEsc(e[cols]||'')}</td><td style="text-align:right;font-weight:600;color:${cols==='origem'?'#27ae60':'#e74c3c'}">${brl(e.valor)}</td><td><button class="btn btn-xs" style="background:#fde8e8;color:#c0392b" onclick="excluirFluxo(${gi})">✕</button></td></tr>`;};
+  const rowsE=mesE.sort((a,b)=>a.data.localeCompare(b.data)).map(e=>mkRow(e,'origem')).join('');
+  const rowsS=mesS.sort((a,b)=>a.data.localeCompare(b.data)).map(e=>mkRow(e,'categoria')).join('');
+  wrap.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-gray btn-sm" onclick="finNavMes(-1)" style="font-size:18px;padding:3px 14px">‹</button>
+        <h3 style="margin:0;color:var(--navy);min-width:170px;text-align:center">${mesStr}</h3>
+        <button class="btn btn-gray btn-sm" onclick="finNavMes(1)" style="font-size:18px;padding:3px 14px">›</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" style="background:#27ae60;color:#fff;font-weight:600" onclick="abrirModalFluxo('entrada')">➕ Entrada</button>
+        <button class="btn btn-sm" style="background:#e74c3c;color:#fff;font-weight:600" onclick="abrirModalFluxo('saida')">➖ Saída</button>
+      </div>
+    </div>
+    <div class="cards-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:16px">
+      <div class="panel" style="padding:14px 18px;border-left:4px solid #27ae60"><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;margin-bottom:4px">📥 Entradas</div><div style="font-size:18px;font-weight:700;color:#27ae60">${brl(totE)}</div></div>
+      <div class="panel" style="padding:14px 18px;border-left:4px solid #e74c3c"><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;margin-bottom:4px">📤 Saídas</div><div style="font-size:18px;font-weight:700;color:#e74c3c">${brl(totS)}</div></div>
+      <div class="panel" style="padding:14px 18px;border-left:4px solid ${saldo>=0?'#1D3461':'#e74c3c'}"><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;margin-bottom:4px">💰 Saldo</div><div style="font-size:18px;font-weight:700;color:${saldo>=0?'#1D3461':'#e74c3c'}">${brl(saldo)}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div>
+        <div style="font-weight:700;color:#27ae60;margin-bottom:8px;font-size:13px">📥 ENTRADAS <span style="font-size:11px;color:var(--text2);font-weight:400">${mesE.length} reg.</span></div>
+        <div class="panel"><div class="panel-body" style="padding:0;overflow-x:auto"><table class="doc-table">
+          <thead><tr><th>Data</th><th>Descrição</th><th>Origem</th><th>Valor</th><th></th></tr></thead>
+          <tbody>${rowsE||'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2)">—</td></tr>'}</tbody>
+        </table></div></div>
+      </div>
+      <div>
+        <div style="font-weight:700;color:#e74c3c;margin-bottom:8px;font-size:13px">📤 SAÍDAS <span style="font-size:11px;color:var(--text2);font-weight:400">${mesS.length} reg.</span></div>
+        <div class="panel"><div class="panel-body" style="padding:0;overflow-x:auto"><table class="doc-table">
+          <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr></thead>
+          <tbody>${rowsS||'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2)">—</td></tr>'}</tbody>
+        </table></div></div>
+      </div>
+    </div>`;
+}
+function abrirModalFluxo(tipo){
+  _ffTipo=tipo;
+  const tit=document.getElementById('ff-titulo');if(tit)tit.textContent=tipo==='entrada'?'📥 Nova Entrada':'📤 Nova Saída';
+  const btn=document.getElementById('ff-btn-salvar');if(btn)btn.style.background=tipo==='entrada'?'#27ae60':'#e74c3c';
+  document.getElementById('ff-origem-wrap').style.display=tipo==='entrada'?'':'none';
+  document.getElementById('ff-cat-wrap').style.display=tipo==='saida'?'':'none';
+  const fd=document.getElementById('ff-data');if(fd&&!fd.value)fd.value=new Date().toISOString().split('T')[0];
+  document.getElementById('modal-fin-fluxo').style.display='';
+}
+function fecharModalFluxo(){
+  document.getElementById('modal-fin-fluxo').style.display='none';
+  ['ff-data','ff-valor','ff-descricao','ff-origem'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+}
+function salvarFluxo(){
+  const data=document.getElementById('ff-data')?.value;
+  const valor=parseFloat(document.getElementById('ff-valor')?.value)||0;
+  const desc=(document.getElementById('ff-descricao')?.value||'').trim();
+  if(!data||!valor||!desc){t('⚠️ Preencha data, valor e descrição!',false);return;}
+  carregarFinFluxo();
+  finFluxo.push({id:Date.now(),tipo:_ffTipo,data,valor,descricao:desc,origem:document.getElementById('ff-origem')?.value||'',categoria:document.getElementById('ff-categoria')?.value||'',criado:new Date().toLocaleDateString('pt-BR')});
+  salvarFinFluxo();fecharModalFluxo();
+  t(_ffTipo==='entrada'?'📥 Entrada registrada!':'📤 Saída registrada!');
+  renderFinFluxo();
+}
+function excluirFluxo(i){carregarFinFluxo();finFluxo.splice(i,1);salvarFinFluxo();renderFinFluxo();}
+
+// ── Despesas Fixas ──
+function renderFinDespesas(){
+  renderFinKpis();carregarFinDesp();
+  const wrap=document.getElementById('fin-a-despesas');if(!wrap)return;
+  const totP=finDesp.reduce((s,d)=>s+Number(d.valorPrevisto||0),0);
+  const totR=finDesp.reduce((s,d)=>s+Number(d.valorReal||0),0);
+  const rows=finDesp.map((d,i)=>{
+    const diff=Number(d.valorReal||0)-Number(d.valorPrevisto||0);
+    return`<tr>
+      <td><input class="doc-inp" value="${docEsc(d.descricao)}" oninput="finDesp[${i}].descricao=this.value;salvarFinDesp()" style="min-width:200px"></td>
+      <td style="text-align:right"><input class="doc-inp" type="number" step="0.01" value="${d.valorPrevisto||''}" oninput="finDesp[${i}].valorPrevisto=parseFloat(this.value)||0;salvarFinDesp();renderFinDespesas()" style="text-align:right;width:110px"></td>
+      <td style="text-align:right"><input class="doc-inp" type="number" step="0.01" value="${d.valorReal||''}" oninput="finDesp[${i}].valorReal=parseFloat(this.value)||0;salvarFinDesp();renderFinDespesas()" style="text-align:right;width:110px"></td>
+      <td style="text-align:right;font-weight:600;color:${diff>0?'#e74c3c':diff<0?'#27ae60':'var(--text2)'}">${diff!==0?(diff>0?'+':'')+brl(Math.abs(diff)):'—'}</td>
+      <td><button class="btn btn-xs" style="background:#fde8e8;color:#c0392b" onclick="excluirDespesa(${i})">✕</button></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML=`
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px">
+      <button class="btn btn-primary" onclick="adicionarDespesa()">➕ Nova Despesa</button>
+    </div>
+    <div class="panel"><div class="panel-body" style="padding:0;overflow-x:auto">
+      <table class="doc-table">
+        <thead><tr><th>Descrição</th><th style="text-align:right">Previsto</th><th style="text-align:right">Realizado</th><th style="text-align:right">Diferença</th><th></th></tr></thead>
+        <tbody>
+          ${rows||'<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text2)">Nenhuma despesa fixa cadastrada.</td></tr>'}
+          ${finDesp.length?`<tr style="background:#f0f3f8;font-weight:700;border-top:2px solid var(--border)"><td>TOTAL</td><td style="text-align:right">${brl(totP)}</td><td style="text-align:right;color:${totR>totP?'#e74c3c':'#27ae60'}">${brl(totR)}</td><td style="text-align:right;color:${(totR-totP)>0?'#e74c3c':'#27ae60'}">${(totR-totP)!==0?(totR-totP>0?'+':'')+brl(Math.abs(totR-totP)):'—'}</td><td></td></tr>`:''}
+        </tbody>
+      </table>
+    </div></div>`;
+}
+function adicionarDespesa(){
+  carregarFinDesp();finDesp.push({id:Date.now(),descricao:'Nova despesa',valorPrevisto:0,valorReal:0});
+  salvarFinDesp();renderFinDespesas();
+  setTimeout(()=>{const ins=document.querySelectorAll('#fin-a-despesas .doc-inp');if(ins.length)ins[ins.length-4]?.select();},80);
+}
+function excluirDespesa(i){carregarFinDesp();finDesp.splice(i,1);salvarFinDesp();renderFinDespesas();}
 
 // ── Roteiros de Vídeo ─────────────────────────────────────────────────────────
 const KEY_ROT='lcfo_roteiros_v2';let roteiros=[];
