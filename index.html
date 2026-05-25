@@ -293,6 +293,11 @@ tbody tr:last-child td{border-bottom:none;}
 .ft-body{flex:1;min-width:0;}
 .ft-texto{margin:0 0 3px;font-size:13.5px;font-weight:500;line-height:1.55;font-style:italic;transition:opacity .5s ease;}
 .ft-autor{font-size:11px;color:rgba(255,255,255,.55);font-weight:700;text-transform:uppercase;letter-spacing:.8px;transition:opacity .5s ease;}
+.ticker-duo{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:640px){.ticker-duo{grid-template-columns:1fr;}}
+.vers-ticker{background:linear-gradient(135deg,#1a4d3a 0%,#2d6a52 100%);}
+.fv-texto{margin:0 0 3px;font-size:13.5px;font-weight:500;line-height:1.55;font-style:italic;transition:opacity .5s ease;}
+.fv-autor{font-size:11px;color:rgba(255,255,255,.55);font-weight:700;text-transform:uppercase;letter-spacing:.8px;transition:opacity .5s ease;}
 /* META CARDS */
 .meta-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px 20px;}
 .meta-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;}
@@ -585,11 +590,20 @@ tbody tr:last-child td{border-bottom:none;}
           <button class="btn btn-gray btn-sm" onclick="irPara('processos',document.querySelector('.nav-item[onclick*=processos]'),'Processos')">📁 Processos</button>
         </div>
       </div>
-      <div class="frase-ticker" style="margin-bottom:16px">
-        <div class="ft-quote">💡</div>
-        <div class="ft-body">
-          <p class="ft-texto" style="margin:0 0 3px"></p>
-          <span class="ft-autor"></span>
+      <div class="ticker-duo" style="margin-bottom:16px">
+        <div class="frase-ticker" style="margin-bottom:0">
+          <div class="ft-quote">💡</div>
+          <div class="ft-body">
+            <p class="ft-texto" style="margin:0 0 3px"></p>
+            <span class="ft-autor"></span>
+          </div>
+        </div>
+        <div class="frase-ticker vers-ticker" style="margin-bottom:0">
+          <div class="ft-quote">✝️</div>
+          <div class="ft-body">
+            <p class="fv-texto" style="margin:0 0 3px"></p>
+            <span class="fv-autor"></span>
+          </div>
         </div>
       </div>
       <div class="cards-grid" id="cards-proc" style="margin-bottom:20px"></div>
@@ -1272,11 +1286,20 @@ tbody tr:last-child td{border-bottom:none;}
 <!-- METAS -->
     <div class="section" id="sec-metas">
       <div class="ph"><h2>🎯 Metas & KPIs</h2><p>Defina seus objetivos e acompanhe os resultados em tempo real</p></div>
-      <div class="frase-ticker">
-        <div class="ft-quote">🏆</div>
-        <div class="ft-body">
-          <p class="ft-texto" style="margin:0 0 3px"></p>
-          <span class="ft-autor"></span>
+      <div class="ticker-duo" style="margin-bottom:16px">
+        <div class="frase-ticker" style="margin-bottom:0">
+          <div class="ft-quote">🏆</div>
+          <div class="ft-body">
+            <p class="ft-texto" style="margin:0 0 3px"></p>
+            <span class="ft-autor"></span>
+          </div>
+        </div>
+        <div class="frase-ticker vers-ticker" style="margin-bottom:0">
+          <div class="ft-quote">✝️</div>
+          <div class="ft-body">
+            <p class="fv-texto" style="margin:0 0 3px"></p>
+            <span class="fv-autor"></span>
+          </div>
         </div>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px">
@@ -2776,20 +2799,51 @@ const FRASES=[
   {t:'Clientes não compram produtos ou serviços — compram relações, histórias e magia.',a:'Seth Godin'},
   {t:'O preço da excelência é a disciplina. O custo da mediocridade é o arrependimento.',a:'William Arthur Ward'},
 ];
+const VERSICULOS=[
+  {t:'Porque conheço os planos que tenho para você, diz o Senhor, planos de prosperidade e não de calamidade, para lhe dar um futuro e uma esperança.',a:'Jeremias 29:11'},
+  {t:'Tudo posso naquele que me fortalece.',a:'Filipenses 4:13'},
+  {t:'O Senhor é o meu pastor; nada me faltará.',a:'Salmos 23:1'},
+  {t:'Confie no Senhor de todo o seu coração e não se apoie em seu próprio entendimento.',a:'Provérbios 3:5'},
+  {t:'Mas os que esperam no Senhor renovarão as suas forças. Voareão alto como águias.',a:'Isaías 40:31'},
+  {t:'Deus é o nosso refúgio e a nossa força, socorro bem presente nas tribulações.',a:'Salmos 46:1'},
+  {t:'Não se amolde ao padrão deste mundo, mas transforme-se pela renovação da sua mente.',a:'Romanos 12:2'},
+  {t:'Busquem, pois, em primeiro lugar o reino de Deus e a sua justiça, e todas essas coisas lhes serão acrescentadas.',a:'Mateus 6:33'},
+  {t:'Pois Deus não nos deu espírito de timidez, mas de poder, de amor e de equilíbrio.',a:'2 Timóteo 1:7'},
+  {t:'O coração do homem traça o seu caminho, mas o Senhor determina os seus passos.',a:'Provérbios 16:9'},
+  {t:'Alegre-se no Senhor, e ele lhe dará o que o seu coração deseja.',a:'Salmos 37:4'},
+  {t:'Não anseiem por nada, mas em tudo, pela oração e súplicas, com ação de graças, apresentem seus pedidos a Deus.',a:'Filipenses 4:6'},
+  {t:'Seja forte e corajoso! Não se apavore nem desanime, pois o Senhor, o seu Deus, estará com você por onde você andar.',a:'Josué 1:9'},
+  {t:'A fé é a certeza daquilo que esperamos e a prova das coisas que não vemos.',a:'Hebreus 11:1'},
+  {t:'Sabemos que todas as coisas cooperam para o bem daqueles que amam a Deus.',a:'Romanos 8:28'},
+  {t:'E conhecerão a verdade, e a verdade os libertará.',a:'João 8:32'},
+  {t:'Pois nele vivemos, nos movemos e existimos.',a:'Atos 17:28'},
+  {t:'E agora permanecem estas três coisas: a fé, a esperança e o amor. A maior delas é o amor.',a:'1 Coríntios 13:13'},
+  {t:'O Senhor abençoe você e te guarde; o Senhor faça resplandecer o seu rosto sobre você.',a:'Números 6:24-25'},
+  {t:'O meu socorro vem do Senhor, criador do céu e da terra.',a:'Salmos 121:2'},
+];
 let _fraseIdx=Math.floor(Math.random()*FRASES.length);
+let _versIdx=Math.floor(Math.random()*VERSICULOS.length);
 function _atualizarFrases(){
   const f=FRASES[_fraseIdx];
   document.querySelectorAll('.ft-texto').forEach(el=>{el.textContent='"'+f.t+'"';});
   document.querySelectorAll('.ft-autor').forEach(el=>{el.textContent='— '+f.a;});
 }
+function _atualizarVersiculos(){
+  const v=VERSICULOS[_versIdx];
+  document.querySelectorAll('.fv-texto').forEach(el=>{el.textContent='"'+v.t+'"';});
+  document.querySelectorAll('.fv-autor').forEach(el=>{el.textContent='✝ '+v.a+' · NVI';});
+}
 function iniciarFrasesTicker(){
   _atualizarFrases();
+  _atualizarVersiculos();
   setInterval(()=>{
-    document.querySelectorAll('.ft-texto,.ft-autor').forEach(el=>{el.style.opacity='0';});
+    document.querySelectorAll('.ft-texto,.ft-autor,.fv-texto,.fv-autor').forEach(el=>{el.style.opacity='0';});
     setTimeout(()=>{
       _fraseIdx=(_fraseIdx+1)%FRASES.length;
+      _versIdx=(_versIdx+1)%VERSICULOS.length;
       _atualizarFrases();
-      document.querySelectorAll('.ft-texto,.ft-autor').forEach(el=>{el.style.opacity='1';});
+      _atualizarVersiculos();
+      document.querySelectorAll('.ft-texto,.ft-autor,.fv-texto,.fv-autor').forEach(el=>{el.style.opacity='1';});
     },500);
   },9000);
 }
