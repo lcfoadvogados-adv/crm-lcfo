@@ -666,7 +666,6 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="nav-group-label">Atendimento e Comercial</div>
       <button class="nav-item" onclick="irPara('clientes',this,'Clientes')"><span class="ni">👥</span>Clientes<span class="nb gold" id="b-cli">0</span></button>
       <button class="nav-item" onclick="irPara('funil',this,'Funil / Pipeline')"><span class="ni">📐</span>Funil / Pipeline</button>
-      <button class="nav-item" onclick="irPara('followup',this,'Follow-ups')"><span class="ni">🔔</span>Follow-ups<span class="nb" id="b-fu" style="display:none">0</span></button>
       <button class="nav-item" onclick="irPara('bot',this,'Bot de Follow-up')"><span class="ni">🤖</span>Bot de Follow-up<span class="nb" id="b-bot" style="display:none;background:#27ae60">0</span></button>
       <button class="nav-item" onclick="irPara('atendimentos',this,'Atendimentos / Reuniões')"><span class="ni">🤝</span>Atendimentos / Reuniões</button>
       <button class="nav-item" onclick="irPara('cadencia',this,'Cadência de Clientes')"><span class="ni">📋</span>Cadência de Clientes<span class="nb gold" id="b-cad" style="display:none">0</span></button>
@@ -943,12 +942,6 @@ tbody tr:last-child td{border-bottom:none;}
     </div>
 
     <!-- FOLLOWUP -->
-    <div class="section" id="sec-followup">
-      <div class="ph"><h2>Follow-ups</h2><p>Contatos com acompanhamento agendado</p></div>
-      <div class="panel" style="border-color:#ffe082;background:#fffdf0;margin-bottom:14px"><div class="panel-body" style="padding:11px 16px"><p style="font-size:12.5px;color:#7a5a00">📅 Atrasados e para hoje aparecem primeiro.</p></div></div>
-      <div class="fu-list" id="fu-list"></div>
-    </div>
-
     <!-- BOT DE FOLLOW-UP -->
     <div class="section" id="sec-bot">
       <div class="ph"><h2>🤖 Bot de Follow-up</h2><p>Sequência automática para leads sem resposta — configure as mensagens e acompanhe em tempo real</p></div>
@@ -1717,7 +1710,6 @@ function irPara(id,btn,titulo){
   if(id==='clientes')renderLeads();
   if(id==='processos')renderProcessos();
   if(id==='funil')renderFunil();
-  if(id==='followup')renderFollowup();
   if(id==='mensagens')renderMensagens();
   if(id==='dje')renderDJE();
   if(id==='audiencias'){carregarAud();renderAudDash();renderListaAud();renderPericias();badgesAud();}
@@ -3664,8 +3656,9 @@ function badges(){
   const b=document.getElementById('b-cli');if(b)b.textContent=leads.length;
   const bp=document.getElementById('b-proc');if(bp)bp.textContent=leads.filter(l=>l.etapa==='Documentação & Contrato'||l.etapa==='Reunião Agendada').length;
   const hoje=new Date().toISOString().split('T')[0];
+  // follow-up vencidos agora ficam no badge da Cadência
   const fu=leads.filter(l=>l.followup&&l.followup<=hoje).length;
-  const bf=document.getElementById('b-fu');if(bf){bf.textContent=fu;bf.style.display=fu?'inline':'none';}
+  const bc=document.getElementById('b-cad');if(bc&&fu){bc.textContent=fu;bc.style.display='inline';}
   try{const djeLs=JSON.parse(localStorage.getItem('dje_lcfo_v1')||'[]');const djN=djeLs.filter(i=>i.status==='nova').length;const bd=document.getElementById('b-dje');if(bd){bd.textContent=djN;bd.style.display=djN?'inline':'none';}}catch(e){}
   badgeCadencia();
   badgeTarefas();
