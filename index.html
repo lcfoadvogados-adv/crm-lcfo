@@ -255,7 +255,7 @@ tbody tr:last-child td{border-bottom:none;}
 .cal-evento{border-radius:4px;font-size:10px;padding:2px 5px;margin-bottom:2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .12s;background:#e67e22;color:#fff;}
 .cal-evento:hover{opacity:.82;}
 .cal-evento.ev-hoje{background:#27ae60;}
-.cal-evento.ev-passado{background:#b2bec3;color:#fff;}
+.cal-evento.ev-passado{background:#1D3461;color:#fff;opacity:.75;}
 /* Painel de detalhe da reunião */
 .reuniao-panel{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:22px;margin-top:16px;}
 .meet-btn{display:inline-flex;align-items:center;gap:8px;background:#0f9d58;color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;border:none;cursor:pointer;transition:background .15s;}
@@ -509,7 +509,7 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="nav-group">
       <div class="nav-group-label">Produtividade</div>
       <button class="nav-item" onclick="irPara('tarefas',this,'Tarefas')"><span class="ni">✅</span>Tarefas<span class="nb" id="b-tar" style="display:none">0</span></button>
-      <button class="nav-item" onclick="irPara('eb',this,'Agenda')"><span class="ni">📅</span>Agenda</button>
+      <button class="nav-item" onclick="irPara('agenda',this,'Agenda')"><span class="ni">📅</span>Agenda</button>
       <button class="nav-item" onclick="irPara('eb',this,'Chat')"><span class="ni">💭</span>Chat</button>
       <button class="nav-item" onclick="irPara('eb',this,'Documentos')"><span class="ni">📄</span>Documentos</button>
       <button class="nav-item" onclick="irPara('roteiro',this,'Roteiro')"><span class="ni">📋</span>Roteiro</button>
@@ -1092,6 +1092,28 @@ tbody tr:last-child td{border-bottom:none;}
       </div>
     </div>
 
+<!-- AGENDA -->
+    <div class="section" id="sec-agenda">
+      <div class="ph"><h2>📅 Agenda</h2><p>Calendário unificado — tarefas e reuniões em um só lugar</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+        <span style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Legenda:</span>
+        <span style="background:#1D3461;color:#fff;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700">🤝 Reunião / LCFO Advogados</span>
+        <span style="background:#e74c3c;color:#fff;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700">🔴 Pessoal</span>
+        <span style="background:#27ae60;color:#fff;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700">🟢 Rochinha</span>
+      </div>
+      <div class="panel">
+        <div class="panel-body" style="padding:16px 18px">
+          <div class="cal-nav">
+            <button class="btn btn-gray btn-sm" onclick="navAgMes(-1)" style="font-size:16px;padding:4px 12px">‹</button>
+            <h3 id="ag-titulo">—</h3>
+            <button class="btn btn-gray btn-sm" onclick="navAgMes(1)" style="font-size:16px;padding:4px 12px">›</button>
+          </div>
+          <div class="cal-grid" id="ag-grid"></div>
+        </div>
+      </div>
+      <div id="ag-detail" style="display:none"></div>
+    </div>
+
 <!-- TAREFAS -->
     <div class="section" id="sec-tarefas">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px">
@@ -1254,7 +1276,7 @@ const ROTEIRO=[
   {n:'30',h:'',tt:'Follow-up Final',m:`[NOME], passando para um último contato.\nSe precisar de assessoria jurídica em dívidas bancárias, pode nos procurar a qualquer momento.\nGuarde nosso contato! ⚖️ LCFO Advogados`},
 ];
 
-const EM_BREVE=['agenda','chat','documentos','financeiro','metas'];
+const EM_BREVE=['chat','documentos','financeiro','metas'];
 function irPara(id,btn,titulo){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
@@ -1274,6 +1296,7 @@ function irPara(id,btn,titulo){
   if(id==='dje')renderDJE();
   if(id==='audiencias'){carregarAud();renderAudDash();renderListaAud();renderPericias();badgesAud();}
   if(id==='atendimentos')renderAtendimentos();
+  if(id==='agenda')renderAgenda();
   if(id==='bot')renderBot();
   if(id==='cadencia')renderCadencia();
   if(id==='tarefas')renderTarefas();
@@ -1856,6 +1879,109 @@ function verificarBots(){
 }
 // Roda verificação a cada 5 minutos
 setInterval(function(){verificarBots();const bb=document.getElementById('b-bot');if(bb){const n=leads.filter(l=>l.etapa==='Leads de Entrada'&&l.bot_inicio&&!l.bot_pausado).length;bb.textContent=n;bb.style.display=n?'inline':'none';}},300000);
+
+// ── Agenda (calendário unificado: tarefas + reuniões) ──────────────────────────
+let _agMes=new Date().getMonth(),_agAno=new Date().getFullYear();
+function navAgMes(d){
+  _agMes+=d;
+  if(_agMes>11){_agMes=0;_agAno++;}
+  if(_agMes<0){_agMes=11;_agAno--;}
+  renderAgenda();
+}
+function renderAgenda(){
+  carregarTar();
+  const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const hoje=new Date().toISOString().split('T')[0];
+  const hojeMs=new Date(hoje+'T00:00');
+  const tit=document.getElementById('ag-titulo');
+  if(tit)tit.textContent=`${MESES[_agMes]} ${_agAno}`;
+
+  // Monta mapa data → eventos
+  const evMap={};
+  function addEv(data,ev){if(!evMap[data])evMap[data]=[];evMap[data].push(ev);}
+
+  // Tarefas com data
+  tarefas.forEach(tk=>{
+    if(!tk.data)return;
+    const bg=TAR_C[tk.categoria]||'#8695a7';
+    addEv(tk.data,{label:(tk.tarefa||'Tarefa').substring(0,22),bg,done:tk.status==='Feito',tipo:'tarefa'});
+  });
+  // Reuniões
+  leads.forEach((l,idx)=>{
+    if(!l.reuniao_data)return;
+    const fn=(l.nome||'Lead').split(' ')[0];
+    const hora=l.reuniao_hora?` ${l.reuniao_hora}`:'';
+    addEv(l.reuniao_data,{label:`🤝 ${fn}${hora}`,bg:'#1D3461',done:false,tipo:'reuniao',idx});
+  });
+
+  const grid=document.getElementById('ag-grid');
+  if(!grid)return;
+  const primeiro=new Date(_agAno,_agMes,1);
+  const ultimo=new Date(_agAno,_agMes+1,0);
+  let html=DIAS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<primeiro.getDay();i++){
+    const dd=new Date(_agAno,_agMes,-(primeiro.getDay()-i-1));
+    html+=`<div class="cal-day out"><div class="cal-dn">${dd.getDate()}</div></div>`;
+  }
+  for(let day=1;day<=ultimo.getDate();day++){
+    const ds=`${_agAno}-${String(_agMes+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isHoje=ds===hoje;
+    const isPast=new Date(ds+'T00:00')<hojeMs;
+    const evs=(evMap[ds]||[]).map(ev=>{
+      const op=ev.done||isPast?'.65':'1';
+      const strike=ev.done?'text-decoration:line-through;':'';
+      return `<div class="cal-evento" style="background:${ev.bg};opacity:${op};${strike}" onclick="abrirDiaAg('${ds}')" title="${ev.label}">${ev.label}</div>`;
+    }).join('');
+    html+=`<div class="cal-day${isHoje?' hoje':''}"><div class="cal-dn">${day}</div>${evs}</div>`;
+  }
+  const fim=ultimo.getDay();
+  if(fim<6){for(let i=1;i<=6-fim;i++)html+=`<div class="cal-day out"><div class="cal-dn">${i}</div></div>`;}
+  grid.innerHTML=html;
+}
+function abrirDiaAg(ds){
+  carregarTar();
+  const det=document.getElementById('ag-detail');if(!det)return;
+  const tks=tarefas.filter(tk=>tk.data===ds);
+  const reuns=leads.filter(l=>l.reuniao_data===ds);
+  if(!tks.length&&!reuns.length){det.style.display='none';return;}
+  const dataFmt=new Date(ds+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+  let html=`<div class="reuniao-panel" style="margin-top:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="font-size:15px;color:var(--navy);margin:0">📅 ${dataFmt}</h3>
+      <button class="btn btn-gray btn-sm" onclick="document.getElementById('ag-detail').style.display='none'">✕</button>
+    </div>`;
+  if(reuns.length){
+    html+=`<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🤝 Reuniões</div>`;
+    reuns.forEach(l=>{
+      const idx=leads.indexOf(l);
+      html+=`<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#e8eef8;border-radius:8px;margin-bottom:6px;border-left:3px solid #1D3461">
+        <span style="background:#1D3461;color:#fff;border-radius:5px;padding:2px 8px;font-size:12px;font-weight:600;flex-shrink:0">${l.reuniao_hora||'Sem horário'}</span>
+        <span style="flex:1;font-size:13.5px;font-weight:600;color:var(--navy)">${l.nome||'Lead'}</span>
+        <button class="btn btn-xs" style="background:#1D3461;color:#fff" onclick="irPara('atendimentos',document.querySelector('[onclick*=atendimentos]'),\'Atendimentos / Reuniões\');setTimeout(()=>abrirReuniao(${idx}),250)">Ver</button>
+      </div>`;
+    });
+    html+='</div>';
+  }
+  if(tks.length){
+    html+=`<div><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✅ Tarefas</div>`;
+    tks.forEach(tk=>{
+      const bg=TAR_C[tk.categoria]||'#8695a7';
+      const done=tk.status==='Feito';
+      const stBg=done?'#d4f5e2':tk.status==='Em andamento'?'#fef3e2':'#fde8e8';
+      const stCol=done?'#1a7a3a':tk.status==='Em andamento'?'#b05d00':'#c0392b';
+      html+=`<div style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:#f7f9fc;border-radius:8px;margin-bottom:6px;border-left:3px solid ${bg}${done?';opacity:.6':''}">
+        <span style="background:${bg};color:#fff;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:600;flex-shrink:0">${tk.categoria||'—'}</span>
+        <span style="flex:1;font-size:13px;color:var(--text)${done?';text-decoration:line-through':''}">${tk.tarefa||'(sem título)'}</span>
+        <span style="background:${stBg};color:${stCol};border-radius:10px;padding:2px 8px;font-size:11px;font-weight:600;white-space:nowrap">${tk.status}</span>
+      </div>`;
+    });
+    html+='</div>';
+  }
+  html+='</div>';
+  det.innerHTML=html;det.style.display='block';
+  det.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
 
 // ── Calendário de Reuniões ────────────────────────────────────────────────────
 let _calMes=new Date().getMonth(),_calAno=new Date().getFullYear();
