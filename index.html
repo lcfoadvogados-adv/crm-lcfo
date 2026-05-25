@@ -511,10 +511,143 @@ tbody tr:last-child td{border-bottom:none;}
 .aud-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
 .aud-edit-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:16px;}
 .aud-edit-modal.show{display:flex;}
+
+/* ===== AUTENTICAÇÃO / LOGIN / BLOQUEIO / LGPD ===== */
+#login-screen,#lock-screen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#080f1e 0%,#1D3461 55%,#0c2118 100%);padding:16px;}
+.auth-card{background:#fff;border-radius:16px;padding:38px 34px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.45);}
+.auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:26px;}
+.al-icon{width:46px;height:46px;background:var(--navy);border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.al-icon .ali1{font-family:Georgia,serif;font-size:12px;font-weight:700;color:#fff;letter-spacing:1.5px;line-height:1;}
+.al-icon .ali2{font-size:6px;color:rgba(255,255,255,.45);letter-spacing:2px;margin-top:2px;}
+.al-text p{font-size:14.5px;font-weight:700;color:var(--navy);line-height:1.2;}
+.al-text small{font-size:11px;color:var(--text2);}
+.auth-title{font-size:19px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.auth-sub{font-size:12px;color:var(--text2);margin-bottom:20px;}
+.auth-badge{background:#eef2ff;border:1px solid #c7d4f9;border-radius:8px;padding:9px 13px;font-size:13px;color:var(--navy);font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.aff{margin-bottom:16px;}
+.aff label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px;}
+.aff input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;color:var(--text);background:#fafbfc;transition:border-color .15s;}
+.aff input:focus{outline:none;border-color:var(--navy);background:#fff;}
+.auth-btn{width:100%;padding:13px;background:var(--navy);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;}
+.auth-btn:hover{background:#253f6b;}
+.auth-btn:disabled{opacity:.45;cursor:not-allowed;}
+.auth-err{color:var(--red);font-size:12px;margin-top:8px;min-height:14px;}
+.lock-av{width:62px;height:62px;background:linear-gradient(135deg,#1D3461,#253f6b);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;margin:0 auto 14px;border:3px solid rgba(255,255,255,.15);}
+.lock-name{text-align:center;color:#fff;font-size:15px;font-weight:600;margin-bottom:3px;}
+.lock-info{text-align:center;color:rgba(255,255,255,.45);font-size:12px;margin-bottom:26px;}
+.lock-card{background:#fff;border-radius:16px;padding:30px 28px;width:100%;max-width:360px;box-shadow:0 24px 64px rgba(0,0,0,.5);}
+#lgpd-modal{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;background:rgba(8,15,30,.93);padding:16px;}
+.lgpd-card{background:#fff;border-radius:14px;padding:30px;width:100%;max-width:540px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.45);}
+.lgpd-card h2{font-size:17px;color:var(--navy);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.lgpd-card h3{font-size:12.5px;font-weight:700;color:var(--navy);margin:14px 0 5px;text-transform:uppercase;letter-spacing:.5px;}
+.lgpd-card p,.lgpd-card li{font-size:12.5px;color:var(--text);line-height:1.75;}
+.lgpd-card ul{padding-left:18px;margin-bottom:8px;}
+.lgpd-sep{height:1px;background:var(--border);margin:16px 0;}
+.lgpd-accept-row{display:flex;align-items:flex-start;gap:10px;margin-top:18px;background:#f0f4f8;border-radius:9px;padding:14px;}
+.lgpd-accept-row input[type=checkbox]{width:17px;height:17px;cursor:pointer;margin-top:1px;flex-shrink:0;}
+.lgpd-accept-row label{font-size:13px;color:var(--text);cursor:pointer;line-height:1.5;}
+.toast{z-index:10000!important;}
 </style>
 </head>
 <body>
 <div class="toast" id="toast"></div>
+
+<!-- ===== TELA DE LOGIN ===== -->
+<div id="login-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="al-icon"><span class="ali1">LCFO</span><span class="ali2">ADV</span></div>
+      <div class="al-text"><p>LCFO Advogados</p><small>Sistema Jurídico</small></div>
+    </div>
+    <!-- Modo: Entrar -->
+    <div id="ls-login">
+      <p class="auth-title">Bem-vindo de volta</p>
+      <p class="auth-sub">Acesso restrito — dados jurídicos confidenciais</p>
+      <div class="auth-badge">✉️ lcfoadvogados@gmail.com</div>
+      <div class="aff">
+        <label>Senha</label>
+        <input type="password" id="ls-senha" placeholder="Digite sua senha" onkeydown="if(event.key==='Enter')fazerLogin()">
+      </div>
+      <p class="auth-err" id="ls-erro"></p>
+      <button class="auth-btn" onclick="fazerLogin()">🔐 Entrar no sistema</button>
+    </div>
+    <!-- Modo: Criar senha (1° acesso) -->
+    <div id="ls-criar" style="display:none">
+      <p class="auth-title">Primeiro acesso</p>
+      <p class="auth-sub">Defina sua senha para proteger o sistema</p>
+      <div class="auth-badge">✉️ lcfoadvogados@gmail.com</div>
+      <div class="aff">
+        <label>Nova senha <span style="text-transform:none;font-weight:400;letter-spacing:0;font-size:10px">(mínimo 6 caracteres)</span></label>
+        <input type="password" id="ls-nova-senha" placeholder="Crie uma senha segura">
+      </div>
+      <div class="aff">
+        <label>Confirmar senha</label>
+        <input type="password" id="ls-conf-senha" placeholder="Repita a senha" onkeydown="if(event.key==='Enter')criarSenha()">
+      </div>
+      <p class="auth-err" id="ls-criar-erro"></p>
+      <button class="auth-btn" onclick="criarSenha()">✅ Criar senha e entrar</button>
+    </div>
+    <div style="margin-top:22px;padding-top:16px;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--text2)">🔒 Acesso criptografado (SHA-256) · Conformidade LGPD</div>
+  </div>
+</div>
+
+<!-- ===== TELA DE BLOQUEIO (inatividade) ===== -->
+<div id="lock-screen" style="display:none">
+  <div style="width:100%;max-width:360px">
+    <div class="lock-av">L</div>
+    <p class="lock-name">Dr. Leonardo</p>
+    <p class="lock-info">Sessão bloqueada por inatividade (30 min)</p>
+    <div class="lock-card">
+      <div class="aff">
+        <label>Senha</label>
+        <input type="password" id="lk-senha" placeholder="Digite sua senha para desbloquear" onkeydown="if(event.key==='Enter')desbloquear()">
+      </div>
+      <p class="auth-err" id="lk-erro"></p>
+      <button class="auth-btn" onclick="desbloquear()">🔓 Desbloquear</button>
+      <div style="text-align:center;margin-top:14px">
+        <button onclick="sair()" style="background:none;border:none;font-size:12px;color:var(--text2);cursor:pointer;text-decoration:underline">Sair e trocar conta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL LGPD (aceite no 1° acesso) ===== -->
+<div id="lgpd-modal">
+  <div class="lgpd-card">
+    <h2>🛡️ Aviso de Privacidade e Proteção de Dados</h2>
+    <p>Este sistema armazena dados pessoais e informações jurídicas confidenciais de clientes, em conformidade com a <strong>Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018)</strong>.</p>
+    <div class="lgpd-sep"></div>
+    <h3>📋 Dados tratados neste sistema</h3>
+    <ul>
+      <li>Dados de identificação de clientes (nome, CPF, e-mail, telefone, endereço)</li>
+      <li>Informações processuais e jurídicas (número de processo, vara, tribunal, prazos)</li>
+      <li>Histórico de atendimentos, reuniões e comunicações</li>
+      <li>Dados financeiros vinculados à prestação de serviços jurídicos</li>
+    </ul>
+    <h3>🎯 Finalidade do tratamento</h3>
+    <ul>
+      <li>Gestão e organização interna do escritório de advocacia</li>
+      <li>Acompanhamento de processos, prazos e audiências</li>
+      <li>Comunicação com clientes no âmbito da representação jurídica</li>
+      <li>Controle financeiro e de metas do escritório</li>
+    </ul>
+    <h3>🔒 Medidas de segurança adotadas</h3>
+    <ul>
+      <li>Acesso protegido por senha com criptografia SHA-256</li>
+      <li>Bloqueio automático por inatividade (30 minutos)</li>
+      <li>Dados armazenados localmente no dispositivo do responsável</li>
+      <li>Backups periódicos automáticos (a cada 3 dias) para preservação das informações</li>
+      <li>Sistema de uso exclusivo do advogado titular, sem compartilhamento de acesso</li>
+    </ul>
+    <div class="lgpd-sep"></div>
+    <p style="font-size:12px;color:var(--text2)">Como advogado titular e operador responsável pelo tratamento dos dados, você é responsável por garantir o uso adequado das informações em conformidade com a LGPD (Lei nº 13.709/2018), o Estatuto da OAB e o Código de Ética e Disciplina.</p>
+    <div class="lgpd-accept-row">
+      <input type="checkbox" id="lgpd-check" onchange="const b=document.getElementById('lgpd-btn');b.disabled=!this.checked;b.style.opacity=this.checked?'1':'.45'">
+      <label for="lgpd-check">Li e compreendi os termos acima. Comprometo-me a tratar os dados dos clientes em conformidade com a LGPD e as normas da OAB, utilizando este sistema exclusivamente para fins legítimos de advocacia.</label>
+    </div>
+    <button class="auth-btn" id="lgpd-btn" onclick="aceitarLGPD()" disabled style="margin-top:16px;opacity:.45">✅ Concordar e acessar o sistema</button>
+  </div>
+</div>
 
 <aside class="sidebar" id="sidebar">
   <div class="logo-wrap" onclick="irPara('home',null,'Início')" style="cursor:pointer" title="Ir para o início">
@@ -558,6 +691,10 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="sidebar-foot">
     <div class="u-av">L</div>
     <div class="u-info"><p>Dr. Leonardo</p><small>Administrador</small></div>
+    <div style="margin-left:auto;display:flex;gap:2px;flex-shrink:0">
+      <button onclick="bloquearSistema()" title="Bloquear sessão" style="background:none;border:none;color:rgba(255,255,255,.38);font-size:15px;cursor:pointer;padding:5px 6px;border-radius:6px;transition:all .15s" onmouseover="this.style.color='rgba(255,255,255,.8)'" onmouseout="this.style.color='rgba(255,255,255,.38)'">🔒</button>
+      <button onclick="sair()" title="Sair do sistema" style="background:none;border:none;color:rgba(255,255,255,.38);font-size:15px;cursor:pointer;padding:5px 6px;border-radius:6px;transition:all .15s" onmouseover="this.style.color='rgba(255,255,255,.8)'" onmouseout="this.style.color='rgba(255,255,255,.38)'">⏻</button>
+    </div>
   </div>
 </aside>
 
@@ -1422,6 +1559,123 @@ tbody tr:last-child td{border-bottom:none;}
 </div>
 
 <script>
+// ===== AUTENTICAÇÃO / SEGURANÇA / LGPD =====
+const _AUTH_KEY='lcfo_auth_v1';
+const _SESS_KEY='lcfo_sess_v1';
+const _LGPD_KEY='lcfo_lgpd_v1';
+const _INACT_MS=30*60*1000;
+let _inactTimer=null;
+let _inactListening=false;
+
+async function _sha256(msg){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function _resetInact(){
+  clearTimeout(_inactTimer);
+  _inactTimer=setTimeout(bloquearSistema,_INACT_MS);
+}
+function _entrarApp(){
+  sessionStorage.setItem(_SESS_KEY,'ok');
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('lock-screen').style.display='none';
+  document.getElementById('lgpd-modal').style.display='none';
+  _resetInact();
+  if(!_inactListening){
+    ['mousemove','keydown','click','touchstart'].forEach(ev=>document.addEventListener(ev,_resetInact,{passive:true}));
+    _inactListening=true;
+  }
+}
+function inicializarAuth(){
+  const auth=JSON.parse(localStorage.getItem(_AUTH_KEY)||'null');
+  if(!auth){
+    document.getElementById('ls-login').style.display='none';
+    document.getElementById('ls-criar').style.display='block';
+    document.getElementById('login-screen').style.display='flex';
+    return;
+  }
+  if(sessionStorage.getItem(_SESS_KEY)==='ok'){
+    _entrarApp();
+    return;
+  }
+  document.getElementById('ls-login').style.display='block';
+  document.getElementById('ls-criar').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+}
+async function fazerLogin(){
+  const s=(document.getElementById('ls-senha').value||'').trim();
+  const err=document.getElementById('ls-erro');
+  if(!s){err.textContent='Digite sua senha.';return;}
+  const h=await _sha256(s);
+  const auth=JSON.parse(localStorage.getItem(_AUTH_KEY)||'null');
+  if(!auth||auth.h!==h){
+    err.textContent='Senha incorreta. Tente novamente.';
+    document.getElementById('ls-senha').value='';
+    document.getElementById('ls-senha').focus();
+    return;
+  }
+  err.textContent='';
+  _entrarApp();
+}
+async function criarSenha(){
+  const s1=(document.getElementById('ls-nova-senha').value||'');
+  const s2=(document.getElementById('ls-conf-senha').value||'');
+  const err=document.getElementById('ls-criar-erro');
+  if(s1.length<6){err.textContent='Senha deve ter ao menos 6 caracteres.';return;}
+  if(s1!==s2){err.textContent='As senhas não coincidem.';return;}
+  const h=await _sha256(s1);
+  localStorage.setItem(_AUTH_KEY,JSON.stringify({h,e:'lcfoadvogados@gmail.com',c:new Date().toISOString()}));
+  err.textContent='';
+  if(!localStorage.getItem(_LGPD_KEY)){
+    document.getElementById('login-screen').style.display='none';
+    const lgpd=document.getElementById('lgpd-modal');
+    lgpd.style.display='flex';
+  } else {
+    _entrarApp();
+  }
+}
+function aceitarLGPD(){
+  if(!document.getElementById('lgpd-check').checked)return;
+  localStorage.setItem(_LGPD_KEY,new Date().toISOString());
+  document.getElementById('lgpd-modal').style.display='none';
+  _entrarApp();
+}
+function bloquearSistema(){
+  clearTimeout(_inactTimer);
+  sessionStorage.removeItem(_SESS_KEY);
+  document.getElementById('lock-screen').style.display='flex';
+  setTimeout(()=>{const el=document.getElementById('lk-senha');if(el){el.value='';el.focus();}},80);
+}
+async function desbloquear(){
+  const s=(document.getElementById('lk-senha').value||'').trim();
+  const err=document.getElementById('lk-erro');
+  if(!s)return;
+  const h=await _sha256(s);
+  const auth=JSON.parse(localStorage.getItem(_AUTH_KEY)||'null');
+  if(!auth||auth.h!==h){
+    err.textContent='Senha incorreta.';
+    document.getElementById('lk-senha').value='';
+    document.getElementById('lk-senha').focus();
+    return;
+  }
+  err.textContent='';
+  document.getElementById('lock-screen').style.display='none';
+  _entrarApp();
+}
+function sair(){
+  clearTimeout(_inactTimer);
+  sessionStorage.removeItem(_SESS_KEY);
+  document.getElementById('lock-screen').style.display='none';
+  document.getElementById('ls-login').style.display='block';
+  document.getElementById('ls-criar').style.display='none';
+  document.getElementById('ls-senha').value='';
+  document.getElementById('ls-erro').textContent='';
+  document.getElementById('login-screen').style.display='flex';
+}
+// Iniciar autenticação
+inicializarAuth();
+// ===== FIM AUTENTICAÇÃO =====
+
 const KEY='crm_lcfo_v3';
 let leads=[];let editIdx=-1;
 function carregar(){try{leads=JSON.parse(localStorage.getItem(KEY)||'[]');}catch{leads=[];}}
