@@ -602,12 +602,13 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
       </div>
       <div class="cards-grid" id="cards-proc" style="margin-bottom:20px"></div>
-      <!-- Integrações -->
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center">
-        <span style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Integrações:</span>
-        <div id="gdrive-status-btn">
-          <a href="/api/gdrive-auth" class="btn btn-sm" style="background:#0f9d58;color:#fff;text-decoration:none">📁 Conectar Google Drive</a>
+      <!-- Agenda do Dia -->
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-head" style="display:flex;align-items:center;justify-content:space-between">
+          <h3>📅 Agenda do Dia</h3>
+          <span id="dash-agenda-data" style="font-size:12px;color:var(--text2);font-weight:500"></span>
         </div>
+        <div class="panel-body" id="dash-agenda-hoje" style="padding:4px 16px 8px"></div>
       </div>
       <div class="dash-2col">
         <div class="panel">
@@ -1601,6 +1602,34 @@ function excluir(){
   if(!confirm('Excluir este cliente?'))return;
   leads.splice(editIdx,1);salvar();fecharModal();renderLeads();badges();t('🗑 Cliente excluído.');
 }
+function renderDashAgenda(){
+  const wrap=document.getElementById('dash-agenda-hoje');
+  const dataEl=document.getElementById('dash-agenda-data');
+  if(!wrap)return;
+  const hoje=new Date().toISOString().split('T')[0];
+  const hojeStr=new Date(hoje+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  if(dataEl)dataEl.textContent=hojeStr.charAt(0).toUpperCase()+hojeStr.slice(1);
+  const itens=[];
+  leads.forEach(l=>{
+    if(l.reuniao_data===hoje)
+      itens.push({hora:l.reuniao_hora||'',label:'🤝 Reunião — '+(l.nome||'Lead'),bg:'#1D3461',done:false});
+  });
+  carregarTar();
+  tarefas.forEach(tk=>{
+    if(tk.data===hoje)
+      itens.push({hora:'',label:tk.tarefa||'Tarefa',bg:TAR_C[tk.categoria]||'#8695a7',done:tk.status==='Feito'});
+  });
+  itens.sort((a,b)=>{if(!a.hora&&!b.hora)return 0;if(!a.hora)return 1;if(!b.hora)return -1;return a.hora.localeCompare(b.hora);});
+  if(!itens.length){
+    wrap.innerHTML='<p style="color:var(--text2);font-size:13px;padding:10px 0;text-align:center">Nenhum compromisso para hoje 🎉</p>';
+    return;
+  }
+  wrap.innerHTML=itens.map(ev=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+    ${ev.hora?`<span style="font-size:12px;color:var(--text2);font-weight:600;min-width:42px;flex-shrink:0">${ev.hora}</span>`:'<span style="min-width:42px;flex-shrink:0"></span>'}
+    <span style="width:8px;height:8px;border-radius:50%;background:${ev.bg};flex-shrink:0"></span>
+    <span style="font-size:13px;${ev.done?'text-decoration:line-through;color:var(--text2)':'color:var(--text)'}">${docEsc(ev.label)}</span>
+  </div>`).join('');
+}
 function renderDash(){
   try{
     const hora=new Date().getHours();
@@ -1615,6 +1644,7 @@ function renderDash(){
     if(ul){const rec=[...leads].reverse().slice(0,5);ul.innerHTML=rec.length?`<div class="tbl"><table><thead><tr><th>Nome</th><th>Etapa</th><th>Origem</th><th>Data</th></tr></thead><tbody>${rec.map(l=>`<tr><td><strong>${l.nome}</strong></td><td><span class="badge" style="background:${CORES[l.etapa]||'#999'}">${l.etapa}</span></td><td>${l.origem||'—'}</td><td>${l.criado||'—'}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty"><div class="ei">📭</div><p>Nenhum lead ainda.</p></div>';}
     const fu=document.getElementById('dash-fu');
     if(fu){const urg2=leads.filter(l=>l.followup&&l.followup<=hoje).slice(0,4);fu.innerHTML=urg2.length?urg2.map(l=>`<div class="fu-card" style="margin-bottom:8px"><div class="fu-av">${l.nome[0].toUpperCase()}</div><div class="fu-info"><div class="fu-nome">${l.nome}</div><div class="fu-det">📱 ${l.tel}</div></div><a href="https://wa.me/55${l.tel.replace(/\D/g,'')}" target="_blank" class="btn btn-success btn-sm">💬 WA</a></div>`).join(''):'<div class="empty" style="padding:20px"><p>✅ Nenhum follow-up urgente.</p></div>';}
+    renderDashAgenda();
   }catch(e){console.error('renderDash erro:',e);}
 }
 function renderFunil(){
