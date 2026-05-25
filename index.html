@@ -2581,13 +2581,16 @@ function renderAgenda(){
     addEv(l.reuniao_data,{label:`🤝 ${fn}${hora}`,bg:'#1D3461',done:false,tipo:'reuniao',idx});
   });
   // Google Calendar
+  const _GCAL_CORES={'pessoal':'#e74c3c','personal':'#e74c3c','rochinha':'#27ae60','lagoinha':'#27ae60'};
   Object.entries(_gcalEvents).forEach(([dt,evs])=>{
     evs.forEach(ev=>{
       const hora=ev.start&&ev.start.dateTime
         ?new Date(ev.start.dateTime).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'})+' '
         :'';
       const label=hora+(ev.summary||'Compromisso');
-      addEv(dt,{label,bg:ev.calendarColor||'#1a73e8',done:false,tipo:'gcal',ev});
+      const calKey=(ev.calendarName||'').toLowerCase();
+      const bg=Object.entries(_GCAL_CORES).find(([k])=>calKey.includes(k))?.[1]||(ev.calendarColor||'#1a73e8');
+      addEv(dt,{label,bg,done:false,tipo:'gcal',ev});
     });
   });
   // Busca eventos do Google (assíncrono — re-renderiza ao completar)
