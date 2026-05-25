@@ -2515,8 +2515,8 @@ const _GCAL_TIPOS_KEY='lcfo_gcal_tipos';
 let _gcalTipos={};
 function _loadGcalTipos(){try{_gcalTipos=JSON.parse(localStorage.getItem(_GCAL_TIPOS_KEY)||'{}');}catch{_gcalTipos={};}}
 function _saveGcalTipos(){localStorage.setItem(_GCAL_TIPOS_KEY,JSON.stringify(_gcalTipos));}
-const _GCAL_COR={pessoal:'#e74c3c',rochinha:'#27ae60',reuniao:'#1D3461'};
-const _GCAL_LABEL={pessoal:'🔴 Pessoal',rochinha:'🟢 Rochinha',reuniao:'🔵 Reunião LCFO'};
+const _GCAL_COR={pessoal:'#e74c3c',rochinha:'#27ae60',reuniao:'#1D3461',feriado:'#e67e22'};
+const _GCAL_LABEL={pessoal:'🔴 Pessoal',rochinha:'🟢 Rochinha',reuniao:'🔵 Reunião LCFO',feriado:'🟠 Feriado'};
 function setGcalTipo(evId,tipo){
   _loadGcalTipos();
   _gcalTipos[evId]=tipo;
