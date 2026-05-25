@@ -1669,7 +1669,7 @@ inicializarAuth();
 // ===== FIM AUTENTICAÇÃO =====
 
 const KEY='crm_lcfo_v3';
-let leads=[];let editIdx=-1;
+let leads=[];let editIdx=-1;let _aiPendingFiles=[];
 function carregar(){try{leads=JSON.parse(localStorage.getItem(KEY)||'[]');}catch{leads=[];}}
 function salvar(){try{localStorage.setItem(KEY,JSON.stringify(leads));}catch{t('Erro ao salvar!',false);}}
 carregar();
@@ -1744,6 +1744,7 @@ function aiFiles(input){
   document.getElementById('ai-anal').innerHTML='<div class="ai-dot"></div><span>IA lendo os documentos com Claude...</span>';
 
   Promise.all(files.map(f=>fileToBase64(f))).then(imgs=>{
+    _aiPendingFiles=imgs; // guarda para upload automático ao criar pasta no Drive
     fetch('/api/analyze-document',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -1808,9 +1809,10 @@ function salvarLead(){
   const newIdx=leads.length-1;
   if(leads[newIdx].etapa==='Leads de Entrada')iniciarBotLead(newIdx);
   if(leads[newIdx].etapa==='Documentação & Contrato')criarTarefasCliente(newIdx);
+  const _filesToUpload=_aiPendingFiles.slice(); // captura antes de limparForm()
   salvar();badges();badgesAud();limparForm();renderLeads();
   // Aba Clientes: sempre cria pasta no Drive ao salvar
-  setTimeout(()=>criarPastaGDrive(newIdx),600);
+  setTimeout(()=>criarPastaGDrive(newIdx,_filesToUpload),600);
   setTimeout(()=>abrirPerfil(newIdx,true),100);
 }
 function limparForm(){
@@ -1820,7 +1822,7 @@ function limparForm(){
   document.getElementById('f-etapa').value='Leads de Entrada';
   document.getElementById('f-divida').value='Não informado';
   document.getElementById('f-origem').value='Meta Ads';
-  document.getElementById('ai-files').innerHTML='';limparTags();
+  document.getElementById('ai-files').innerHTML='';_aiPendingFiles=[];limparTags();
 }
 function renderLeads(){
   const bq=(document.getElementById('busca')?.value||'').toLowerCase();
@@ -4495,7 +4497,7 @@ function atualizarDrivePanel(){
 }
 
 // ===== GOOGLE DRIVE — Criar pasta do cliente =====
-async function criarPastaGDrive(idx){
+async function criarPastaGDrive(idx,pendingFiles){
   const l=leads[idx];
   if(!l)return;
   if(l.gdrive_pasta){window.open(l.gdrive_pasta,'_blank');return;}
@@ -4515,12 +4517,32 @@ async function criarPastaGDrive(idx){
       // Atualiza botão no funil se visível
       const fc=document.querySelector('[data-lead-idx="'+idx+'"] .drive-btn');
       if(fc){fc.textContent='📁 Drive';fc.onclick=function(){window.open(data.folderUrl,'_blank');};}
+      // Upload automático dos documentos usados na IA
+      if(pendingFiles&&pendingFiles.length){
+        uploadFilesParaDrive(data.folderId,pendingFiles);
+      }
     } else if(data.naoConectado){
-      t('⚠️ Google Drive não conectado. Clique em "Conectar Google Drive" no Dashboard.',false);
+      t('⚠️ Google Drive não conectado. Acesse crm-lcfo.vercel.app/api/gdrive-auth para conectar.',false);
     } else {
       t('⚠️ Erro no Drive: '+(data.erro||'desconhecido'),false);
     }
   }catch(e){t('⚠️ Erro ao criar pasta no Drive.',false);}
+}
+
+async function uploadFilesParaDrive(folderId,files){
+  if(!folderId||!files||!files.length)return;
+  try{
+    const res=await fetch('/api/gdrive-upload',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({folderId,files}),
+    });
+    const data=await res.json();
+    if(data.ok){
+      const n=data.results.filter(r=>r.ok).length;
+      t('📎 '+n+' documento'+(n>1?'s':'')+' enviado'+(n>1?'s':'')+' para o Drive!');
+    }
+  }catch(e){console.error('Upload Drive:',e);}
 }
 
 // ===== SYNC AUTOMÁTICO — META ADS (polling a cada 30s) =====
