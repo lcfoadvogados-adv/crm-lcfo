@@ -571,7 +571,10 @@ tbody tr:last-child td{border-bottom:none;}
     </div>
     <div class="topbar-r">
       <span class="top-date" id="tp-data"></span>
-      <button class="btn-bk" onclick="exportar()">⬇ Backup</button>
+      <div style="display:flex;align-items:center;gap:4px">
+        <button class="btn-bk" onclick="exportar()" id="btn-bk-main" title="Fazer backup agora">⬇ Backup<span id="bk-pasta-label" style="font-size:10px;opacity:.7;margin-left:4px"></span></button>
+        <button class="btn-bk" onclick="definirPastaBackup()" title="Configurar pasta de backup" style="padding:5px 8px;font-size:14px">📁</button>
+      </div>
     </div>
   </div>
 
@@ -3417,16 +3420,53 @@ function badges(){
 }
 // ── Backup Completo ───────────────────────────────────────────────────────────
 const _BK_KEYS=['crm_lcfo_v3','lcfo_tarefas_cli_v1','lcfo_tarefas_v1','lcfo_bot_v1','dje_lcfo_v1','proc_lcfo_v1','lcfo_docs_rep_v1','lcfo_rot_custom','lcfo_msgs_custom','lcfo_roteiros_v2','lcfo_fin_contratos_v1','lcfo_fin_fluxo_v1','lcfo_fin_despesas_v1','lcfo_metas_cfg_v1'];
-function exportar(silencioso){
+let _bkDir=null;
+function _idbOp(rw,fn){return new Promise(res=>{const req=indexedDB.open('lcfo_bk',1);req.onupgradeneeded=e=>e.target.result.createObjectStore('h');req.onsuccess=e=>{try{const tx=e.target.result.transaction('h',rw);fn(tx.objectStore('h'),res);}catch{res(null);}};req.onerror=()=>res(null);});}
+function _idbGet(k){return _idbOp('readonly',(s,r)=>{const q=s.get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r(null);});}
+function _idbPut(k,v){return _idbOp('readwrite',(s,r)=>{try{s.put(v,k);r(true);}catch{r(false);}});}
+async function _getBkDir(){
+  if(_bkDir){try{const p=await _bkDir.queryPermission({mode:'readwrite'});if(p==='granted')return _bkDir;const r=await _bkDir.requestPermission({mode:'readwrite'});if(r==='granted')return _bkDir;}catch(e){}}
+  try{const h=await _idbGet('backupDir');if(h){_bkDir=h;const p=await h.queryPermission({mode:'readwrite'});if(p==='granted')return h;const r=await h.requestPermission({mode:'readwrite'});if(r==='granted'){_bkDir=h;return h;}}}catch(e){}
+  return null;
+}
+async function definirPastaBackup(){
+  if(!window.showDirectoryPicker){t('⚠️ Use o Chrome para esta função.',false);return;}
+  try{
+    const dh=await window.showDirectoryPicker({mode:'readwrite',startIn:'documents'});
+    _bkDir=dh;
+    await _idbPut('backupDir',dh);
+    localStorage.setItem('lcfo_bk_pasta',dh.name);
+    _atualizarLabelPasta();
+    t('📁 Pasta definida: '+dh.name+' — backups serão salvos aqui automaticamente!');
+  }catch(e){if(e.name!=='AbortError')t('⚠️ Erro ao selecionar pasta.',false);}
+}
+function _atualizarLabelPasta(){
+  const nome=localStorage.getItem('lcfo_bk_pasta');
+  const el=document.getElementById('bk-pasta-label');
+  if(el)el.textContent=nome?'→ '+nome:'';
+}
+async function exportar(silencioso){
   const payload={v:4,sistema:'LCFO CRM',data:new Date().toISOString(),dados:{}};
   _BK_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!=null)payload.dados[k]=v;});
-  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const json=JSON.stringify(payload,null,2);
+  const filename='backup_lcfo_'+new Date().toISOString().slice(0,10)+'.json';
+  const dir=await _getBkDir();
+  if(dir){
+    try{
+      const fh=await dir.getFileHandle(filename,{create:true});
+      const wr=await fh.createWritable();
+      await wr.write(json);await wr.close();
+      localStorage.setItem('lcfo_last_autobackup',new Date().toISOString());
+      if(!silencioso)t('✅ Backup salvo em: '+dir.name+'/'+filename);
+      return;
+    }catch(e){/* fallback */}
+  }
+  const blob=new Blob([json],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='backup_lcfo_'+new Date().toISOString().slice(0,10)+'.json';
-  document.body.appendChild(a);a.click();
+  a.download=filename;document.body.appendChild(a);a.click();
   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},300);
   localStorage.setItem('lcfo_last_autobackup',new Date().toISOString());
-  if(!silencioso)t('✅ Backup completo exportado com sucesso!');
+  if(!silencioso)t('✅ Backup exportado!');
 }
 function importar(e){
   const file=e.target.files[0];if(!file)return;
@@ -3682,7 +3722,7 @@ function atualizarBadgeProc(){
   b.textContent=u;b.style.display=u?'inline':'none';
 }
 
-carregarProc();badges();renderDash();atualizarBadgeProc();iniciarFrasesTicker();verificarAutoBackup();
+carregarProc();badges();renderDash();atualizarBadgeProc();iniciarFrasesTicker();verificarAutoBackup();_atualizarLabelPasta();
 
 // ===== AUDIÊNCIAS E PERÍCIAS =====
 const KEY_AUD='crm_aud_v1';
