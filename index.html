@@ -287,6 +287,23 @@ tbody tr:last-child td{border-bottom:none;}
 .tar-tab:hover{color:var(--navy);}
 .tar-tab.active{color:var(--navy);border-bottom-color:var(--navy);}
 
+/* FRASES TICKER */
+.frase-ticker{background:linear-gradient(135deg,#1D3461 0%,#27407a 100%);color:#fff;border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:14px;margin-bottom:20px;}
+.ft-quote{font-size:24px;flex-shrink:0;}
+.ft-body{flex:1;min-width:0;}
+.ft-texto{margin:0 0 3px;font-size:13.5px;font-weight:500;line-height:1.55;font-style:italic;transition:opacity .5s ease;}
+.ft-autor{font-size:11px;color:rgba(255,255,255,.55);font-weight:700;text-transform:uppercase;letter-spacing:.8px;transition:opacity .5s ease;}
+/* META CARDS */
+.meta-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px 20px;}
+.meta-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;}
+.meta-card-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.meta-val-real{font-size:22px;font-weight:700;line-height:1.1;}
+.meta-progress{background:#edf0f5;border-radius:6px;height:8px;overflow:hidden;margin:10px 0 8px;}
+.meta-progress-bar{height:100%;border-radius:6px;transition:width .7s ease;}
+.meta-footer{display:flex;justify-content:space-between;align-items:center;font-size:12px;gap:8px;flex-wrap:wrap;}
+.meta-target-inp{border:1.5px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;font-family:inherit;background:#f8f9ff;width:120px;box-sizing:border-box;}
+.meta-target-inp:focus{outline:none;border-color:var(--accent);}
+
 /* DOCUMENTOS */
 .doc-table{width:100%;border-collapse:collapse;font-size:12.5px;}
 .doc-table th{background:#f0f3f8;color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:8px 10px;text-align:left;border-bottom:2px solid var(--border);white-space:nowrap;}
@@ -526,7 +543,7 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="nav-group">
       <div class="nav-group-label">Gestão</div>
       <button class="nav-item" onclick="irPara('financeiro',this,'Financeiro')"><span class="ni">💰</span>Financeiro</button>
-      <button class="nav-item" onclick="irPara('eb',this,'Metas')"><span class="ni">🎯</span>Metas</button>
+      <button class="nav-item" onclick="irPara('metas',this,'Metas & KPIs')"><span class="ni">🎯</span>Metas & KPIs</button>
       <button class="nav-item" onclick="exportar()"><span class="ni">💾</span>Exportar Backup</button>
       <button class="nav-item" onclick="document.getElementById('imp').click()"><span class="ni">📂</span>Importar Backup</button>
       <input type="file" id="imp" accept=".json" style="display:none" onchange="importar(event)">
@@ -566,6 +583,13 @@ tbody tr:last-child td{border-bottom:none;}
           <button class="btn btn-gray btn-sm" onclick="irPara('funil',document.querySelector('.nav-item[onclick*=funil]'),'Funil / Pipeline')">📐 Funil</button>
           <button class="btn btn-gray btn-sm" onclick="irPara('followup',document.querySelector('.nav-item[onclick*=followup]'),'Follow-ups')">🔔 Follow-ups</button>
           <button class="btn btn-gray btn-sm" onclick="irPara('processos',document.querySelector('.nav-item[onclick*=processos]'),'Processos')">📁 Processos</button>
+        </div>
+      </div>
+      <div class="frase-ticker" style="margin-bottom:16px">
+        <div class="ft-quote">💡</div>
+        <div class="ft-body">
+          <p class="ft-texto" style="margin:0 0 3px"></p>
+          <span class="ft-autor"></span>
         </div>
       </div>
       <div class="cards-grid" id="cards-proc" style="margin-bottom:20px"></div>
@@ -1245,6 +1269,26 @@ tbody tr:last-child td{border-bottom:none;}
       </div>
     </div>
 
+<!-- METAS -->
+    <div class="section" id="sec-metas">
+      <div class="ph"><h2>🎯 Metas & KPIs</h2><p>Defina seus objetivos e acompanhe os resultados em tempo real</p></div>
+      <div class="frase-ticker">
+        <div class="ft-quote">🏆</div>
+        <div class="ft-body">
+          <p class="ft-texto" style="margin:0 0 3px"></p>
+          <span class="ft-autor"></span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:13px;color:var(--text2)">Referência: <strong id="metas-mes-str" style="color:var(--navy)">—</strong></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-gray btn-sm" onclick="metasNavMes(-1)" style="font-size:16px;padding:3px 12px">‹</button>
+          <button class="btn btn-gray btn-sm" onclick="metasNavMes(1)" style="font-size:16px;padding:3px 12px">›</button>
+        </div>
+      </div>
+      <div id="metas-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px"></div>
+    </div>
+
 <!-- EM BREVE -->
     <div class="section" id="sec-eb">
       <div class="em-breve"><div class="eb-ic">🚀</div><h3 id="eb-titulo">Em desenvolvimento</h3><p>Esta funcionalidade estará disponível em breve.</p></div>
@@ -1385,7 +1429,7 @@ const ROTEIRO=[
   {n:'30',h:'',tt:'Follow-up Final',m:`[NOME], passando para um último contato.\nSe precisar de assessoria jurídica em dívidas bancárias, pode nos procurar a qualquer momento.\nGuarde nosso contato! ⚖️ LCFO Advogados`},
 ];
 
-const EM_BREVE=['metas'];
+const EM_BREVE=[];
 function irPara(id,btn,titulo){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
@@ -1408,6 +1452,7 @@ function irPara(id,btn,titulo){
   if(id==='documentos')renderDocumentos();
   if(id==='roteiro')renderRoteiroVideos();
   if(id==='financeiro')renderFinanceiro();
+  if(id==='metas')renderMetas();
   if(id==='bot')renderBot();
   if(id==='cadencia')renderCadencia();
   if(id==='tarefas')renderTarefas();
@@ -2706,6 +2751,139 @@ function copiarRotEdit(i){
   if(v!==undefined)navigator.clipboard.writeText(v).then(()=>t('📋 Copiado!'));
 }
 
+// ── Frases Motivacionais ──────────────────────────────────────────────────────
+const FRASES=[
+  {t:'Dinheiro é resultado de valor entregue. Foque em entregar valor.',a:'Flávio Augusto'},
+  {t:'Empreender é transformar sonhos em metas e metas em realidade.',a:'Flávio Augusto'},
+  {t:'A diferença entre ordinário e extraordinário é aquele pequeno "extra".',a:'Jimmy Johnson'},
+  {t:'O sucesso não é sorte. É consequência de uma sequência de boas decisões.',a:'Forbes'},
+  {t:'Líderes bem-sucedidos constroem equipes. Equipes constroem empresas.',a:'Forbes'},
+  {t:'Seu tempo é limitado. Não o desperdice vivendo a vida de outra pessoa.',a:'Steve Jobs'},
+  {t:'A melhor maneira de prever o futuro é criá-lo.',a:'Peter Drucker'},
+  {t:'Você não constrói uma empresa. Você constrói pessoas, e as pessoas constroem.',a:'Zig Ziglar'},
+  {t:'Se você não está disposto a arriscar, esteja disposto a uma vida comum.',a:'Jim Rohn'},
+  {t:'O sucesso é a soma de pequenos esforços repetidos dia após dia.',a:'Robert Collier'},
+  {t:'Seja tão bom que não possam te ignorar.',a:'Steve Martin'},
+  {t:'Persistência e determinação, por si só, são onipotentes.',a:'Calvin Coolidge'},
+  {t:'Não conte os dias, faça os dias contarem.',a:'Muhammad Ali'},
+  {t:'Faça o que você pode, com o que você tem, onde você está.',a:'Theodore Roosevelt'},
+  {t:'A maior glória não está em nunca cair, mas em nos levantarmos toda vez.',a:'Nelson Mandela'},
+  {t:'Trabalhe duro em silêncio. Deixe seu sucesso fazer barulho.',a:'Frank Ocean'},
+  {t:'Um advogado excelente não apenas ganha causas — transforma vidas.',a:'LCFO Advogados'},
+  {t:'Cada "não" que você ouve de um cliente é um "sim" que ainda não aconteceu.',a:'Flávio Augusto'},
+  {t:'Construir um negócio é o trabalho mais difícil e mais recompensador do mundo.',a:'Elon Musk'},
+  {t:'Não tenha medo de desistir do bom para perseguir o ótimo.',a:'John D. Rockefeller'},
+  {t:'Clientes não compram produtos ou serviços — compram relações, histórias e magia.',a:'Seth Godin'},
+  {t:'O preço da excelência é a disciplina. O custo da mediocridade é o arrependimento.',a:'William Arthur Ward'},
+];
+let _fraseIdx=Math.floor(Math.random()*FRASES.length);
+function _atualizarFrases(){
+  const f=FRASES[_fraseIdx];
+  document.querySelectorAll('.ft-texto').forEach(el=>{el.textContent='"'+f.t+'"';});
+  document.querySelectorAll('.ft-autor').forEach(el=>{el.textContent='— '+f.a;});
+}
+function iniciarFrasesTicker(){
+  _atualizarFrases();
+  setInterval(()=>{
+    document.querySelectorAll('.ft-texto,.ft-autor').forEach(el=>{el.style.opacity='0';});
+    setTimeout(()=>{
+      _fraseIdx=(_fraseIdx+1)%FRASES.length;
+      _atualizarFrases();
+      document.querySelectorAll('.ft-texto,.ft-autor').forEach(el=>{el.style.opacity='1';});
+    },500);
+  },9000);
+}
+
+// ── Metas & KPIs ──────────────────────────────────────────────────────────────
+const KEY_METAS='lcfo_metas_cfg_v1';
+let _metasMes=new Date().getMonth(),_metasAno=new Date().getFullYear();
+
+function carregarMetasCfg(){try{return JSON.parse(localStorage.getItem(KEY_METAS))||{};}catch(e){return{};}}
+function salvarMetaTarget(campo,val){const cfg=carregarMetasCfg();cfg[campo]=parseFloat(val)||0;localStorage.setItem(KEY_METAS,JSON.stringify(cfg));}
+
+function metasNavMes(d){
+  _metasMes+=d;
+  if(_metasMes>11){_metasMes=0;_metasAno++;}
+  if(_metasMes<0){_metasMes=11;_metasAno--;}
+  renderMetas();
+}
+
+function _parsePtBr(s){if(!s||!s.includes('/'))return null;const p=s.split('/');return p.length===3?new Date(`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}T12:00`):null;}
+
+function renderMetas(){
+  const ms=document.getElementById('metas-mes-str');
+  if(ms)ms.textContent=_MESES[_metasMes]+' '+_metasAno;
+
+  const cfg=carregarMetasCfg();
+  carregarFinCon();carregarFinFluxo();
+
+  // ── CÁLCULO DOS KPIs REAIS ──
+  // 1. Receita do Mês
+  let receitaMes=0;
+  finContratos.forEach(c=>{
+    if(c.dataContrato&&inMes(c.dataContrato,_metasMes,_metasAno))receitaMes+=Number(c.valorEntrada||0);
+    (c.parcelas||[]).forEach(p=>{if(p.pago&&p.dataPagamento&&inMes(p.dataPagamento,_metasMes,_metasAno))receitaMes+=Number(p.valor||0);});
+  });
+  finFluxo.filter(e=>e.tipo==='entrada'&&inMes(e.data,_metasMes,_metasAno)).forEach(e=>receitaMes+=Number(e.valor||0));
+
+  // 2. Contratos fechados no mês
+  const contratosMes=finContratos.filter(c=>c.dataContrato&&inMes(c.dataContrato,_metasMes,_metasAno)).length;
+
+  // 3. Leads do mês
+  const leadsMes=leads.filter(l=>{const d=_parsePtBr(l.criado);return d&&d.getMonth()===_metasMes&&d.getFullYear()===_metasAno;}).length;
+
+  // 4. Taxa de conversão (clientes que saíram de Leads de Entrada / total)
+  const totalLeads=leads.length||1;
+  const convertidos=leads.filter(l=>l.etapa!=='Leads de Entrada'&&l.etapa!=='Leads Desqualificados').length;
+  const conversaoPct=Math.round(convertidos/totalLeads*100);
+
+  // 5. Ticket médio (geral)
+  const ticketMedio=finContratos.length?finContratos.reduce((s,c)=>s+Number(c.valorTotal||0),0)/finContratos.length:0;
+
+  // 6. Reuniões do mês
+  const reunioesMes=leads.filter(l=>{if(!l.reuniao_data)return false;return inMes(l.reuniao_data,_metasMes,_metasAno);}).length;
+
+  const KPIS=[
+    {key:'receita',icon:'💰',label:'Receita do Mês',real:receitaMes,meta:cfg.receita||0,fmt:v=>brl(v),pct_label:'da meta',tipo:'moeda'},
+    {key:'contratos',icon:'📋',label:'Contratos Fechados',real:contratosMes,meta:cfg.contratos||0,fmt:v=>v,tipo:'numero'},
+    {key:'leads',icon:'📥',label:'Leads do Mês',real:leadsMes,meta:cfg.leads||0,fmt:v=>v,tipo:'numero'},
+    {key:'conversao',icon:'🔄',label:'Taxa de Conversão',real:conversaoPct,meta:cfg.conversao||0,fmt:v=>v+'%',tipo:'pct',hint:'Leads que avançaram no funil / total'},
+    {key:'ticket',icon:'💎',label:'Ticket Médio',real:ticketMedio,meta:cfg.ticket||0,fmt:v=>brl(v),tipo:'moeda'},
+    {key:'reunioes',icon:'🤝',label:'Reuniões Realizadas',real:reunioesMes,meta:cfg.reunioes||0,fmt:v=>v,tipo:'numero'},
+  ];
+
+  const wrap=document.getElementById('metas-grid');if(!wrap)return;
+  wrap.innerHTML=KPIS.map(k=>{
+    const pct=k.meta>0?Math.min(Math.round(k.real/k.meta*100),100):k.real>0?100:0;
+    const batida=k.real>=k.meta&&k.meta>0;
+    const cor=pct>=100?'#27ae60':pct>=60?'#e67e22':'#e74c3c';
+    const statusLabel=k.meta<=0?'Sem meta':batida?'✅ Meta batida':pct>=60?'⚡ Em progresso':'🎯 Abaixo';
+    const statusBg=pct>=100?'#27ae60':pct>=60?'#e67e22':'#e74c3c';
+    const metaInputPh=k.tipo==='moeda'?'Ex: 50000':'Ex: 20';
+    return`<div class="meta-card">
+      <div class="meta-card-top">
+        <div>
+          <div class="meta-card-label">${k.icon} ${k.label}</div>
+          <div class="meta-val-real" style="color:${cor}">${k.fmt(k.real)}</div>
+        </div>
+        <span class="meta-card-status" style="background:${statusBg};white-space:nowrap;flex-shrink:0">${statusLabel}</span>
+      </div>
+      ${k.hint?`<div style="font-size:10.5px;color:var(--text2);margin-bottom:4px">${k.hint}</div>`:''}
+      <div class="meta-progress">
+        <div class="meta-progress-bar" style="width:${pct}%;background:${cor}"></div>
+      </div>
+      <div class="meta-footer">
+        <div style="color:var(--text2)"><span style="font-weight:700;color:${cor}">${pct}%</span> da meta ${k.meta>0?'('+k.fmt(k.meta)+')':''}</div>
+        <div style="display:flex;align-items:center;gap:5px">
+          <span style="font-size:11px;color:var(--text2)">Meta:</span>
+          <input class="meta-target-inp" type="number" step="${k.tipo==='moeda'?'100':'1'}" value="${k.meta||''}" placeholder="${metaInputPh}"
+            onchange="salvarMetaTarget('${k.key}',this.value);renderMetas()">
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 // ── Financeiro ────────────────────────────────────────────────────────────────
 const KEY_FIN_CON='lcfo_fin_contratos_v1',KEY_FIN_FLUXO='lcfo_fin_fluxo_v1',KEY_FIN_DESP='lcfo_fin_despesas_v1';
 let finContratos=[],finFluxo=[],finDesp=[];
@@ -3579,7 +3757,7 @@ function atualizarBadgeProc(){
   b.textContent=u;b.style.display=u?'inline':'none';
 }
 
-carregarProc();badges();renderDash();atualizarBadgeProc();
+carregarProc();badges();renderDash();atualizarBadgeProc();iniciarFrasesTicker();
 
 // ===== AUDIÊNCIAS E PERÍCIAS =====
 const KEY_AUD='crm_aud_v1';
