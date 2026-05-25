@@ -2511,6 +2511,33 @@ let _agMes=new Date().getMonth(),_agAno=new Date().getFullYear();
 let _gcalEvents={};      // { 'YYYY-MM-DD': [{summary,start,end,calendarColor,...}] }
 let _gcalLastFetched=''; // 'YYYY-MM' do último fetch
 
+const _GCAL_TIPOS_KEY='lcfo_gcal_tipos';
+let _gcalTipos={};
+function _loadGcalTipos(){try{_gcalTipos=JSON.parse(localStorage.getItem(_GCAL_TIPOS_KEY)||'{}');}catch{_gcalTipos={};}}
+function _saveGcalTipos(){localStorage.setItem(_GCAL_TIPOS_KEY,JSON.stringify(_gcalTipos));}
+const _GCAL_COR={pessoal:'#e74c3c',rochinha:'#27ae60',reuniao:'#1D3461'};
+const _GCAL_LABEL={pessoal:'🔴 Pessoal',rochinha:'🟢 Rochinha',reuniao:'🔵 Reunião LCFO'};
+function setGcalTipo(evId,tipo){
+  _loadGcalTipos();
+  _gcalTipos[evId]=tipo;
+  _saveGcalTipos();
+  _gcalLastFetched=''; // força re-render com nova cor
+  renderAgenda();
+  // re-abre o detalhe do dia se estiver visível
+  const det=document.getElementById('ag-detail');
+  if(det&&det.style.display!=='none'){
+    // encontra a data do evento para reabrir
+    const dt=Object.entries(_gcalEvents).find(([,evs])=>evs.some(e=>e.id===evId))?.[0];
+    if(dt)setTimeout(()=>abrirDiaAg(dt),50);
+  }
+}
+function _gcalCorEvento(ev){
+  _loadGcalTipos();
+  if(_gcalTipos[ev.id])return _GCAL_COR[_gcalTipos[ev.id]]||'#e74c3c';
+  const calKey=(ev.calendarName||'').toLowerCase();
+  return calKey.includes('rochinha')||calKey.includes('lagoinha')?'#27ae60':'#e74c3c';
+}
+
 function _gcalSetStatus(msg){const el=document.getElementById('gcal-status');if(el)el.innerHTML=msg;}
 
 async function fetchGCalEvents(ano,mes){
@@ -2580,18 +2607,14 @@ function renderAgenda(){
     const hora=l.reuniao_hora?` ${l.reuniao_hora}`:'';
     addEv(l.reuniao_data,{label:`🤝 ${fn}${hora}`,bg:'#1D3461',done:false,tipo:'reuniao',idx});
   });
-  // Google Calendar — pessoal=vermelho, rochinha=verde, demais=vermelho
+  // Google Calendar
   Object.entries(_gcalEvents).forEach(([dt,evs])=>{
     evs.forEach(ev=>{
       const hora=ev.start&&ev.start.dateTime
         ?new Date(ev.start.dateTime).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'})+' '
         :'';
       const label=hora+(ev.summary||'Compromisso');
-      const calKey=(ev.calendarName||'').toLowerCase();
-      const bg=calKey.includes('rochinha')||calKey.includes('lagoinha')
-        ?'#27ae60'  // verde para eventos da Rochinha
-        :'#e74c3c'; // vermelho para todos os outros (pessoais)
-      addEv(dt,{label,bg,done:false,tipo:'gcal',ev});
+      addEv(dt,{label,bg:_gcalCorEvento(ev),done:false,tipo:'gcal',ev});
     });
   });
   // Busca eventos do Google (assíncrono — re-renderiza ao completar)
@@ -2668,14 +2691,19 @@ function abrirDiaAg(ds){
     gcals.forEach(ev=>{
       const isAllDay=!!(ev.start&&ev.start.date&&!ev.start.dateTime);
       const hora=isAllDay?'Dia todo':new Date(ev.start.dateTime).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'});
-      const cor=ev.calendarColor||'#1a73e8';
-      html+=`<div style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:#f0f6ff;border-radius:8px;margin-bottom:6px;border-left:3px solid ${cor}">
-        <span style="background:${cor};color:#fff;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:600;flex-shrink:0;white-space:nowrap">${hora}</span>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ev.summary||'(sem título)'}</div>
-          ${ev.location?`<div style="font-size:11px;color:var(--text2);margin-top:2px">📍 ${ev.location}</div>`:''}
-          <div style="font-size:10px;color:var(--text2);margin-top:1px">${ev.calendarName||''}</div>
+      const cor=_gcalCorEvento(ev);
+      const tipoAtual=(_gcalTipos[ev.id])||(((ev.calendarName||'').toLowerCase().includes('rochinha')||((ev.calendarName||'').toLowerCase().includes('lagoinha')))?'rochinha':'pessoal');
+      const safeId=(ev.id||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const btns=Object.entries(_GCAL_COR).map(([t,c])=>`<button onclick="setGcalTipo('${safeId}','${t}')" style="padding:2px 9px;font-size:10px;font-weight:700;border:2px solid ${c};border-radius:10px;background:${tipoAtual===t?c:'#fff'};color:${tipoAtual===t?'#fff':c};cursor:pointer">${_GCAL_LABEL[t]}</button>`).join('');
+      html+=`<div style="padding:9px 12px;background:#f0f6ff;border-radius:8px;margin-bottom:8px;border-left:3px solid ${cor}">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px">
+          <span style="background:${cor};color:#fff;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:600;flex-shrink:0;white-space:nowrap">${hora}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ev.summary||'(sem título)'}</div>
+            ${ev.location?`<div style="font-size:11px;color:var(--text2)">📍 ${ev.location}</div>`:''}
+          </div>
         </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">${btns}</div>
       </div>`;
     });
     html+='</div>';
@@ -3749,7 +3777,7 @@ function badges(){
   badgeTarefas();
 }
 // ── Backup Completo ───────────────────────────────────────────────────────────
-const _BK_KEYS=['crm_lcfo_v3','lcfo_tarefas_cli_v1','lcfo_tarefas_v1','lcfo_bot_v1','dje_lcfo_v1','proc_lcfo_v1','lcfo_docs_rep_v1','lcfo_rot_custom','lcfo_msgs_custom','lcfo_roteiros_v2','lcfo_fin_contratos_v1','lcfo_fin_fluxo_v1','lcfo_fin_despesas_v1','lcfo_metas_cfg_v1'];
+const _BK_KEYS=['crm_lcfo_v3','lcfo_tarefas_cli_v1','lcfo_tarefas_v1','lcfo_bot_v1','dje_lcfo_v1','proc_lcfo_v1','lcfo_docs_rep_v1','lcfo_rot_custom','lcfo_msgs_custom','lcfo_roteiros_v2','lcfo_fin_contratos_v1','lcfo_fin_fluxo_v1','lcfo_fin_despesas_v1','lcfo_metas_cfg_v1','lcfo_gcal_tipos'];
 let _bkDir=null;
 function _idbOp(rw,fn){return new Promise(res=>{const req=indexedDB.open('lcfo_bk',1);req.onupgradeneeded=e=>e.target.result.createObjectStore('h');req.onsuccess=e=>{try{const tx=e.target.result.transaction('h',rw);fn(tx.objectStore('h'),res);}catch{res(null);}};req.onerror=()=>res(null);});}
 function _idbGet(k){return _idbOp('readonly',(s,r)=>{const q=s.get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r(null);});}
