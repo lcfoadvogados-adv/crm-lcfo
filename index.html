@@ -1948,9 +1948,12 @@ function renderDocClientes(){
     </tr>`;
   }).join('');
   wrap.innerHTML=`
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-      <div style="background:#e8f5e9;color:#1b5e20;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600">👥 ${lista.length} clientes com pasta no Drive</div>
-      <div style="font-size:12px;color:var(--text2)">Clique nos campos para editar</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div style="background:#e8f5e9;color:#1b5e20;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600">👥 ${lista.length} clientes com pasta no Drive</div>
+        <div style="font-size:12px;color:var(--text2)">Clique nos campos para editar</div>
+      </div>
+      <button class="btn btn-sm" onclick="exportarDocClientes()" style="background:#217346;color:#fff;font-weight:600;display:flex;align-items:center;gap:5px">📊 Exportar Excel</button>
     </div>
     <div class="panel"><div class="panel-body" style="padding:0;overflow-x:auto">
       <table class="doc-table">
@@ -1970,8 +1973,9 @@ function renderDocLeads(){
     <td>${docEsc(l.criado||'—')}</td>
   </tr>`).join('');
   wrap.innerHTML=`
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;justify-content:space-between">
       <div style="background:#fff3e0;color:#e65100;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600">📥 ${lista.length} leads na entrada do funil</div>
+      <button class="btn btn-sm" onclick="exportarDocLeads()" style="background:#217346;color:#fff;font-weight:600;display:flex;align-items:center;gap:5px">📊 Exportar Excel</button>
     </div>
     <div class="panel"><div class="panel-body" style="padding:0;overflow-x:auto">
       <table class="doc-table">
@@ -2005,6 +2009,33 @@ function renderDocRepo(){
         <tbody>${rows||'<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text2)">Nenhum documento salvo ainda.<br><small>Adicione links de documentos do Drive, Notion, etc.</small></td></tr>'}</tbody>
       </table>
     </div></div>`;
+}
+
+function exportarCSV(cabecalho, linhas, nomeArquivo){
+  const csvEsc=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const sep=';';
+  const conteudo=[cabecalho,...linhas].map(l=>l.map(csvEsc).join(sep)).join('\r\n');
+  const blob=new Blob(['﻿'+conteudo],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=nomeArquivo+'.csv';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},200);
+  t('📊 Exportado com sucesso!');
+}
+
+function exportarDocClientes(){
+  const lista=leads.filter(l=>l.gdrive_pasta);
+  const cab=['Nome completo','CPF','E-mail','Banco(s)','Tipo de Dívida','Link Drive'];
+  const linhas=lista.map(l=>[l.nome||'',l.cpf||'',l.email||'',l.banco||'',l.divida||'',l.gdrive_pasta||'']);
+  exportarCSV(cab,linhas,'Planilha_Clientes_LCFO_'+new Date().toISOString().slice(0,10));
+}
+
+function exportarDocLeads(){
+  const lista=leads.filter(l=>l.etapa==='Leads de Entrada');
+  const cab=['Nome','Telefone (WhatsApp)','Data de Entrada'];
+  const linhas=lista.map(l=>[l.nome||'',l.tel||l.telefone||'',l.criado||'']);
+  exportarCSV(cab,linhas,'Planilha_Leads_LCFO_'+new Date().toISOString().slice(0,10));
 }
 
 function adicionarDocRepo(){
