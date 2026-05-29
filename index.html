@@ -665,6 +665,7 @@ tbody tr:last-child td{border-bottom:none;}
     </div>
     <div class="nav-group">
       <div class="nav-group-label">Atendimento e Comercial</div>
+      <button class="nav-item" onclick="irPara('leads',this,'Leads')"><span class="ni">🎯</span>Leads<span class="nb" id="b-leads" style="background:#e74c3c">0</span></button>
       <button class="nav-item" onclick="irPara('clientes',this,'Clientes')"><span class="ni">👥</span>Clientes<span class="nb gold" id="b-cli">0</span></button>
       <button class="nav-item" onclick="irPara('funil',this,'Funil / Pipeline')"><span class="ni">📐</span>Funil / Pipeline</button>
       <button class="nav-item" onclick="irPara('bot',this,'Bot de Follow-up')"><span class="ni">🤖</span>Bot de Follow-up<span class="nb" id="b-bot" style="display:none;background:#27ae60">0</span></button>
@@ -862,9 +863,39 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="panel-body">
           <div class="search-bar">
             <input id="busca" placeholder="🔍 Buscar por nome, CPF ou telefone..." oninput="renderLeads()">
-            <select id="f-etapa-fil" onchange="renderLeads()"><option value="">Todas as etapas</option><option>Leads de Entrada</option><option>Manual</option><option>Qualificar e Agendar Reunião</option><option>Cliente em Dúvida s/ Reunião</option><option>Reunião Agendada</option><option>Cliente em Dúvida Pós-Reunião</option><option>Documentação & Contrato</option><option>Encerrado com Acordo</option><option>Encerrado com Êxito Judicial</option><option>Encerrado sem Êxito</option><option>Leads Desqualificados</option></select>
+            <select id="f-etapa-fil" onchange="renderLeads()"><option value="">Todas as etapas</option><option>Manual</option><option>Documentação & Contrato</option><option>Encerrado com Acordo</option><option>Encerrado com Êxito Judicial</option><option>Encerrado sem Êxito</option></select>
           </div>
           <div class="tbl"><table><thead><tr><th>Nome</th><th>CPF</th><th>WhatsApp</th><th>Etapa</th><th>Dívida</th><th>Valor</th><th>Follow-up</th><th></th></tr></thead><tbody id="tbody"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEADS (funil de captação) -->
+    <div class="section" id="sec-leads">
+      <div class="ph" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div><h2>🎯 Leads</h2><p>Leads em andamento no funil de captação</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+          <button class="btn btn-primary btn-sm" onclick="document.getElementById('csv-input').click()">📥 Importar planilha</button>
+          <input type="file" id="csv-input" accept=".csv,.txt" style="display:none" onchange="importarLeadsCSV(this)">
+          <button class="btn btn-gray btn-sm" onclick="irPara('clientes',document.querySelector('[onclick*=clientes]'),\'Clientes\')">👥 Ver Clientes</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>🎯 Leads no funil <span id="total-leads-funil" style="color:var(--text2);font-size:12px;font-weight:400"></span></h3></div>
+        <div class="panel-body">
+          <div class="search-bar">
+            <input id="busca-leads" placeholder="🔍 Buscar por nome ou telefone..." oninput="renderLeadsSection()">
+            <select id="f-etapa-leads" onchange="renderLeadsSection()">
+              <option value="">Todas as etapas</option>
+              <option>Leads de Entrada</option>
+              <option>Qualificar e Agendar Reunião</option>
+              <option>Cliente em Dúvida s/ Reunião</option>
+              <option>Reunião Agendada</option>
+              <option>Cliente em Dúvida Pós-Reunião</option>
+              <option>Leads Desqualificados</option>
+            </select>
+          </div>
+          <div class="tbl"><table><thead><tr><th>Nome</th><th>WhatsApp</th><th>Origem</th><th>Etapa</th><th>Criado</th><th>Follow-up</th><th></th></tr></thead><tbody id="tbody-leads"></tbody></table></div>
         </div>
       </div>
     </div>
@@ -1709,6 +1740,7 @@ function irPara(id,btn,titulo){
   const s=document.getElementById('sec-'+id);
   if(s)s.classList.add('active');
   if(id==='home')renderDash();
+  if(id==='leads')renderLeadsSection();
   if(id==='clientes')renderLeads();
   if(id==='processos')renderProcessos();
   if(id==='funil')renderFunil();
@@ -1828,8 +1860,9 @@ function limparForm(){
 function renderLeads(){
   const bq=(document.getElementById('busca')?.value||'').toLowerCase();
   const fe=document.getElementById('f-etapa-fil')?.value||'';
-  const lista=leads.filter(l=>(!bq||((l.nome||'')+(l.cpf||'')+(l.tel||l.telefone||'')).toLowerCase().includes(bq))&&(!fe||l.etapa===fe));
-  const tot=document.getElementById('total-leads');if(tot)tot.textContent='('+leads.length+')';
+  const ETAPAS_CLI=['Manual','Documentação & Contrato','Encerrado com Acordo','Encerrado com Êxito Judicial','Encerrado sem Êxito'];
+  const lista=leads.filter(l=>ETAPAS_CLI.includes(l.etapa)&&(!bq||((l.nome||'')+(l.cpf||'')+(l.tel||l.telefone||'')).toLowerCase().includes(bq))&&(!fe||l.etapa===fe));
+  const tot=document.getElementById('total-leads');if(tot)tot.textContent='('+lista.length+')';
   const tb=document.getElementById('tbody');if(!tb)return;
   if(!lista.length){tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">👥</div><p>Nenhum cliente ainda.</p></div></td></tr>';return;}
   tb.innerHTML=lista.map(l=>{
@@ -1841,6 +1874,54 @@ function renderLeads(){
     const telNum=l.tel||l.telefone||'';
     return`<tr><td style="cursor:pointer" onclick="abrirPerfil(${idx})"><strong style="color:#1D3461">${l.nome||'Sem nome'}</strong><br><small style="color:#8695a7">${l.criado||''}</small></td><td>${l.cpf||'—'}</td><td>${telNum?`<a href="https://wa.me/55${telNum.replace(/\D/g,'')}" target="_blank" style="color:#253F6B">📱 ${telNum}</a>`:'—'}</td><td><span class="badge" style="background:${cor}">${l.etapa}</span></td><td>${l.divida||'—'}</td><td>${l.valor?'R$ '+Number(l.valor).toLocaleString('pt-BR'):'—'}</td><td>${fu}</td><td style="white-space:nowrap"><button class="btn btn-gray btn-xs" onclick="abrirModal(${idx})">✏️</button> <button class="btn btn-xs" style="${driveBtnStyle}" onclick="criarPastaGDrive(${idx})" title="${driveBtnTitle}">📁</button></td></tr>`;
   }).join('');
+}
+function renderLeadsSection(){
+  const ETAPAS_LEADS=['Leads de Entrada','Qualificar e Agendar Reunião','Cliente em Dúvida s/ Reunião','Reunião Agendada','Cliente em Dúvida Pós-Reunião','Leads Desqualificados'];
+  const bq=(document.getElementById('busca-leads')?.value||'').toLowerCase();
+  const fe=document.getElementById('f-etapa-leads')?.value||'';
+  const lista=leads.filter(l=>ETAPAS_LEADS.includes(l.etapa)&&(!bq||((l.nome||'')+(l.tel||l.telefone||'')).toLowerCase().includes(bq))&&(!fe||l.etapa===fe));
+  const tot=document.getElementById('total-leads-funil');if(tot)tot.textContent='('+lista.length+')';
+  const tb=document.getElementById('tbody-leads');if(!tb)return;
+  if(!lista.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">🎯</div><p>Nenhum lead no funil.</p></div></td></tr>';return;}
+  tb.innerHTML=lista.map(l=>{
+    const idx=leads.findIndex(x=>x.id===l.id);
+    const cor=CORES[l.etapa]||'#999';
+    const tel=l.tel||l.telefone||'';
+    const fu=l.followup?new Date(l.followup+'T12:00').toLocaleDateString('pt-BR'):'—';
+    return`<tr><td style="cursor:pointer" onclick="abrirPerfil(${idx})"><strong style="color:#1D3461">${l.nome||'Sem nome'}</strong><br><small style="color:#8695a7">${l.criado||''}</small></td><td>${tel?`<a href="https://wa.me/55${tel.replace(/\D/g,'')}" target="_blank" style="color:#253F6B">📱 ${tel}</a>`:'—'}</td><td><small>${l.origem||'—'}</small></td><td><span class="badge" style="background:${cor}">${l.etapa}</span></td><td>${l.criado||'—'}</td><td>${fu}</td><td><button class="btn btn-gray btn-xs" onclick="abrirModal(${idx})">✏️</button></td></tr>`;
+  }).join('');
+}
+function importarLeadsCSV(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const text=e.target.result;
+    const lines=text.split(/\r?\n/).filter(l=>l.trim());
+    if(lines.length<2){t('Arquivo inválido ou vazio',false);return;}
+    const sep=lines[0].includes(';')?';':',';
+    const headers=lines[0].split(sep).map(h=>h.trim().toLowerCase().replace(/['"]/g,'').replace(/\s+/g,'_'));
+    const nomeIdx=headers.findIndex(h=>h.includes('nome')||h.includes('name'));
+    const telIdx=headers.findIndex(h=>h.includes('tel')||h.includes('fone')||h.includes('whatsapp')||h.includes('celular'));
+    const dataIdx=headers.findIndex(h=>h.includes('data')||h.includes('criado')||h.includes('contato')||h.includes('date'));
+    const obsIdx=headers.findIndex(h=>h.includes('obs')||h.includes('nota'));
+    let importados=0;
+    for(let i=1;i<lines.length;i++){
+      const cols=lines[i].split(sep).map(c=>c.trim().replace(/^["']|["']$/g,''));
+      const nome=nomeIdx>=0?(cols[nomeIdx]||''):'';
+      const tel=telIdx>=0?(cols[telIdx]||''):'';
+      const criado=dataIdx>=0&&cols[dataIdx]?cols[dataIdx]:new Date().toLocaleDateString('pt-BR');
+      const obs=obsIdx>=0?(cols[obsIdx]||''):'';
+      if(!nome&&!tel)continue;
+      const dup=leads.find(l=>(l.tel||l.telefone)&&(l.tel||l.telefone)===tel);
+      if(dup)continue;
+      leads.push({id:Date.now()+importados+Math.random(),nome,tel,tel2:'',email:'',cpf:'',rg:'',nasc:'',gen:'',civil:'',prof:'',end:'',obs:obs||'Importado de planilha',etapa:'Leads de Entrada',origem:'Planilha',criado,followup:'',divida:'Não informado',banco:'',valor:'',tags:[]});
+      importados++;
+    }
+    if(importados>0){salvar();badges();renderLeadsSection();t(importados+' lead(s) importado(s) com sucesso!');}
+    else t('Nenhum lead novo encontrado (verifique duplicatas)',false);
+    input.value='';
+  };
+  reader.readAsText(file,'UTF-8');
 }
 function abrirModal(idx){
   editIdx=idx;const l=leads[idx];
@@ -3767,7 +3848,10 @@ function copiarScriptRot(i){
 }
 function copiar(id,btn){navigator.clipboard.writeText(document.getElementById(id).innerText).then(()=>{btn.textContent='✅ Copiado!';setTimeout(()=>btn.textContent='📋 Copiar',2000);});}
 function badges(){
-  const b=document.getElementById('b-cli');if(b)b.textContent=leads.length;
+  const ETAPAS_CLI=['Manual','Documentação & Contrato','Encerrado com Acordo','Encerrado com Êxito Judicial','Encerrado sem Êxito'];
+  const ETAPAS_LEADS=['Leads de Entrada','Qualificar e Agendar Reunião','Cliente em Dúvida s/ Reunião','Reunião Agendada','Cliente em Dúvida Pós-Reunião','Leads Desqualificados'];
+  const b=document.getElementById('b-cli');if(b)b.textContent=leads.filter(l=>ETAPAS_CLI.includes(l.etapa)).length;
+  const bl=document.getElementById('b-leads');if(bl){const n=leads.filter(l=>ETAPAS_LEADS.includes(l.etapa)).length;bl.textContent=n;bl.style.display=n?'inline':'none';}
   const bp=document.getElementById('b-proc');if(bp)bp.textContent=leads.filter(l=>l.etapa==='Documentação & Contrato'||l.etapa==='Reunião Agendada').length;
   const hoje=new Date().toISOString().split('T')[0];
   // follow-up vencidos agora ficam no badge da Cadência
@@ -4786,7 +4870,7 @@ function syncLeadsMeta(){
       var novos=0;
       res.leads.forEach(function(lead){
         // Evita duplicata por telefone
-        var dup=leads.find(function(l){return l.telefone&&l.telefone===lead.telefone;});
+        var dup=leads.find(function(l){var lt=l.tel||l.telefone;var lt2=lead.tel||lead.telefone;return lt&&lt2&&lt===lt2;});
         if(dup)return;
         leads.unshift(lead);
         novos++;
@@ -4799,10 +4883,12 @@ function syncLeadsMeta(){
           ?'🔥 Novo lead do Meta Ads: '+(res.leads[0].nome||res.leads[0].telefone||'sem nome')+'!'
           :'🔥 '+novos+' novos leads do Meta Ads importados!';
         t(msg);
-        // Atualiza lista se estiver na tela de clientes ou funil
+        // Atualiza lista se estiver nas telas relevantes
         var secCli=document.getElementById('sec-clientes');
+        var secLeads=document.getElementById('sec-leads');
         var secFun=document.getElementById('sec-funil');
         if(secCli&&secCli.classList.contains('active'))renderLeads();
+        if(secLeads&&secLeads.classList.contains('active'))renderLeadsSection();
         if(secFun&&secFun.classList.contains('active'))renderFunil();
       }
     })
