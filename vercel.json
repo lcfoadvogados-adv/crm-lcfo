@@ -1,4 +1,7 @@
 {
+  "functions": {
+    "api/transcrever.js": { "maxDuration": 60 }
+  },
   "crons": [
     {
       "path": "/api/dje-busca?cron=1",

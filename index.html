@@ -3853,8 +3853,15 @@ function renderRoteiroVideos(){
           </div>
         </div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">📝 Script</div>
-          <textarea style="width:100%;box-sizing:border-box;min-height:150px;padding:10px 14px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;resize:vertical;line-height:1.7;background:#fafbff"
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">📝 Script</div>
+            <div style="display:flex;gap:6px">
+              <input type="file" id="vid-inp-${i}" accept="video/*,audio/*" style="display:none" onchange="transcreverVideo(${i},this)">
+              <button class="btn btn-xs" style="background:#7c3aed;color:#fff" onclick="document.getElementById('vid-inp-${i}').click()">🎙 Transcrever vídeo</button>
+            </div>
+          </div>
+          <div id="transc-st-${i}" style="display:none;background:#f0ebff;border:1px solid #c4b5fd;border-radius:6px;padding:8px 12px;font-size:12.5px;color:#5b21b6;margin-bottom:8px;align-items:center;gap:8px"></div>
+          <textarea id="script-ta-${i}" style="width:100%;box-sizing:border-box;min-height:150px;padding:10px 14px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;resize:vertical;line-height:1.7;background:#fafbff"
             placeholder="Cole ou escreva o script do vídeo aqui — intro, desenvolvimento, CTA..."
             oninput="roteiros[${i}].script=this.value;salvarRot()">${docEsc(r.script)}</textarea>
           <div style="display:flex;justify-content:flex-end;margin-top:8px">
@@ -3877,6 +3884,61 @@ function novoRoteiro(){
 function excluirRoteiro(i){
   if(!confirm('Excluir este roteiro?'))return;
   carregarRot();roteiros.splice(i,1);salvarRot();renderRoteiroVideos();
+}
+
+// ── Transcrição de vídeo via Groq Whisper ────────────────────────────────────
+function _b64Encode(buf){
+  let s='';const u=new Uint8Array(buf);
+  for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode(...u.subarray(i,Math.min(i+8192,u.length)));
+  return btoa(s);
+}
+function _toWav(ab){
+  const ch=ab.getChannelData(0);
+  const b=new ArrayBuffer(44+ch.length*2);const v=new DataView(b);
+  function ws(o,s){for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));}
+  ws(0,'RIFF');v.setUint32(4,36+ch.length*2,true);ws(8,'WAVE');
+  ws(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,ab.sampleRate,true);v.setUint32(28,ab.sampleRate*2,true);
+  v.setUint16(32,2,true);v.setUint16(34,16,true);ws(36,'data');v.setUint32(40,ch.length*2,true);
+  for(let i=0;i<ch.length;i++){const s=Math.max(-1,Math.min(1,ch[i]));v.setInt16(44+i*2,s<0?s*0x8000:s*0x7FFF,true);}
+  return b;
+}
+async function transcreverVideo(idx,input){
+  const file=input.files[0];if(!file)return;input.value='';
+  const stDiv=document.getElementById('transc-st-'+idx);
+  const ta=document.getElementById('script-ta-'+idx);
+  const msg=m=>{if(stDiv){stDiv.style.display='flex';stDiv.innerHTML='<span style="animation:spin 1s linear infinite;display:inline-block">⏳</span>&nbsp;'+m;}};
+  const hide=()=>{if(stDiv)stDiv.style.display='none';};
+  try{
+    msg('Decodificando áudio...');
+    const arrBuf=await file.arrayBuffer();
+    const rawCtx=new AudioContext();
+    let decoded;
+    try{decoded=await rawCtx.decodeAudioData(arrBuf.slice(0));}
+    catch(_){rawCtx.close();t('⚠️ Não foi possível ler o áudio deste arquivo.',false);hide();return;}
+    rawCtx.close();
+    if(decoded.duration>600){t('⚠️ Áudio muito longo. Máximo: 10 minutos por vez.',false);hide();return;}
+    msg('Reamostrando para 16 kHz...');
+    const SR=16000,frames=Math.ceil(decoded.duration*SR);
+    const off=new OfflineAudioContext(1,frames,SR);
+    const src=off.createBufferSource();src.buffer=decoded;src.connect(off.destination);src.start(0);
+    const resampled=await off.startRendering();
+    msg('Enviando para transcrição (Groq Whisper)...');
+    const wav=_toWav(resampled);
+    const b64=_b64Encode(wav);
+    const resp=await fetch('/api/transcrever',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:b64,filename:'audio.wav'})});
+    const data=await resp.json();
+    if(!data.ok){t('⚠️ '+(data.erro||'Falha na transcrição'),false);hide();return;}
+    carregarRot();
+    const prev=roteiros[idx]?.script||'';
+    roteiros[idx].script=prev?(prev+'\n\n'+data.texto):data.texto;
+    salvarRot();
+    if(ta)ta.value=roteiros[idx].script;
+    hide();t('✅ Transcrição concluída! '+data.texto.split(' ').length+' palavras.');
+  }catch(e){
+    hide();t('⚠️ Erro: '+e.message,false);
+    console.error('[Transcrever]',e);
+  }
 }
 
 function copiarScriptRot(i){
