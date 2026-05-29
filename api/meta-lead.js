@@ -1,22 +1,60 @@
 // api/meta-lead.js
-// Recebe leads do Meta Lead Ads e salva no Vercel KV para sync automático
-// GET  → verificação do webhook pelo Meta
-// POST → novo lead chegou
+// Webhook Meta Lead Ads
+// GET  → verificação do endpoint pelo Meta (hub.challenge)
+// POST → novo lead gerado; busca dados no Graph API e salva na fila KV
 
-const EMAIL_TO = 'lcfoadvogados@gmail.com';
-const CRM_URL  = 'https://crm-lcfo.vercel.app';
 const KV_KEY   = 'leads_pendentes';
+const CRM_URL  = 'https://crm-lcfo.vercel.app';
+const EMAIL_TO = 'lcfoadvogados@gmail.com';
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── KV (Upstash pipeline) ────────────────────────────────────────────────────
+
+function kvCreds() {
+  return {
+    url:   process.env.KV_REST_API_URL   || process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN,
+  };
+}
+
+async function kvPush(lead) {
+  const { url, token } = kvCreds();
+  if (!url || !token) { console.warn('[KV] Credenciais ausentes'); return false; }
+  const res = await fetch(`${url}/pipeline`, {
+    method:  'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body:    JSON.stringify([['LPUSH', KV_KEY, JSON.stringify(lead)]]),
+  });
+  console.log('[KV] LPUSH status:', res.status);
+  return res.ok;
+}
+
+// ─── Graph API — busca dados do lead pelo leadgen_id ─────────────────────────
+
+async function fetchLeadData(leadgenId) {
+  const pageToken = process.env.META_PAGE_ACCESS_TOKEN;
+  if (!pageToken) {
+    console.warn('[Meta] META_PAGE_ACCESS_TOKEN não configurado — impossível buscar dados do lead.');
+    return null;
+  }
+  const url = `https://graph.facebook.com/v21.0/${leadgenId}?fields=field_data,created_time,ad_id,form_id&access_token=${pageToken}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    console.warn(`[Meta] Erro ao buscar leadgen ${leadgenId}: ${res.status}`);
+    return null;
+  }
+  return res.json();
+}
+
+// ─── Mapeamento de campos ────────────────────────────────────────────────────
 
 function extrairCampos(fieldData = []) {
   const map = {};
   for (const f of fieldData) {
-    const key = (f.name || '').toLowerCase().replace(/[\s-]/g, '_');
+    const key = (f.name || '').toLowerCase().replace(/[\s\-]/g, '_');
     map[key] = (f.values || [])[0] || '';
   }
   return {
-    nome:     map.full_name || map.nome || map.name || '',
+    nome:     map.full_name || map.nome || map.name || [map.first_name, map.last_name].filter(Boolean).join(' ') || '',
     telefone: map.phone_number || map.telefone || map.celular || map.whatsapp || '',
     email:    map.email || map.e_mail || map.email_address || '',
     cpf:      map.cpf || '',
@@ -26,24 +64,7 @@ function extrairCampos(fieldData = []) {
   };
 }
 
-// ─── Vercel KV (via REST API nativa — sem precisar do SDK) ───────────────────
-
-async function kvPush(lead) {
-  const url   = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
-  if (!url || !token) {
-    console.warn('[KV] Variáveis KV_REST_API_URL / KV_REST_API_TOKEN não configuradas.');
-    return false;
-  }
-  const res = await fetch(`${url}/lpush/${KV_KEY}`, {
-    method:  'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body:    JSON.stringify(JSON.stringify(lead)), // KV armazena string
-  });
-  return res.ok;
-}
-
-// ─── E-mail de aviso (secundário — só para log) ───────────────────────────────
+// ─── E-mail de aviso (via Resend — opcional) ──────────────────────────────────
 
 async function enviarAviso(lead) {
   const key = process.env.RESEND_API_KEY;
@@ -72,6 +93,7 @@ async function enviarAviso(lead) {
   </div>
 </div>`,
     });
+    console.log('[Meta] E-mail de aviso enviado para', EMAIL_TO);
   } catch(e) {
     console.warn('[Meta] Erro ao enviar e-mail:', e.message);
   }
@@ -82,21 +104,24 @@ async function enviarAviso(lead) {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
-  // Verificação do webhook pelo Meta (GET)
+  // ── GET: verificação do webhook ──
   if (req.method === 'GET') {
     const mode      = req.query['hub.mode'];
     const token     = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
     const myToken   = process.env.META_WEBHOOK_VERIFY_TOKEN || 'lcfo2025';
+
     if (mode === 'subscribe' && token === myToken) {
-      console.log('[Meta] Webhook verificado.');
+      console.log('[Meta] Webhook verificado com sucesso.');
       return res.status(200).send(challenge);
     }
+    console.warn('[Meta] Verificação falhou. Token recebido:', token);
     return res.status(403).json({ error: 'Token inválido' });
   }
 
   if (req.method !== 'POST') return res.status(405).end();
 
+  // ── POST: novo lead ──
   try {
     const entries = (req.body || {}).entry || [];
     let importados = 0;
@@ -104,17 +129,26 @@ export default async function handler(req, res) {
     for (const entry of entries) {
       for (const change of (entry.changes || [])) {
         if (change.field !== 'leadgen') continue;
-        const val    = change.value || {};
-        const campos = extrairCampos(val.field_data || []);
+
+        const val       = change.value || {};
+        const leadgenId = val.leadgen_id;
+        if (!leadgenId) { console.warn('[Meta] leadgen_id ausente'); continue; }
+
+        console.log(`[Meta] Novo lead recebido: leadgen_id=${leadgenId}`);
+
+        // Busca dados reais no Graph API
+        const data   = await fetchLeadData(leadgenId);
+        const campos = extrairCampos(data?.field_data || []);
 
         const lead = {
           id:       Date.now() + importados,
+          meta_leadgen_id: leadgenId,
           nome:     campos.nome,
           telefone: campos.telefone,
           email:    campos.email,
           cpf:      campos.cpf,
           endereco: [campos.cidade, campos.estado].filter(Boolean).join(' — '),
-          obs:      campos.obs || `Meta Ads — form ${val.form_id || ''}`.trim(),
+          obs:      campos.obs || `Lead via formulário Meta Ads (form ${val.form_id || ''})`.trim(),
           etapa:    'Leads de Entrada',
           origem:   'Meta Ads',
           criado:   new Date().toLocaleDateString('pt-BR'),
@@ -122,12 +156,13 @@ export default async function handler(req, res) {
           divida:   'Não informado',
           banco:    '',
           valor:    '',
+          tags:     [],
         };
 
         await kvPush(lead);
         await enviarAviso(lead);
         importados++;
-        console.log(`[Meta] Lead salvo no KV: ${lead.nome || lead.telefone}`);
+        console.log(`[Meta] Lead salvo na fila: ${lead.nome || lead.telefone || leadgenId}`);
       }
     }
 
