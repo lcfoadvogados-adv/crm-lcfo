@@ -1033,14 +1033,14 @@ tbody tr:last-child td{border-bottom:none;}
             <div class="pi-sub">
               <span class="badge-pf">Pessoa Física</span>
               <span class="badge-cpf" id="pf-cpf-sub"></span>
-              <span class="badge-ativo">Ativo</span>
+              <span class="badge-ativo" id="pf-badge-status">Ativo</span>
             </div>
           </div>
           <div class="perfil-actions">
             <button class="btn-perfil" onclick="editarPerfilAtual()">✏️ Editar</button>
-            <button class="btn-perfil">📄 Relatório</button>
-            <button class="btn-perfil bp-green">✍️ Enviar para assinar</button>
-            <button class="btn-perfil">↕ Mudar status</button>
+            <button class="btn-perfil" onclick="imprimirPerfilCliente()">📄 Relatório</button>
+            <button class="btn-perfil bp-green" onclick="if(_pfIdx>=0)abrirModalContrato(_pfIdx)">✍️ Enviar para assinar</button>
+            <button class="btn-perfil" onclick="mudarStatusCliente()">↕ Mudar status</button>
           </div>
         </div>
         <div class="perfil-stats">
@@ -1828,7 +1828,7 @@ function limparForm(){
 function renderLeads(){
   const bq=(document.getElementById('busca')?.value||'').toLowerCase();
   const fe=document.getElementById('f-etapa-fil')?.value||'';
-  const lista=leads.filter(l=>(!bq||(l.nome+l.cpf+l.tel).toLowerCase().includes(bq))&&(!fe||l.etapa===fe));
+  const lista=leads.filter(l=>(!bq||((l.nome||'')+(l.cpf||'')+(l.tel||l.telefone||'')).toLowerCase().includes(bq))&&(!fe||l.etapa===fe));
   const tot=document.getElementById('total-leads');if(tot)tot.textContent='('+leads.length+')';
   const tb=document.getElementById('tbody');if(!tb)return;
   if(!lista.length){tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">👥</div><p>Nenhum cliente ainda.</p></div></td></tr>';return;}
@@ -1838,7 +1838,8 @@ function renderLeads(){
     const fu=l.followup?new Date(l.followup+'T12:00').toLocaleDateString('pt-BR'):'—';
     const driveBtnStyle=l.gdrive_pasta?'background:#0f9d58;color:#fff':'background:#edf0f5;color:#555';
     const driveBtnTitle=l.gdrive_pasta?'Abrir pasta no Drive':'Criar pasta no Drive';
-    return`<tr><td style="cursor:pointer" onclick="abrirPerfil(${idx})"><strong style="color:#1D3461">${l.nome}</strong><br><small style="color:#8695a7">${l.criado||''}</small></td><td>${l.cpf||'—'}</td><td><a href="https://wa.me/55${l.tel.replace(/\D/g,'')}" target="_blank" style="color:#253F6B">📱 ${l.tel}</a></td><td><span class="badge" style="background:${cor}">${l.etapa}</span></td><td>${l.divida||'—'}</td><td>${l.valor?'R$ '+Number(l.valor).toLocaleString('pt-BR'):'—'}</td><td>${fu}</td><td style="white-space:nowrap"><button class="btn btn-gray btn-xs" onclick="abrirModal(${idx})">✏️</button> <button class="btn btn-xs" style="${driveBtnStyle}" onclick="criarPastaGDrive(${idx})" title="${driveBtnTitle}">📁</button></td></tr>`;
+    const telNum=l.tel||l.telefone||'';
+    return`<tr><td style="cursor:pointer" onclick="abrirPerfil(${idx})"><strong style="color:#1D3461">${l.nome||'Sem nome'}</strong><br><small style="color:#8695a7">${l.criado||''}</small></td><td>${l.cpf||'—'}</td><td>${telNum?`<a href="https://wa.me/55${telNum.replace(/\D/g,'')}" target="_blank" style="color:#253F6B">📱 ${telNum}</a>`:'—'}</td><td><span class="badge" style="background:${cor}">${l.etapa}</span></td><td>${l.divida||'—'}</td><td>${l.valor?'R$ '+Number(l.valor).toLocaleString('pt-BR'):'—'}</td><td>${fu}</td><td style="white-space:nowrap"><button class="btn btn-gray btn-xs" onclick="abrirModal(${idx})">✏️</button> <button class="btn btn-xs" style="${driveBtnStyle}" onclick="criarPastaGDrive(${idx})" title="${driveBtnTitle}">📁</button></td></tr>`;
   }).join('');
 }
 function abrirModal(idx){
@@ -4511,44 +4512,109 @@ function previewContrato(){
   area.style.display='block';
   area.scrollIntoView({behavior:'smooth'});
 }
-function downloadContrato(tipo){
-  const d=getDadosContrato();
-  const html=tipo==='contrato'?gerarHTMLContrato(d):gerarHTMLProcuracao(d);
-  const titulo=tipo==='contrato'?'Contrato de Honorários':'Procuração';
-  const full=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${titulo} — ${d.NOME}</title>
-  <style>@media print{body{margin:20mm}}</style></head><body style="padding:40px">${html}</body></html>`;
-  const blob=new Blob([full],{type:'text/html;charset=utf-8'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=titulo+' - '+(d.NOME||'cliente')+'.html';a.click();
-  t('📄 '+titulo+' baixado! Abra o arquivo e imprima como PDF.');
+function _nomeArquivoDocx(tipo,nome){
+  return (tipo==='contrato'?'CONTRATO DE PRESTAÇÃO DE SERVIÇOS ADVOCATÍCIOS':'PROCURAÇÃO')+' - '+nome+'.docx';
 }
-function downloadAmbos(){downloadContrato('contrato');setTimeout(function(){downloadContrato('procuracao');},500);}
-function enviarContratoEmail(){
+function _folderIdDoDrive(lead){
+  if(!lead||!lead.gdrive_pasta)return null;
+  const m=lead.gdrive_pasta.match(/[-\w]{25,}/);
+  return m?m[0]:null;
+}
+async function _gerarDocx(tipo,dados){
+  const res=await fetch('/api/gerar-docx',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo,dados})});
+  const json=await res.json();
+  if(!json.ok)throw new Error(json.erro||'Erro ao gerar '+tipo);
+  return json.base64;
+}
+async function _salvarNoDrive(folderId,nome,tipo,base64){
+  try{
+    const mimeDocx='application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    const res=await fetch('/api/gdrive-upload',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({folderId,files:[{name:_nomeArquivoDocx(tipo,nome),data:base64,type:mimeDocx}]})});
+    const j=await res.json();
+    return j.ok;
+  }catch(e){console.warn('[Drive]',e);return false;}
+}
+async function downloadContrato(tipo){
+  const d=getDadosContrato();
+  if(!d.NOME){t('⚠️ Preencha o nome do cliente!',false);return;}
+  t('⏳ Gerando documento...');
+  try{
+    const base64=await _gerarDocx(tipo,d);
+    const nome=_nomeArquivoDocx(tipo,d.NOME);
+    const bytes=Uint8Array.from(atob(base64),c=>c.charCodeAt(0));
+    const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;a.click();
+    const lead=_contratoIdx>=0?leads[_contratoIdx]:null;
+    const folderId=_folderIdDoDrive(lead);
+    if(folderId){
+      const ok=await _salvarNoDrive(folderId,d.NOME,tipo,base64);
+      t('✅ Baixado e '+(ok?'salvo na pasta do Drive!':'download OK (Drive: erro ao salvar).'),ok);
+    }else{
+      t('✅ Documento baixado em .docx!');
+    }
+  }catch(e){t('❌ Erro: '+e.message,false);}
+}
+async function downloadAmbos(){
+  const d=getDadosContrato();
+  if(!d.NOME){t('⚠️ Preencha o nome do cliente!',false);return;}
+  t('⏳ Gerando contrato e procuração...');
+  try{
+    const [b64C,b64P]=await Promise.all([_gerarDocx('contrato',d),_gerarDocx('procuracao',d)]);
+    const mimeDocx='application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    [[b64C,'contrato'],[b64P,'procuracao']].forEach(([b64,tipo])=>{
+      const bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+      const blob=new Blob([bytes],{type:mimeDocx});
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=_nomeArquivoDocx(tipo,d.NOME);a.click();
+    });
+    const lead=_contratoIdx>=0?leads[_contratoIdx]:null;
+    const folderId=_folderIdDoDrive(lead);
+    if(folderId){
+      const [okC,okP]=await Promise.all([
+        _salvarNoDrive(folderId,d.NOME,'contrato',b64C),
+        _salvarNoDrive(folderId,d.NOME,'procuracao',b64P),
+      ]);
+      t('✅ Baixados e '+(okC&&okP?'salvos na pasta do cliente no Drive!':'download OK (Drive: alguns arquivos não salvos).'),okC&&okP);
+    }else{
+      t('✅ Contrato e procuração baixados em .docx!');
+    }
+  }catch(e){t('❌ Erro: '+e.message,false);}
+}
+async function enviarContratoEmail(){
   const d=getDadosContrato();
   if(!d.EMAIL_CLIENTE){t('⚠️ Informe o e-mail do cliente!',false);document.getElementById('ct-email').focus();return;}
   if(!d.HONORARIOS_TOTAL||d.HONORARIOS_TOTAL==='____________'){t('⚠️ Preencha o valor dos honorários!',false);return;}
   const btn=document.getElementById('ct-btn-email');
-  btn.textContent='⏳ Enviando...';btn.disabled=true;
-  fetch('/api/enviar-contrato',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      emailCliente:  d.EMAIL_CLIENTE,
-      nomeCliente:   d.NOME,
-      htmlContrato:  gerarHTMLContrato(d),
-      htmlProcuracao:gerarHTMLProcuracao(d),
-    })
-  }).then(function(r){return r.json();}).then(function(res){
+  btn.textContent='⏳ Gerando documentos...';btn.disabled=true;
+  try{
+    const [rC,rP]=await Promise.all([
+      fetch('/api/gerar-docx',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo:'contrato',dados:d})}),
+      fetch('/api/gerar-docx',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo:'procuracao',dados:d})}),
+    ]);
+    const [jC,jP]=await Promise.all([rC.json(),rP.json()]);
+    if(!jC.ok||!jP.ok)throw new Error('Erro ao gerar documentos');
+    btn.textContent='⏳ Enviando...';
+    const res=await fetch('/api/enviar-contrato',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        emailCliente:  d.EMAIL_CLIENTE,
+        nomeCliente:   d.NOME,
+        base64Contrato:   jC.base64,
+        base64Procuracao: jP.base64,
+      })
+    });
+    const resJson=await res.json();
     btn.textContent='📧 Enviar por E-mail';btn.disabled=false;
-    if(res.ok){
-      // Salva email no lead e move para "Aguardando Assinatura"
+    const res2={ok:resJson.ok,erro:resJson.erro};
+    // reutiliza bloco abaixo via variável
+    if(res2.ok){
       if(_contratoIdx>=0){leads[_contratoIdx].email=d.EMAIL_CLIENTE;salvar();}
       fecharModalContrato();
-      t('✅ Contrato e procuração enviados para '+d.EMAIL_CLIENTE+'!');
-    } else {
-      t('⚠️ Erro ao enviar: '+res.erro,false);
+      t('✅ Contrato e procuração enviados para '+d.EMAIL_CLIENTE+' em .docx!');
+    }else{
+      t('⚠️ Erro ao enviar: '+res2.erro,false);
     }
-  }).catch(function(){btn.textContent='📧 Enviar por E-mail';btn.disabled=false;t('⚠️ Erro de conexão.',false);});
+  }catch(e){btn.textContent='📧 Enviar por E-mail';btn.disabled=false;t('⚠️ Erro: '+e.message,false);}
 }
 
 // ===== PERFIL DO CLIENTE =====
@@ -4566,6 +4632,7 @@ function abrirPerfil(idx,showSuccess){
   const av=document.getElementById('pf-av');if(av)av.textContent=(l.nome||'P')[0].toUpperCase();
   const pn=document.getElementById('pf-nome');if(pn)pn.textContent=l.nome||'—';
   const pc=document.getElementById('pf-cpf-sub');if(pc)pc.textContent=l.cpf||'';
+  const pbs=document.getElementById('pf-badge-status');if(pbs){const sc=l.status_cliente||'Ativo';const cores={Ativo:'#27ae60',Inativo:'#e74c3c',Arquivado:'#8695a7',Prospecto:'#C9A84C'};pbs.textContent=sc;pbs.style.background=cores[sc]||'#27ae60';}
   const pc2=document.getElementById('pf-criado');if(pc2)pc2.textContent=l.criado||'—';
   const pu=document.getElementById('pf-update');if(pu)pu.textContent=l.update||l.criado||'—';
   // Campos de detalhe
@@ -4590,6 +4657,64 @@ function abrirPerfil(idx,showSuccess){
   if(showSuccess){const m=document.getElementById('perfil-success-msg');if(m){m.style.display='block';setTimeout(()=>m.style.display='none',3000);}}
 }
 function editarPerfilAtual(){if(_pfIdx>=0)abrirModal(_pfIdx);}
+
+function mudarStatusCliente(){
+  if(_pfIdx<0)return;
+  const l=leads[_pfIdx];
+  const opcoes=['Ativo','Inativo','Arquivado','Prospecto'];
+  const atual=l.status_cliente||'Ativo';
+  const menu=document.createElement('div');
+  menu.style.cssText='position:fixed;z-index:9999;background:#fff;border:1px solid #ddd;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.15);padding:8px 0;min-width:160px';
+  const btn=document.querySelector('.perfil-actions .btn-perfil:last-child');
+  const r=btn.getBoundingClientRect();
+  menu.style.top=(r.bottom+6)+'px';menu.style.right=(window.innerWidth-r.right)+'px';
+  opcoes.forEach(op=>{
+    const item=document.createElement('div');
+    item.textContent=(op===atual?'✓ ':'')+op;
+    item.style.cssText='padding:9px 18px;cursor:pointer;font-size:13px;font-weight:'+(op===atual?'700':'500')+';color:#1D3461';
+    item.onmouseenter=()=>item.style.background='#f0f4ff';
+    item.onmouseleave=()=>item.style.background='';
+    item.onclick=()=>{
+      l.status_cliente=op;
+      l.update=new Date().toLocaleDateString('pt-BR');
+      salvar();
+      const badge=document.getElementById('pf-badge-status');
+      if(badge){
+        badge.textContent=op;
+        const cores={Ativo:'#27ae60',Inativo:'#e74c3c',Arquivado:'#8695a7',Prospecto:'#C9A84C'};
+        badge.style.background=cores[op]||'#27ae60';
+      }
+      document.body.removeChild(menu);
+      t('Status atualizado: '+op);
+    };
+    menu.appendChild(item);
+  });
+  document.body.appendChild(menu);
+  setTimeout(()=>document.addEventListener('click',function f(){document.body.contains(menu)&&document.body.removeChild(menu);document.removeEventListener('click',f);}),100);
+}
+
+function imprimirPerfilCliente(){
+  if(_pfIdx<0)return;
+  const l=leads[_pfIdx];
+  const campos=[
+    ['Nome',l.nome],['CPF',l.cpf],['RG',l.rg],
+    ['Data de Nascimento',l.nasc?new Date(l.nasc+'T12:00').toLocaleDateString('pt-BR'):''],
+    ['Gênero',l.gen],['Estado Civil',l.civil],['Profissão',l.prof||l.profissao],
+    ['Nacionalidade',l.nac||l.nacionalidade||'Brasileira'],
+    ['WhatsApp',l.tel],['Telefone 2',l.tel2],['E-mail',l.email],
+    ['Endereço',l.end||l.endereco],['Banco',l.banco],
+    ['Valor da Dívida',l.valor?'R$ '+Number(l.valor).toLocaleString('pt-BR'):''],
+    ['Tipo de Dívida',l.divida],['Origem',l.origem],
+    ['Etapa',l.etapa],['Status',l.status_cliente||'Ativo'],
+    ['Cadastrado em',l.criado],['Última atualização',l.update||l.criado],
+    ['Observações',l.obs]
+  ].filter(([,v])=>v);
+  const linhas=campos.map(([k,v])=>`<tr><td style="font-weight:600;color:#1D3461;padding:6px 12px;border-bottom:1px solid #eee;width:40%">${k}</td><td style="padding:6px 12px;border-bottom:1px solid #eee">${v}</td></tr>`).join('');
+  const w=window.open('','_blank','width=700,height=900');
+  w.document.write(`<!DOCTYPE html><html><head><title>Relatório — ${l.nome}</title><style>body{font-family:Arial,sans-serif;margin:0;padding:32px;color:#222}h1{font-size:22px;color:#1D3461;margin-bottom:4px}p{margin:0 0 24px;color:#888;font-size:13px}table{width:100%;border-collapse:collapse}@media print{body{padding:16px}}</style></head><body><h1>${l.nome||'Cliente'}</h1><p>Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} — LCFO Advogados</p><table>${linhas}</table><br><button onclick="window.print()" style="padding:10px 24px;background:#1D3461;color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:14px">🖨 Imprimir / Salvar PDF</button></body></html>`);
+  w.document.close();
+}
+
 function atualizarDrivePanel(){
   const l=leads[_pfIdx];
   const bd=document.getElementById('dp-drive-body');

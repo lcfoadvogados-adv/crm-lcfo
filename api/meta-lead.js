@@ -83,10 +83,10 @@ async function enviarAviso(lead) {
     <p style="margin:5px 0 0;opacity:.7;font-size:13px">Importado automaticamente via Meta Ads</p>
   </div>
   <div style="background:#fff;padding:20px 26px;border:1px solid #dde3ef;border-top:none;border-radius:0 0 10px 10px">
-    ${lead.nome     ? `<p style="margin:6px 0"><strong>Nome:</strong> ${lead.nome}</p>` : ''}
-    ${lead.telefone ? `<p style="margin:6px 0"><strong>WhatsApp:</strong> ${lead.telefone}</p>` : ''}
-    ${lead.email    ? `<p style="margin:6px 0"><strong>E-mail:</strong> ${lead.email}</p>` : ''}
-    ${lead.cidade   ? `<p style="margin:6px 0"><strong>Cidade:</strong> ${lead.cidade}</p>` : ''}
+    ${lead.nome  ? `<p style="margin:6px 0"><strong>Nome:</strong> ${lead.nome}</p>` : ''}
+    ${lead.tel   ? `<p style="margin:6px 0"><strong>WhatsApp:</strong> ${lead.tel}</p>` : ''}
+    ${lead.email ? `<p style="margin:6px 0"><strong>E-mail:</strong> ${lead.email}</p>` : ''}
+    ${lead.end   ? `<p style="margin:6px 0"><strong>Cidade:</strong> ${lead.end}</p>` : ''}
     <div style="margin-top:18px;text-align:center">
       <a href="${CRM_URL}" style="background:#1D3461;color:#fff;padding:11px 26px;border-radius:7px;text-decoration:none;font-weight:700;font-size:13px">Abrir CRM &rarr;</a>
     </div>
@@ -144,10 +144,16 @@ export default async function handler(req, res) {
           id:       Date.now() + importados,
           meta_leadgen_id: leadgenId,
           nome:     campos.nome,
-          telefone: campos.telefone,
+          tel:      campos.telefone,
+          tel2:     '',
           email:    campos.email,
-          cpf:      campos.cpf,
-          endereco: [campos.cidade, campos.estado].filter(Boolean).join(' — '),
+          cpf:      '',
+          rg:       '',
+          nasc:     '',
+          gen:      '',
+          civil:    '',
+          prof:     '',
+          end:      [campos.cidade, campos.estado].filter(Boolean).join(' — '),
           obs:      campos.obs || `Lead via formulário Meta Ads (form ${val.form_id || ''})`.trim(),
           etapa:    'Leads de Entrada',
           origem:   'Meta Ads',
