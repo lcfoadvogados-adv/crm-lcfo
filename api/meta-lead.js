@@ -88,7 +88,7 @@ async function enviarAviso(lead) {
     ${lead.email    ? `<p style="margin:6px 0"><strong>E-mail:</strong> ${lead.email}</p>` : ''}
     ${lead.cidade   ? `<p style="margin:6px 0"><strong>Cidade:</strong> ${lead.cidade}</p>` : ''}
     <div style="margin-top:18px;text-align:center">
-      <a href="${CRM_URL}" style="background:#1D3461;color:#fff;padding:11px 26px;border-radius:7px;text-decoration:none;font-weight:700;font-size:13px">Abrir CRM →</a>
+      <a href="${CRM_URL}" style="background:#1D3461;color:#fff;padding:11px 26px;border-radius:7px;text-decoration:none;font-weight:700;font-size:13px">Abrir CRM &rarr;</a>
     </div>
   </div>
 </div>`,
