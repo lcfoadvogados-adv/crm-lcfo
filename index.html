@@ -1935,7 +1935,7 @@ function excluir(){
   if(!confirm('Excluir este cliente?'))return;
   leads.splice(editIdx,1);salvar();fecharModal();renderLeads();badges();t('🗑 Cliente excluído.');
 }
-function renderDashAgenda(){
+async function renderDashAgenda(){
   const wrap=document.getElementById('dash-agenda-hoje');
   const dataEl=document.getElementById('dash-agenda-data');
   if(!wrap)return;
@@ -1943,16 +1943,28 @@ function renderDashAgenda(){
   const hojeStr=new Date(hoje+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
   if(dataEl)dataEl.textContent=hojeStr.charAt(0).toUpperCase()+hojeStr.slice(1);
   const itens=[];
+  // Reuniões do CRM
   leads.forEach(l=>{
     if(l.reuniao_data===hoje)
       itens.push({hora:l.reuniao_hora||'',label:'🤝 Reunião — '+(l.nome||'Lead'),bg:'#1D3461',done:false});
   });
+  // Tarefas do CRM
   carregarTar();
   tarefas.forEach(tk=>{
     if(tk.data===hoje)
       itens.push({hora:'',label:tk.tarefa||'Tarefa',bg:TAR_C[tk.categoria]||'#8695a7',done:tk.status==='Feito'});
   });
-  itens.sort((a,b)=>{if(!a.hora&&!b.hora)return 0;if(!a.hora)return 1;if(!b.hora)return -1;return a.hora.localeCompare(b.hora);});
+  // Google Calendar
+  try{
+    const r=await fetch('/api/agenda-gcal');
+    if(r.ok){
+      const d=await r.json();
+      (d.eventos||[]).forEach(ev=>{
+        itens.push({hora:ev.hora||'',label:'📆 '+(ev.titulo||'Compromisso'),bg:'#0F9D58',done:false});
+      });
+    }
+  }catch(_){}
+  itens.sort((a,b)=>{if(!a.hora&&!b.hora)return 0;if(!a.hora)return 1;if(!b.hora)return-1;return a.hora.localeCompare(b.hora);});
   if(!itens.length){
     wrap.innerHTML='<p style="color:var(--text2);font-size:13px;padding:10px 0;text-align:center">Nenhum compromisso para hoje 🎉</p>';
     return;
