@@ -75,11 +75,11 @@ async function enviarAviso(lead) {
     await resend.emails.send({
       from:    'LCFO Sistema <onboarding@resend.dev>',
       to:      EMAIL_TO,
-      subject: `🔥 Novo lead Meta Ads${lead.nome ? ' — ' + lead.nome : ''}`,
+      subject: `Novo lead Meta Ads${lead.nome ? ' - ' + lead.nome : ''}`,
       html: `
 <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:580px;margin:0 auto;background:#f2f4f8;padding:24px">
   <div style="background:#1D3461;color:#fff;border-radius:10px 10px 0 0;padding:20px 26px">
-    <h2 style="margin:0;font-size:18px">🔥 Novo lead no CRM!</h2>
+    <h2 style="margin:0;font-size:18px">Novo lead no CRM!</h2>
     <p style="margin:5px 0 0;opacity:.7;font-size:13px">Importado automaticamente via Meta Ads</p>
   </div>
   <div style="background:#fff;padding:20px 26px;border:1px solid #dde3ef;border-top:none;border-radius:0 0 10px 10px">
