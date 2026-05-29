@@ -741,6 +741,11 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
       </div>
       <div class="cards-grid" id="cards-proc" style="margin-bottom:20px"></div>
+      <!-- Follow-ups da Semana -->
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-head"><h3>🔔 Follow-ups da Semana</h3></div>
+        <div class="panel-body" id="dash-fu"></div>
+      </div>
       <!-- Agenda do Dia -->
       <div class="panel" style="margin-bottom:20px">
         <div class="panel-head" style="display:flex;align-items:center;justify-content:space-between">
@@ -748,16 +753,6 @@ tbody tr:last-child td{border-bottom:none;}
           <span id="dash-agenda-data" style="font-size:12px;color:var(--text2);font-weight:500"></span>
         </div>
         <div class="panel-body" id="dash-agenda-hoje" style="padding:4px 16px 8px"></div>
-      </div>
-      <div class="dash-2col">
-        <div class="panel">
-          <div class="panel-head"><h3>🕐 Últimos Leads</h3></div>
-          <div class="panel-body" id="dash-ul"></div>
-        </div>
-        <div class="panel">
-          <div class="panel-head"><h3>🔔 Follow-ups Urgentes</h3></div>
-          <div class="panel-body" id="dash-fu"></div>
-        </div>
       </div>
     </div>
 
@@ -1975,13 +1970,30 @@ function renderDash(){
     const els=document.getElementById('dash-saudacao');if(els)els.textContent=sauda+', Dr. Leonardo!';
     const eld=document.getElementById('dash-data');if(eld)eld.textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
     const hoje=new Date().toISOString().split('T')[0];
-    const total=leads.length,novos=leads.filter(l=>l.etapa==='Leads de Entrada').length,ativos=leads.filter(l=>l.etapa==='Documentação & Contrato'||l.etapa==='Reunião Agendada').length,urg=leads.filter(l=>l.followup&&l.followup<=hoje).length;
+    const hojeLocal=new Date().toLocaleDateString('pt-BR');
+    const ETAPAS_CLI=['Manual','Documentação & Contrato','Encerrado com Acordo','Encerrado com Êxito Judicial','Encerrado sem Êxito'];
+    const ETAPAS_LEADS=['Leads de Entrada','Qualificar e Agendar Reunião','Cliente em Dúvida s/ Reunião','Reunião Agendada','Cliente em Dúvida Pós-Reunião','Leads Desqualificados'];
+    const totalCli=leads.filter(l=>ETAPAS_CLI.includes(l.etapa)).length;
+    const totalLeads=leads.filter(l=>ETAPAS_LEADS.includes(l.etapa)).length;
+    const leadsDia=leads.filter(l=>l.criado===hojeLocal).length;
+    const diasSem=(new Date().getDay()+6)%7;
+    const semStart=new Date();semStart.setHours(0,0,0,0);semStart.setDate(semStart.getDate()-diasSem);
+    const semEnd=new Date(semStart);semEnd.setDate(semStart.getDate()+6);
+    const semStartStr=semStart.toISOString().split('T')[0];
+    const semEndStr=semEnd.toISOString().split('T')[0];
+    const totalFU=leads.filter(l=>l.followup&&l.followup>=semStartStr&&l.followup<=semEndStr).length;
     const kpi=document.getElementById('cards-proc');
-    if(kpi)kpi.innerHTML=`<div class="kpi"><div class="kpi-top"><span class="kpi-icon">👥</span></div><div class="kpi-num">${total}</div><div class="kpi-label">Total de Clientes</div></div><div class="kpi o"><div class="kpi-top"><span class="kpi-icon">🆕</span></div><div class="kpi-num">${novos}</div><div class="kpi-label">Novos Leads</div></div><div class="kpi g"><div class="kpi-top"><span class="kpi-icon">⚖️</span></div><div class="kpi-num">${ativos}</div><div class="kpi-label">Clientes Ativos</div></div><div class="kpi r"><div class="kpi-top"><span class="kpi-icon">🔔</span></div><div class="kpi-num">${urg}</div><div class="kpi-label">Follow-ups Urgentes</div></div>`;
-    const ul=document.getElementById('dash-ul');
-    if(ul){const rec=[...leads].reverse().slice(0,5);ul.innerHTML=rec.length?`<div class="tbl"><table><thead><tr><th>Nome</th><th>Etapa</th><th>Origem</th><th>Data</th></tr></thead><tbody>${rec.map(l=>`<tr><td><strong>${l.nome}</strong></td><td><span class="badge" style="background:${CORES[l.etapa]||'#999'}">${l.etapa}</span></td><td>${l.origem||'—'}</td><td>${l.criado||'—'}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty"><div class="ei">📭</div><p>Nenhum lead ainda.</p></div>';}
+    if(kpi)kpi.innerHTML=`<div class="kpi"><div class="kpi-top"><span class="kpi-icon">👥</span></div><div class="kpi-num">${totalCli}</div><div class="kpi-label">Total de Clientes</div></div><div class="kpi o"><div class="kpi-top"><span class="kpi-icon">🎯</span></div><div class="kpi-num">${totalLeads}</div><div class="kpi-label">Total de Leads</div></div><div class="kpi g"><div class="kpi-top"><span class="kpi-icon">📥</span></div><div class="kpi-num">${leadsDia}</div><div class="kpi-label">Leads do Dia</div></div><div class="kpi r"><div class="kpi-top"><span class="kpi-icon">🔔</span></div><div class="kpi-num">${totalFU}</div><div class="kpi-label">Follow-ups</div></div>`;
     const fu=document.getElementById('dash-fu');
-    if(fu){const urg2=leads.filter(l=>l.followup&&l.followup<=hoje).slice(0,4);fu.innerHTML=urg2.length?urg2.map(l=>`<div class="fu-card" style="margin-bottom:8px"><div class="fu-av">${l.nome[0].toUpperCase()}</div><div class="fu-info"><div class="fu-nome">${l.nome}</div><div class="fu-det">📱 ${l.tel}</div></div><a href="https://wa.me/55${l.tel.replace(/\D/g,'')}" target="_blank" class="btn btn-success btn-sm">💬 WA</a></div>`).join(''):'<div class="empty" style="padding:20px"><p>✅ Nenhum follow-up urgente.</p></div>';}
+    if(fu){
+      const fuList=leads.filter(l=>l.followup&&l.followup>=semStartStr&&l.followup<=semEndStr).sort((a,b)=>a.followup.localeCompare(b.followup));
+      fu.innerHTML=fuList.length?fuList.map(l=>{
+        const tel=l.tel||l.telefone||'';
+        const vencido=l.followup<hoje;
+        const fuData=new Date(l.followup+'T12:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'});
+        return`<div class="fu-card" style="margin-bottom:8px"><div class="fu-av" style="${vencido?'background:#e74c3c':''}">${(l.nome||'?')[0].toUpperCase()}</div><div class="fu-info"><div class="fu-nome">${l.nome||'Sem nome'}</div><div class="fu-det">${vencido?'🔴 Vencido:':'📅'} ${fuData}${tel?' · 📱 '+tel:''}</div></div>${tel?`<a href="https://wa.me/55${tel.replace(/\D/g,'')}" target="_blank" class="btn btn-success btn-sm">💬 WA</a>`:''}</div>`;
+      }).join(''):'<div class="empty" style="padding:20px"><p>✅ Nenhum follow-up esta semana.</p></div>';
+    }
     renderDashAgenda();
   }catch(e){console.error('renderDash erro:',e);}
 }
