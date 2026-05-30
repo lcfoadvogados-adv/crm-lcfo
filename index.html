@@ -3944,7 +3944,7 @@ async function gerarScriptIA(idx){
   msg('Gerando script com IA...');
   if(panel)panel.style.display='none';
   try{
-    const resp=await fetch('/api/gerar-script',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({titulo:r.titulo||'',tema,linkRef})});
+    const resp=await fetch('/api/roteiros-ia',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'gerar',titulo:r.titulo||'',tema,linkRef})});
     const data=await resp.json();
     if(!data.ok){t('⚠️ '+(data.erro||'Falha ao gerar script'),false);hide();return;}
     const prev=roteiros[idx].script||'';
@@ -3980,7 +3980,7 @@ async function transcreverVideo(idx,input){
     msg('Enviando para transcrição (Groq Whisper)...');
     const wav=_toWav(resampled);
     const b64=_b64Encode(wav);
-    const resp=await fetch('/api/transcrever',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:b64,filename:'audio.wav'})});
+    const resp=await fetch('/api/roteiros-ia',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'transcrever',audio:b64,filename:'audio.wav'})});
     const data=await resp.json();
     if(!data.ok){t('⚠️ '+(data.erro||'Falha na transcrição'),false);hide();return;}
     carregarRot();
@@ -5015,7 +5015,7 @@ async function uploadFilesParaDrive(folderId,files){
 // ===== SYNC AUTOMÁTICO — META ADS (polling a cada 30s) =====
 function syncLeadsMeta(){
   if(document.hidden)return; // Não busca se a aba estiver em segundo plano
-  fetch('/api/leads-sync')
+  fetch('/api/meta-lead?sync=1')
     .then(function(r){return r.json();})
     .then(function(res){
       if(!res.ok||!res.leads||!res.leads.length)return;

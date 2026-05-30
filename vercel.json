@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/transcrever.js": { "maxDuration": 60 }
+    "api/roteiros-ia.js": { "maxDuration": 60 }
   },
   "crons": [
     {

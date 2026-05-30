@@ -1,7 +1,8 @@
 // api/meta-lead.js
-// Webhook Meta Lead Ads
-// GET  → verificação do endpoint pelo Meta (hub.challenge)
-// POST → novo lead gerado; busca dados no Graph API e salva na fila KV
+// Webhook Meta Lead Ads + sincronização de leads pendentes
+// GET ?hub.mode=subscribe → verificação do endpoint pelo Meta
+// GET ?sync=1            → retorna leads pendentes do KV (antigo leads-sync.js)
+// POST                   → novo lead gerado; busca no Graph API e salva na fila KV
 
 const KV_KEY   = 'leads_pendentes';
 const CRM_URL  = 'https://crm-lcfo.vercel.app';
@@ -101,8 +102,40 @@ async function enviarAviso(lead) {
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
+// ─── Sync: retorna leads pendentes e limpa a fila ────────────────────────────
+
+async function syncLeads(res) {
+  const { url, token } = kvCreds();
+  if (!url || !token) return res.status(200).json({ ok: true, leads: [] });
+  try {
+    const r = await fetch(`${url}/pipeline`, {
+      method:  'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body:    JSON.stringify([['LRANGE', KV_KEY, '0', '-1'], ['DEL', KV_KEY]]),
+    });
+    if (!r.ok) return res.status(200).json({ ok: true, leads: [] });
+    const data = await r.json();
+    const raw  = data[0]?.result || [];
+    const leads = raw.map(item => {
+      try { return typeof item === 'string' ? JSON.parse(item) : item; } catch { return null; }
+    }).filter(Boolean);
+    if (leads.length) console.log(`[Sync] ${leads.length} lead(s) entregue(s) ao frontend`);
+    return res.status(200).json({ ok: true, leads });
+  } catch(e) {
+    console.error('[Sync] Erro:', e.message);
+    return res.status(200).json({ ok: true, leads: [] });
+  }
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  // ── GET: sync de leads pendentes ──
+  if (req.method === 'GET' && req.query.sync === '1') {
+    return syncLeads(res);
+  }
 
   // ── GET: verificação do webhook ──
   if (req.method === 'GET') {
