@@ -134,6 +134,7 @@ export default async function handler(req, res) {
 
   // ── GET: sync de leads pendentes ──
   if (req.method === 'GET' && req.query.sync === '1') {
+    res.setHeader('Cache-Control', 'no-store');
     return syncLeads(res);
   }
 
