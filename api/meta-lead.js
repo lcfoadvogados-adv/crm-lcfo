@@ -138,6 +138,25 @@ export default async function handler(req, res) {
     return syncLeads(res);
   }
 
+  // ── GET: re-assinar webhook da página (uso único, protegido por token) ──
+  if (req.method === 'GET' && req.query.action === 'resubscribe') {
+    const myToken = process.env.META_WEBHOOK_VERIFY_TOKEN || 'lcfo2025';
+    if (req.query.token !== myToken) return res.status(403).json({ erro: 'Token inválido' });
+    const pageToken = process.env.META_PAGE_ACCESS_TOKEN;
+    if (!pageToken) return res.status(200).json({ ok: false, erro: 'META_PAGE_ACCESS_TOKEN não configurado' });
+    try {
+      const r = await fetch(
+        `https://graph.facebook.com/v21.0/me/subscribed_apps?subscribed_fields=leadgen&access_token=${pageToken}`,
+        { method: 'POST' }
+      );
+      const data = await r.json();
+      console.log('[Meta] Resubscribe result:', JSON.stringify(data));
+      return res.status(200).json({ ok: r.ok, result: data });
+    } catch(e) {
+      return res.status(200).json({ ok: false, erro: e.message });
+    }
+  }
+
   // ── GET: verificação do webhook ──
   if (req.method === 'GET') {
     const mode      = req.query['hub.mode'];
