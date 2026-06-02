@@ -1773,8 +1773,12 @@ document.getElementById('f-cpf').addEventListener('input',function(){
 });
 
 function aiFiles(input){
-  const files=Array.from(input.files).slice(0,6);
-  if(!files.length) return;
+  const TIPOS_OK=['image/jpeg','image/png','image/gif','image/webp','application/pdf'];
+  const todos=Array.from(input.files);
+  const files=todos.filter(f=>TIPOS_OK.includes(f.type)||/\.(jpe?g|png|gif|webp|pdf)$/i.test(f.name)).slice(0,6);
+  const ignorados=todos.filter(f=>!TIPOS_OK.includes(f.type)&&!/\.(jpe?g|png|gif|webp|pdf)$/i.test(f.name));
+  if(ignorados.length)t(`⚠️ Arquivo(s) ignorado(s) — apenas JPG, PNG, PDF são aceitos: ${ignorados.map(f=>f.name).join(', ')}`,false);
+  if(!files.length){t('⚠️ Nenhum arquivo válido. Use JPG, PNG ou PDF.',false);return;}
   document.getElementById('ai-files').innerHTML=files.map(f=>`<div class="ai-file">📎 ${f.name} <span style="color:#9aadcc;margin-left:auto">${(f.size/1024).toFixed(0)} KB</span></div>`).join('');
   document.getElementById('ai-anal').style.display='flex';
   document.getElementById('ai-anal').innerHTML='<div class="ai-dot"></div><span>IA lendo os documentos com Claude...</span>';

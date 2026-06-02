@@ -8,8 +8,13 @@ export default async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'API key nao configurada' });
 
-  const { images } = req.body;
-  if (!images || !images.length) return res.status(400).json({ error: 'Nenhum documento enviado' });
+  const { images: rawImages } = req.body;
+  if (!rawImages || !rawImages.length) return res.status(400).json({ error: 'Nenhum documento enviado' });
+
+  // Filtrar apenas tipos suportados pela API (PDF, imagens)
+  const TIPOS_OK = ['application/pdf','image/jpeg','image/png','image/gif','image/webp'];
+  const images = rawImages.filter(img => TIPOS_OK.includes(img.type));
+  if (!images.length) return res.status(400).json({ error: 'Nenhum arquivo válido. Use JPG, PNG ou PDF.' });
 
   const hasPdf = images.some(img => img.type === 'application/pdf');
 
