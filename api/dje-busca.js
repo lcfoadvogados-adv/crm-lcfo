@@ -2,10 +2,11 @@
 // Busca automática de intimações no DJE do TJSP e TRF3
 // Cron: toda segunda a sexta às 08:00 BRT (11:00 UTC)
 
-const OAB_NUM   = '331449';
+const OAB_NUM    = '331449';
 const OAB_ESTADO = 'SP';
-const EMAIL_TO  = 'lcfoadvogados@gmail.com';
-const CRM_URL   = 'https://crm-lcfo.vercel.app';
+const NOME_ADV   = 'FIGUEIREDO DE OLIVEIRA'; // palavra-chave para busca no novo DEJESP
+const EMAIL_TO   = 'lcfoadvogados@gmail.com';
+const CRM_URL    = 'https://crm-lcfo.vercel.app';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -27,25 +28,49 @@ function stripHtml(html) {
 }
 
 // ─── TJSP ────────────────────────────────────────────────────────────────────
+// O TJSP migrou para o novo DEJESP (jul/2025). A URL antiga redireciona.
+// Nova abordagem: sessão HTTP + POST na busca avançada por palavra-chave.
+
+const TJSP_FORM = 'https://esaj.tjsp.jus.br/cdje/consultaAvancada.do';
 
 async function buscarTJSP(dataBr) {
-  const url =
-    `https://esaj.tjsp.jus.br/dje/listaDiarioIntimacao.do` +
-    `?nAdvOAB=${OAB_NUM}&tipoCodigo=T` +
-    `&dtInicio=${encodeURIComponent(dataBr)}&dtFim=${encodeURIComponent(dataBr)}` +
-    `&cdCaderno=-1&nuPagina=1`;
-
   try {
-    const res = await fetch(url, {
+    // Passo 1: estabelece sessão para obter JSESSIONID
+    const initRes = await fetch(TJSP_FORM, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'text/html,application/xhtml+xml,*/*',
-        'Referer': 'https://esaj.tjsp.jus.br/dje/consultaSimples.do',
+        'Accept':     'text/html,application/xhtml+xml,*/*',
       },
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(15000),
+    });
+    const setCookie = initRes.headers.get('set-cookie') || '';
+    const jSession  = (setCookie.match(/JSESSIONID=([^;]+)/) || [])[1] || '';
+
+    // Passo 2: POST com palavra-chave e data
+    const body = new URLSearchParams({
+      'dadosConsulta.dtInicio':     dataBr,
+      'dadosConsulta.dtFim':        dataBr,
+      'dadosConsulta.palavraChave': NOME_ADV,
+      'dadosConsulta.cdCaderno':    '-1',
+      'pbEnviar':                   'Pesquisar',
     });
 
-    const html = await res.text();
+    const headers = {
+      'User-Agent':   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Referer':      TJSP_FORM,
+    };
+    if (jSession) headers['Cookie'] = `JSESSIONID=${jSession}`;
+
+    const searchRes = await fetch(TJSP_FORM, {
+      method:  'POST',
+      headers,
+      body:    body.toString(),
+      signal:  AbortSignal.timeout(25000),
+    });
+
+    const html = await searchRes.text();
+    console.log(`[TJSP] status=${searchRes.status} html=${html.length}b jSession=${!!jSession}`);
     return parseTJSP(html, dataBr);
   } catch (e) {
     console.error('[TJSP] erro:', e.message);
@@ -55,32 +80,63 @@ async function buscarTJSP(dataBr) {
 
 function parseTJSP(html, dataBr) {
   const results = [];
-  // Extrai rows da tabela de resultados
-  const rowRe = /<tr[^>]*class="[^"]*(?:fundoBranco|fundocinza|resultado)[^"]*"[^>]*>([\s\S]*?)<\/tr>/gi;
-  let m, idx = 0;
-  while ((m = rowRe.exec(html)) !== null && idx < 100) {
-    const cells = [...m[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)]
-      .map(c => stripHtml(c[1]));
-    if (cells.length < 2) continue;
+  let idx = 0;
 
-    // Extrai número do processo se disponível
-    const procMatch = m[1].match(/(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/);
-    const processo = procMatch ? procMatch[1] : (cells[0] || '');
+  // Parser novo: localiza publicações pelo número de processo e extrai contexto
+  const seenProc = new Set();
+  const procRe   = /(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g;
+  for (const match of html.matchAll(procRe)) {
+    if (idx >= 50) break;
+    const processo = match[1];
+    if (seenProc.has(processo)) continue;
+    seenProc.add(processo);
+
+    const start   = Math.max(0, match.index - 150);
+    const end     = Math.min(html.length, match.index + 600);
+    const conteudo = stripHtml(html.substring(start, end));
 
     results.push({
-      id:        `tjsp-${brToISO(dataBr)}-${idx}`,
-      tribunal:  'TJSP',
-      data:      dataBr,
+      id:       `tjsp-${brToISO(dataBr)}-${idx}`,
+      tribunal: 'TJSP',
+      data:     dataBr,
       processo,
-      tipo:      cells[1] || 'Intimação',
-      conteudo:  cells[2] || cells[1] || '',
-      caderno:   cells[3] || '',
-      pagina:    cells[4] || '',
-      status:    'nova',
-      criado:    new Date().toISOString(),
+      tipo:     'Intimação / Publicação',
+      conteudo,
+      caderno:  '',
+      pagina:   '',
+      status:   'nova',
+      criado:   new Date().toISOString(),
     });
     idx++;
   }
+
+  // Fallback: parser legado (tabela com fundoBranco/fundocinza)
+  if (results.length === 0) {
+    const rowRe = /<tr[^>]*class="[^"]*(?:fundoBranco|fundocinza|resultado)[^"]*"[^>]*>([\s\S]*?)<\/tr>/gi;
+    let m;
+    while ((m = rowRe.exec(html)) !== null && idx < 100) {
+      const cells = [...m[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)]
+        .map(c => stripHtml(c[1]));
+      if (cells.length < 2) continue;
+      const procMatch = m[1].match(/(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/);
+      const processo  = procMatch ? procMatch[1] : (cells[0] || '');
+      results.push({
+        id:       `tjsp-${brToISO(dataBr)}-${idx}`,
+        tribunal: 'TJSP',
+        data:     dataBr,
+        processo,
+        tipo:     cells[1] || 'Intimação',
+        conteudo: cells[2] || cells[1] || '',
+        caderno:  cells[3] || '',
+        pagina:   cells[4] || '',
+        status:   'nova',
+        criado:   new Date().toISOString(),
+      });
+      idx++;
+    }
+  }
+
+  console.log(`[TJSP] ${results.length} resultado(s) encontrado(s)`);
   return results;
 }
 
