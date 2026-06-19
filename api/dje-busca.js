@@ -4,7 +4,7 @@
 
 const OAB_NUM    = '331449';
 const OAB_ESTADO = 'SP';
-const NOME_ADV   = 'FIGUEIREDO DE OLIVEIRA'; // palavra-chave para busca no novo DEJESP
+const NOME_ADV   = 'LEONARDO CESAR FIGUEIREDO DE OLIVEIRA'; // palavra-chave para busca no novo DEJESP
 const EMAIL_TO   = 'lcfoadvogados@gmail.com';
 const CRM_URL    = 'https://crm-lcfo.vercel.app';
 
@@ -82,18 +82,26 @@ function parseTJSP(html, dataBr) {
   const results = [];
   let idx = 0;
 
-  // Parser novo: localiza publicações pelo número de processo e extrai contexto
-  const seenProc = new Set();
-  const procRe   = /(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g;
+  // Parser novo: localiza publicações pelo número de processo e extrai contexto.
+  // Filtra apenas trechos onde o nome aparece próximo a referência de OAB (é o advogado, não parte).
+  const seenProc  = new Set();
+  const procRe    = /(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g;
+  const oabRe     = /331[\s.]?449|OAB[\s/]*SP/i;
+
   for (const match of html.matchAll(procRe)) {
     if (idx >= 50) break;
     const processo = match[1];
     if (seenProc.has(processo)) continue;
     seenProc.add(processo);
 
-    const start   = Math.max(0, match.index - 150);
-    const end     = Math.min(html.length, match.index + 600);
-    const conteudo = stripHtml(html.substring(start, end));
+    // Janela ampla para verificar se OAB está próximo ao processo
+    const start    = Math.max(0, match.index - 150);
+    const end      = Math.min(html.length, match.index + 800);
+    const trecho   = html.substring(start, end);
+    const conteudo = stripHtml(trecho);
+
+    // Só inclui se OAB 331449 ou "OAB/SP" aparecer no mesmo bloco
+    if (!oabRe.test(trecho)) continue;
 
     results.push({
       id:       `tjsp-${brToISO(dataBr)}-${idx}`,
