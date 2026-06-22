@@ -2,6 +2,11 @@
 // Busca automática de intimações via DJEN — Diário de Justiça Eletrônico Nacional (CNJ)
 // API pública oficial: https://comunicaapi.pje.jus.br
 // Cron: toda segunda a sexta às 08:00 BRT (11:00 UTC)
+//
+// Roda em Edge Runtime: a API do DJEN bloqueia IPs de datacenter/AWS Lambda
+// (usado pelas funções serverless Node padrão da Vercel) com HTTP 403.
+// O Edge Runtime da Vercel usa uma rede diferente que não é bloqueada.
+export const config = { runtime: 'edge' };
 
 const OAB_NUM    = '331449';
 const OAB_ESTADO = 'SP';
@@ -38,52 +43,43 @@ async function buscarDJEN(dataBr) {
     `?numeroOab=${OAB_NUM}&ufOab=${OAB_ESTADO}` +
     `&dataDisponibilizacaoInicio=${dataISO}&dataDisponibilizacaoFim=${dataISO}`;
 
-  try {
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent':       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept':           'application/json, text/plain, */*',
-        'Accept-Language':  'pt-BR,pt;q=0.9,en;q=0.8',
-        'Origin':           'https://comunica.pje.jus.br',
-        'Referer':          'https://comunica.pje.jus.br/',
-      },
-      signal: AbortSignal.timeout(20000),
-    });
+  const res = await fetch(url, {
+    headers: {
+      'User-Agent':      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      'Accept':          'application/json, text/plain, */*',
+      'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+      'Origin':          'https://comunica.pje.jus.br',
+      'Referer':         'https://comunica.pje.jus.br/',
+    },
+  });
 
-    if (!res.ok) {
-      console.warn(`[DJEN] HTTP ${res.status}`);
-      return [];
-    }
-
-    const data = await res.json();
-    if (data.status !== 'success' || !Array.isArray(data.items)) return [];
-
-    return data.items.map(item => ({
-      id:       `djen-${item.id}`,
-      tribunal: item.siglaTribunal || '',
-      data:     item.datadisponibilizacao || dataBr,
-      processo: item.numeroprocessocommascara || item.numero_processo || '',
-      tipo:     item.tipoComunicacao || 'Intimação',
-      conteudo: stripHtml(item.texto || ''),
-      caderno:  item.nomeOrgao || '',
-      pagina:   '',
-      status:   'nova',
-      criado:   new Date().toISOString(),
-    }));
-  } catch (e) {
-    console.error('[DJEN] erro:', e.message);
-    throw e;
+  if (!res.ok) {
+    console.warn(`[DJEN] HTTP ${res.status}`);
+    return [];
   }
+
+  const data = await res.json();
+  if (data.status !== 'success' || !Array.isArray(data.items)) return [];
+
+  return data.items.map(item => ({
+    id:       `djen-${item.id}`,
+    tribunal: item.siglaTribunal || '',
+    data:     item.datadisponibilizacao || dataBr,
+    processo: item.numeroprocessocommascara || item.numero_processo || '',
+    tipo:     item.tipoComunicacao || 'Intimação',
+    conteudo: stripHtml(item.texto || ''),
+    caderno:  item.nomeOrgao || '',
+    pagina:   '',
+    status:   'nova',
+    criado:   new Date().toISOString(),
+  }));
 }
 
-// ─── E-mail ───────────────────────────────────────────────────────────────────
+// ─── E-mail (Resend REST API direto — compatível com Edge Runtime) ───────────
 
 async function enviarEmail(intimacoes, dataBr) {
   const key = process.env.RESEND_API_KEY;
   if (!key) { console.log('[email] RESEND_API_KEY não configurada — pulando.'); return; }
-
-  const { Resend } = await import('resend');
-  const resend = new Resend(key);
 
   const itensHtml = intimacoes.map(i => `
     <div style="border:1px solid #dde3ef;border-radius:8px;padding:16px;margin-bottom:12px;background:#fff">
@@ -97,11 +93,7 @@ async function enviarEmail(intimacoes, dataBr) {
     </div>`).join('');
 
   const plural = intimacoes.length === 1;
-  await resend.emails.send({
-    from:    'LCFO Sistema <onboarding@resend.dev>',
-    to:      EMAIL_TO,
-    subject: `⚖️ ${intimacoes.length} intimaç${plural ? 'ão' : 'ões'} — DJE ${dataBr}`,
-    html: `
+  const html = `
 <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:620px;margin:0 auto;background:#f2f4f8;padding:24px">
   <div style="background:#1D3461;color:#fff;border-radius:10px 10px 0 0;padding:24px 28px">
     <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.6;margin-bottom:4px">LCFO Advogados — Sistema Jurídico</div>
@@ -117,23 +109,47 @@ async function enviarEmail(intimacoes, dataBr) {
     </div>
   </div>
   <p style="text-align:center;color:#aaa;font-size:11px;margin-top:12px">Enviado automaticamente pelo sistema CRM LCFO</p>
-</div>`,
+</div>`;
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method:  'POST',
+    headers: {
+      Authorization:  `Bearer ${key}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from:    'LCFO Sistema <onboarding@resend.dev>',
+      to:      EMAIL_TO,
+      subject: `⚖️ ${intimacoes.length} intimaç${plural ? 'ão' : 'ões'} — DJE ${dataBr}`,
+      html,
+    }),
   });
 
+  if (!res.ok) {
+    console.error('[email] Erro Resend:', await res.text());
+    return;
+  }
   console.log(`[email] Enviado para ${EMAIL_TO} — ${intimacoes.length} intimações`);
 }
 
-// ─── Handler principal ────────────────────────────────────────────────────────
+// ─── Handler principal (Edge Runtime — usa Request/Response padrão Web) ─────
 
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin':  '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Content-Type':                 'application/json',
+};
 
-  const dataBr   = req.query.data  || getDataBr();
-  const isCron   = req.query.cron  === '1';
-  const semEmail = req.query.email === '0';
+export default async function handler(req) {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 200, headers: CORS_HEADERS });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const dataBr   = searchParams.get('data')  || getDataBr();
+  const isCron   = searchParams.get('cron')  === '1';
+  const semEmail = searchParams.get('email') === '0';
 
   console.log(`[DJE] Buscando ${dataBr} — cron=${isCron}`);
 
@@ -143,12 +159,11 @@ export default async function handler(req, res) {
 
     console.log(`[DJE] DJEN=${djen.status === 'fulfilled' ? todas.length : 'erro'} total=${todas.length}`);
 
-    // Envia e-mail se encontrou algo (e não foi explicitamente desabilitado)
     if (todas.length > 0 && !semEmail) {
       await enviarEmail(todas, dataBr);
     }
 
-    return res.status(200).json({
+    return new Response(JSON.stringify({
       ok:           true,
       data:         dataBr,
       total:        todas.length,
@@ -157,9 +172,11 @@ export default async function handler(req, res) {
       erros: {
         djen: djen.status === 'rejected' ? djen.reason?.message : null,
       },
-    });
+    }), { status: 200, headers: CORS_HEADERS });
   } catch (e) {
     console.error('[DJE] erro geral:', e);
-    return res.status(500).json({ ok: false, erro: e.message });
+    return new Response(JSON.stringify({ ok: false, erro: e.message }), {
+      status: 500, headers: CORS_HEADERS,
+    });
   }
 }
