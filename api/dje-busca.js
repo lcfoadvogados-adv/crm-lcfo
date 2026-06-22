@@ -41,8 +41,11 @@ async function buscarDJEN(dataBr) {
   try {
     const res = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept':     'application/json',
+        'User-Agent':       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept':           'application/json, text/plain, */*',
+        'Accept-Language':  'pt-BR,pt;q=0.9,en;q=0.8',
+        'Origin':           'https://comunica.pje.jus.br',
+        'Referer':          'https://comunica.pje.jus.br/',
       },
       signal: AbortSignal.timeout(20000),
     });
