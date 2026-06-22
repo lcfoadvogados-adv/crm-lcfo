@@ -1,10 +1,10 @@
 // api/dje-busca.js
-// Busca automática de intimações no DJE do TJSP e TRF3
+// Busca automática de intimações via DJEN — Diário de Justiça Eletrônico Nacional (CNJ)
+// API pública oficial: https://comunicaapi.pje.jus.br
 // Cron: toda segunda a sexta às 08:00 BRT (11:00 UTC)
 
 const OAB_NUM    = '331449';
 const OAB_ESTADO = 'SP';
-const NOME_ADV   = 'LEONARDO CESAR FIGUEIREDO DE OLIVEIRA'; // palavra-chave para busca no novo DEJESP
 const EMAIL_TO   = 'lcfoadvogados@gmail.com';
 const CRM_URL    = 'https://crm-lcfo.vercel.app';
 
@@ -27,182 +27,50 @@ function stripHtml(html) {
   return (html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-// ─── TJSP ────────────────────────────────────────────────────────────────────
-// O TJSP migrou para o novo DEJESP (jul/2025). A URL antiga redireciona.
-// Nova abordagem: sessão HTTP + POST na busca avançada por palavra-chave.
+// ─── DJEN — Diário de Justiça Eletrônico Nacional (CNJ) ──────────────────────
+// Fonte oficial nacional: cobre TJSP, TRF3 e qualquer outro tribunal que
+// publique intimação para esta OAB, num único endpoint estruturado (JSON).
 
-const TJSP_FORM = 'https://esaj.tjsp.jus.br/cdje/consultaAvancada.do';
-
-async function buscarTJSP(dataBr) {
-  try {
-    // Passo 1: estabelece sessão para obter JSESSIONID
-    const initRes = await fetch(TJSP_FORM, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept':     'text/html,application/xhtml+xml,*/*',
-      },
-      signal: AbortSignal.timeout(15000),
-    });
-    const setCookie = initRes.headers.get('set-cookie') || '';
-    const jSession  = (setCookie.match(/JSESSIONID=([^;]+)/) || [])[1] || '';
-
-    // Passo 2: POST com palavra-chave e data
-    const body = new URLSearchParams({
-      'dadosConsulta.dtInicio':     dataBr,
-      'dadosConsulta.dtFim':        dataBr,
-      'dadosConsulta.palavraChave': NOME_ADV,
-      'dadosConsulta.cdCaderno':    '-1',
-      'pbEnviar':                   'Pesquisar',
-    });
-
-    const headers = {
-      'User-Agent':   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Referer':      TJSP_FORM,
-    };
-    if (jSession) headers['Cookie'] = `JSESSIONID=${jSession}`;
-
-    const searchRes = await fetch(TJSP_FORM, {
-      method:  'POST',
-      headers,
-      body:    body.toString(),
-      signal:  AbortSignal.timeout(25000),
-    });
-
-    const html = await searchRes.text();
-    console.log(`[TJSP] status=${searchRes.status} html=${html.length}b jSession=${!!jSession}`);
-    return parseTJSP(html, dataBr);
-  } catch (e) {
-    console.error('[TJSP] erro:', e.message);
-    return [];
-  }
-}
-
-function parseTJSP(html, dataBr) {
-  const results = [];
-  let idx = 0;
-
-  // Parser novo: localiza publicações pelo número de processo e extrai contexto.
-  // Filtra apenas trechos onde o nome aparece próximo a referência de OAB (é o advogado, não parte).
-  const seenProc  = new Set();
-  const procRe    = /(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g;
-  const oabRe     = /331[\s.]?449|OAB[\s/]*SP/i;
-
-  for (const match of html.matchAll(procRe)) {
-    if (idx >= 50) break;
-    const processo = match[1];
-    if (seenProc.has(processo)) continue;
-    seenProc.add(processo);
-
-    // Janela ampla para verificar se OAB está próximo ao processo
-    const start    = Math.max(0, match.index - 150);
-    const end      = Math.min(html.length, match.index + 800);
-    const trecho   = html.substring(start, end);
-    const conteudo = stripHtml(trecho);
-
-    // Só inclui se OAB 331449 ou "OAB/SP" aparecer no mesmo bloco
-    if (!oabRe.test(trecho)) continue;
-
-    results.push({
-      id:       `tjsp-${brToISO(dataBr)}-${idx}`,
-      tribunal: 'TJSP',
-      data:     dataBr,
-      processo,
-      tipo:     'Intimação / Publicação',
-      conteudo,
-      caderno:  '',
-      pagina:   '',
-      status:   'nova',
-      criado:   new Date().toISOString(),
-    });
-    idx++;
-  }
-
-  // Fallback: parser legado (tabela com fundoBranco/fundocinza)
-  if (results.length === 0) {
-    const rowRe = /<tr[^>]*class="[^"]*(?:fundoBranco|fundocinza|resultado)[^"]*"[^>]*>([\s\S]*?)<\/tr>/gi;
-    let m;
-    while ((m = rowRe.exec(html)) !== null && idx < 100) {
-      const cells = [...m[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)]
-        .map(c => stripHtml(c[1]));
-      if (cells.length < 2) continue;
-      const procMatch = m[1].match(/(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/);
-      const processo  = procMatch ? procMatch[1] : (cells[0] || '');
-      results.push({
-        id:       `tjsp-${brToISO(dataBr)}-${idx}`,
-        tribunal: 'TJSP',
-        data:     dataBr,
-        processo,
-        tipo:     cells[1] || 'Intimação',
-        conteudo: cells[2] || cells[1] || '',
-        caderno:  cells[3] || '',
-        pagina:   cells[4] || '',
-        status:   'nova',
-        criado:   new Date().toISOString(),
-      });
-      idx++;
-    }
-  }
-
-  console.log(`[TJSP] ${results.length} resultado(s) encontrado(s)`);
-  return results;
-}
-
-// ─── TRF3 ─────────────────────────────────────────────────────────────────────
-
-async function buscarTRF3(dataBr) {
+async function buscarDJEN(dataBr) {
   const dataISO = brToISO(dataBr);
-
-  // TRF3 DJe — endpoint de consulta por advogado (OAB)
   const url =
-    `https://pje.trf3.jus.br/pje/dje/listaDiarioIntimacoes.do` +
-    `?nAdvOAB=${OAB_NUM}&cdEstadoOAB=${OAB_ESTADO}` +
-    `&dtInicio=${encodeURIComponent(dataBr)}&dtFim=${encodeURIComponent(dataBr)}`;
+    `https://comunicaapi.pje.jus.br/api/v1/comunicacao` +
+    `?numeroOab=${OAB_NUM}&ufOab=${OAB_ESTADO}` +
+    `&dataDisponibilizacaoInicio=${dataISO}&dataDisponibilizacaoFim=${dataISO}`;
 
   try {
     const res = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'text/html,application/xhtml+xml,*/*',
+        'Accept':     'application/json',
       },
       signal: AbortSignal.timeout(20000),
     });
 
-    const html = await res.text();
-    return parseTRF3(html, dataBr);
+    if (!res.ok) {
+      console.warn(`[DJEN] HTTP ${res.status}`);
+      return [];
+    }
+
+    const data = await res.json();
+    if (data.status !== 'success' || !Array.isArray(data.items)) return [];
+
+    return data.items.map(item => ({
+      id:       `djen-${item.id}`,
+      tribunal: item.siglaTribunal || '',
+      data:     item.datadisponibilizacao || dataBr,
+      processo: item.numeroprocessocommascara || item.numero_processo || '',
+      tipo:     item.tipoComunicacao || 'Intimação',
+      conteudo: stripHtml(item.texto || ''),
+      caderno:  item.nomeOrgao || '',
+      pagina:   '',
+      status:   'nova',
+      criado:   new Date().toISOString(),
+    }));
   } catch (e) {
-    console.error('[TRF3] erro:', e.message);
-    return [];
+    console.error('[DJEN] erro:', e.message);
+    throw e;
   }
-}
-
-function parseTRF3(html, dataBr) {
-  const results = [];
-  const rowRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-  let m, idx = 0;
-  while ((m = rowRe.exec(html)) !== null && idx < 100) {
-    const cells = [...m[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)]
-      .map(c => stripHtml(c[1]));
-    if (cells.length < 2 || cells.every(c => !c)) continue;
-
-    const procMatch = m[1].match(/(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/);
-    const processo = procMatch ? procMatch[1] : (cells[0] || '');
-
-    results.push({
-      id:        `trf3-${brToISO(dataBr)}-${idx}`,
-      tribunal:  'TRF3',
-      data:      dataBr,
-      processo,
-      tipo:      cells[1] || 'Intimação',
-      conteudo:  cells[2] || cells[1] || '',
-      caderno:   cells[3] || '',
-      pagina:    cells[4] || '',
-      status:    'nova',
-      criado:    new Date().toISOString(),
-    });
-    idx++;
-  }
-  return results;
 }
 
 // ─── E-mail ───────────────────────────────────────────────────────────────────
@@ -260,24 +128,17 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const dataBr  = req.query.data  || getDataBr();
-  const isCron  = req.query.cron  === '1';
+  const dataBr   = req.query.data  || getDataBr();
+  const isCron   = req.query.cron  === '1';
   const semEmail = req.query.email === '0';
 
   console.log(`[DJE] Buscando ${dataBr} — cron=${isCron}`);
 
   try {
-    const [tjsp, trf3] = await Promise.allSettled([
-      buscarTJSP(dataBr),
-      buscarTRF3(dataBr),
-    ]);
+    const [djen] = await Promise.allSettled([buscarDJEN(dataBr)]);
+    const todas  = djen.status === 'fulfilled' ? djen.value : [];
 
-    const todas = [
-      ...(tjsp.status === 'fulfilled' ? tjsp.value : []),
-      ...(trf3.status === 'fulfilled' ? trf3.value : []),
-    ];
-
-    console.log(`[DJE] TJSP=${tjsp.status === 'fulfilled' ? tjsp.value.length : 'erro'} TRF3=${trf3.status === 'fulfilled' ? trf3.value.length : 'erro'} total=${todas.length}`);
+    console.log(`[DJE] DJEN=${djen.status === 'fulfilled' ? todas.length : 'erro'} total=${todas.length}`);
 
     // Envia e-mail se encontrou algo (e não foi explicitamente desabilitado)
     if (todas.length > 0 && !semEmail) {
@@ -285,14 +146,13 @@ export default async function handler(req, res) {
     }
 
     return res.status(200).json({
-      ok:            true,
-      data:          dataBr,
-      total:         todas.length,
-      intimacoes:    todas,
-      emailEnviado:  todas.length > 0 && !semEmail && !!process.env.RESEND_API_KEY,
+      ok:           true,
+      data:         dataBr,
+      total:        todas.length,
+      intimacoes:   todas,
+      emailEnviado: todas.length > 0 && !semEmail && !!process.env.RESEND_API_KEY,
       erros: {
-        tjsp: tjsp.status === 'rejected' ? tjsp.reason?.message : null,
-        trf3: trf3.status === 'rejected' ? trf3.reason?.message : null,
+        djen: djen.status === 'rejected' ? djen.reason?.message : null,
       },
     });
   } catch (e) {
