@@ -131,6 +131,7 @@ tbody tr:last-child td{border-bottom:none;}
 .dje-item{background:var(--white);border-radius:10px;border:1px solid var(--border);padding:16px 18px;margin-bottom:10px;border-left:4px solid var(--navy);}
 .dje-item.dje-nova{border-left-color:var(--gold);}
 .dje-item.dje-prazo{border-left-color:var(--green);}
+.dje-item.dje-sugerido{border-left-color:#8e44ad;}
 .dje-item.dje-vista{border-left-color:#ccc;opacity:.7;}
 .dje-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
 .dje-trib{background:var(--navy);color:#fff;padding:2px 9px;border-radius:4px;font-size:11px;font-weight:700;}
@@ -456,6 +457,7 @@ tbody tr:last-child td{border-bottom:none;}
 .prazo-item.pv-crit{border-left-color:var(--orange);}
 .prazo-item.pv-alert{border-left-color:#2980b9;}
 .prazo-item.pv-ok{border-left-color:var(--green);}
+.prazo-item.pv-sugestao{border-left-color:#8e44ad;background:#faf5ff;}
 .prazo-item.pv-done{opacity:.55;}
 .prazo-dias{padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;flex-shrink:0;white-space:nowrap;}
 .pd-venc{background:#fde8e8;color:var(--red);}
@@ -1293,6 +1295,7 @@ tbody tr:last-child td{border-bottom:none;}
             <select id="dje-fil-status" onchange="renderDJE()" style="padding:5px 9px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit">
               <option value="">Todos os status</option>
               <option value="nova">Novas</option>
+              <option value="prazo_sugerido">Prazo sugerido</option>
               <option value="prazo_criado">Prazo criado</option>
               <option value="vista">Visualizadas</option>
             </select>
@@ -4144,7 +4147,7 @@ const STATUS_COR={'Ativo':'#27ae60','Suspenso':'#e67e22','Recurso':'#2980b9','En
 const ANDA_IC={'Petição':'📄','Despacho':'📋','Decisão':'⚖️','Sentença':'🏛️','Acórdão':'📜','Intimação':'🔔','Audiência':'🎤','Perícia':'🔬','Publicação':'📰','Outro':'📝'};
 
 function carregarProc(){try{processos=JSON.parse(localStorage.getItem(KEY_PROC)||'[]');}catch(e){processos=[];}}
-function salvarProc(){try{localStorage.setItem(KEY_PROC,JSON.stringify(processos));}catch(e){alerta('⚠️ Erro ao salvar!',false);}}
+function salvarProc(){try{localStorage.setItem(KEY_PROC,JSON.stringify(processos));}catch(e){t('⚠️ Erro ao salvar!',false);}}
 
 function fmtCNJ(v){
   const d=v.replace(/\D/g,'').substring(0,20);
@@ -4203,8 +4206,9 @@ function renderDashProc(){
   processos.forEach(p=>{(p.prazos||[]).filter(pz=>pz.status!=='concluido').forEach(pz=>{const d=diasParaPrazo(pz.data);if(d!==null&&d<=7)prazosUrg.push({p,pz,d});});});
   prazosUrg.sort((a,b)=>a.d-b.d);
   pu.innerHTML=prazosUrg.length?prazosUrg.slice(0,5).map(({p,pz,d})=>{
-    const cls=d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
-    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${pz.tipo}</div><div style="font-size:12px;color:var(--text2)">⚖️ ${p.cliente||p.numero} · ${pz.desc||''}</div>${pz.data?`<div style="font-size:11px;color:var(--text2)">📅 ${new Date(pz.data+'T12:00').toLocaleDateString('pt-BR')}</div>`:''}</div>${prazoDaysHtml(d,false)}<button class="btn btn-gray btn-xs" onclick="abrirModalProc(${processos.indexOf(p)})">Ver</button></div>`;
+    const sug=pz.status==='sugestao';
+    const cls=sug?'pv-sugestao':d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
+    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${sug?'🤖 ':''}${pz.tipo}</div><div style="font-size:12px;color:var(--text2)">⚖️ ${p.cliente||p.numero} · ${pz.desc||''}</div>${pz.data?`<div style="font-size:11px;color:var(--text2)">📅 ${new Date(pz.data+'T12:00').toLocaleDateString('pt-BR')}</div>`:''}</div>${prazoDaysHtml(d,false)}<button class="btn btn-gray btn-xs" onclick="abrirModalProc(${processos.indexOf(p)})">Ver</button></div>`;
   }).join(''):'<div class="empty-state" style="padding:16px"><p>✅ Nenhum prazo urgente.</p></div>';
   const ul=document.getElementById('proc-ul');
   ul.innerHTML=processos.length?[...processos].reverse().slice(0,4).map(p=>`<div class="proc-card" onclick="abrirModalProc(${processos.indexOf(p)})"><div class="proc-card-top"><div><div class="proc-card-num">${p.numero||'—'}</div><div class="proc-card-nome">${p.cliente||'(sem cliente)'}</div><div class="proc-card-sub">vs. ${p.contraria||'—'} · ${p.tribunal||''}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="fase-badge" style="background:${FASE_COR[p.fase]||'#999'}">${p.fase}</span><span class="status-proc" style="background:${STATUS_COR[p.status]||'#999'}">${p.status}</span></div></div></div>`).join('')
@@ -4233,19 +4237,38 @@ function renderTodosPrazos(){
   if(!lista.length){el.innerHTML='<div class="empty-state"><div class="es-icon">⏰</div><p>Nenhum prazo.</p></div>';return;}
   el.innerHTML=lista.map(({p,pz,d})=>{
     const cl=pz.status==='concluido';
-    const cls=cl?'pv-done':d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
+    const sug=pz.status==='sugestao';
+    const cls=cl?'pv-done':sug?'pv-sugestao':d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
     const pi=processos.findIndex(x=>x.id===p.id);
     const zi=(p.prazos||[]).findIndex(x=>x.id===pz.id);
-    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${pz.tipo}${pz.desc?` — ${pz.desc}`:''}</div><div style="font-size:12px;color:var(--text2)">⚖️ ${p.cliente||p.numero}</div>${pz.data?`<div style="font-size:11px;color:var(--text2)">📅 ${new Date(pz.data+'T12:00').toLocaleDateString('pt-BR')}</div>`:''}</div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px;flex-wrap:wrap">${!cl?`<button class="btn btn-success btn-xs" onclick="concluirPrazo(${pi},${zi});event.stopPropagation()">✅</button><button class="btn btn-xs" style="background:#8e44ad;color:#fff" onclick="agendarDePrazo(${pi},${zi},'audiencia');event.stopPropagation()" title="Criar Audiência">🎤</button><button class="btn btn-xs" style="background:#1a6fa8;color:#fff" onclick="agendarDePrazo(${pi},${zi},'pericia');event.stopPropagation()" title="Criar Perícia">🔬</button>`:''}<button class="btn btn-gray btn-xs" onclick="abrirModalProc(${pi})">Ver</button></div></div>`;
+    const acoes=cl?'':sug
+      ?`<button class="btn btn-success btn-xs" onclick="confirmarPrazoSugerido(${pi},${zi});event.stopPropagation()">✅ Confirmar</button><button class="btn btn-danger btn-xs" onclick="descartarPrazoSugerido(${pi},${zi});event.stopPropagation()">🗑</button>`
+      :`<button class="btn btn-success btn-xs" onclick="concluirPrazo(${pi},${zi});event.stopPropagation()">✅</button><button class="btn btn-xs" style="background:#8e44ad;color:#fff" onclick="agendarDePrazo(${pi},${zi},'audiencia');event.stopPropagation()" title="Criar Audiência">🎤</button><button class="btn btn-xs" style="background:#1a6fa8;color:#fff" onclick="agendarDePrazo(${pi},${zi},'pericia');event.stopPropagation()" title="Criar Perícia">🔬</button>`;
+    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${sug?'🤖 ':''}${pz.tipo}${pz.desc?` — ${pz.desc}`:''}</div><div style="font-size:12px;color:var(--text2)">⚖️ ${p.cliente||p.numero}</div>${pz.data?`<div style="font-size:11px;color:var(--text2)">📅 ${new Date(pz.data+'T12:00').toLocaleDateString('pt-BR')}</div>`:''}</div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px;flex-wrap:wrap">${acoes}<button class="btn btn-gray btn-xs" onclick="abrirModalProc(${pi})">Ver</button></div></div>`;
   }).join('');
 }
-function concluirPrazo(pi,zi){if(pi<0||!processos[pi]||!processos[pi].prazos[zi])return;processos[pi].prazos[zi].status='concluido';salvarProc();renderTodosPrazos();renderDashProc();atualizarBadgeProc();alerta('✅ Prazo concluído!');}
+function confirmarPrazoSugerido(pi,zi){
+  if(pi<0||!processos[pi]||!processos[pi].prazos[zi])return;
+  processos[pi].prazos[zi].status='pendente';
+  salvarProc();renderTodosPrazos();renderDashProc();atualizarBadgeProc();
+  if(procEditIdx===pi)renderPrazosModal();
+  t('✅ Prazo confirmado!');
+}
+function descartarPrazoSugerido(pi,zi){
+  if(pi<0||!processos[pi]||!processos[pi].prazos[zi])return;
+  if(!confirm('Descartar esta sugestão de prazo? Esta ação não pode ser desfeita.'))return;
+  processos[pi].prazos.splice(zi,1);
+  salvarProc();renderTodosPrazos();renderDashProc();atualizarBadgeProc();
+  if(procEditIdx===pi)renderPrazosModal();
+  t('Sugestão descartada.');
+}
+function concluirPrazo(pi,zi){if(pi<0||!processos[pi]||!processos[pi].prazos[zi])return;processos[pi].prazos[zi].status='concluido';salvarProc();renderTodosPrazos();renderDashProc();atualizarBadgeProc();t('✅ Prazo concluído!');}
 function salvarProcesso(){
   const num=document.getElementById('np-numero').value.trim();
   const cli=document.getElementById('np-cliente').value.trim();
-  if(!num&&!cli){alerta('⚠️ Informe o número CNJ ou o cliente!',false);return;}
+  if(!num&&!cli){t('⚠️ Informe o número CNJ ou o cliente!',false);return;}
   processos.push({id:Date.now(),numero:num,area:document.getElementById('np-area').value,tipo:document.getElementById('np-tipo').value,fase:document.getElementById('np-fase').value,cliente:cli,contraria:document.getElementById('np-contraria').value,resp:document.getElementById('np-resp').value||'Dr. Leonardo',tribunal:document.getElementById('np-tribunal').value,comarca:document.getElementById('np-comarca').value,distrib:document.getElementById('np-distrib').value,valor:document.getElementById('np-valor').value,obs:document.getElementById('np-obs').value,status:'Ativo',criado:new Date().toLocaleDateString('pt-BR'),prazos:[],andamentos:[]});
-  salvarProc();limparFormProc();renderProcessos();alerta('✅ Processo cadastrado!');
+  salvarProc();limparFormProc();renderProcessos();t('✅ Processo cadastrado!');
   trocarAbaProc('pab-lista',document.querySelectorAll('.proc-tab')[1]);
 }
 function limparFormProc(){['np-numero','np-tipo','np-cliente','np-contraria','np-comarca','np-distrib','np-valor','np-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('np-resp').value='Dr. Leonardo';}
@@ -4277,16 +4300,16 @@ function salvarEdicaoProc(){
   if(procEditIdx<0)return;const p=processos[procEditIdx];
   const m={numero:'ep-numero',tipo:'ep-tipo',cliente:'ep-cliente',contraria:'ep-contraria',resp:'ep-resp',comarca:'ep-comarca',distrib:'ep-distrib',valor:'ep-valor',obs:'ep-obs',area:'ep-area',fase:'ep-fase',status:'ep-status',tribunal:'ep-tribunal'};
   Object.entries(m).forEach(([k,id])=>{const el=document.getElementById(id);if(el)p[k]=el.value;});
-  salvarProc();fecharModalProc();renderProcessos();alerta('✅ Processo atualizado!');
+  salvarProc();fecharModalProc();renderProcessos();t('✅ Processo atualizado!');
 }
-function excluirProcesso(){if(!confirm('Excluir permanentemente?'))return;processos.splice(procEditIdx,1);salvarProc();fecharModalProc();renderProcessos();alerta('🗑 Processo excluído.');}
+function excluirProcesso(){if(!confirm('Excluir permanentemente?'))return;processos.splice(procEditIdx,1);salvarProc();fecharModalProc();renderProcessos();t('🗑 Processo excluído.');}
 function adicionarPrazo(){
   if(procEditIdx<0)return;
   const dt=document.getElementById('prazo-data').value;
-  if(!dt){alerta('⚠️ Informe a data!',false);return;}
+  if(!dt){t('⚠️ Informe a data!',false);return;}
   if(!processos[procEditIdx].prazos)processos[procEditIdx].prazos=[];
   processos[procEditIdx].prazos.push({id:Date.now(),tipo:document.getElementById('prazo-tipo').value,data:dt,desc:document.getElementById('prazo-desc').value,status:'pendente'});
-  salvarProc();document.getElementById('prazo-data').value='';document.getElementById('prazo-desc').value='';document.getElementById('add-prazo-form').classList.remove('show');renderPrazosModal();renderDashProc();atualizarBadgeProc();alerta('✅ Prazo adicionado!');
+  salvarProc();document.getElementById('prazo-data').value='';document.getElementById('prazo-desc').value='';document.getElementById('add-prazo-form').classList.remove('show');renderPrazosModal();renderDashProc();atualizarBadgeProc();t('✅ Prazo adicionado!');
 }
 function renderPrazosModal(){
   if(procEditIdx<0)return;
@@ -4294,21 +4317,25 @@ function renderPrazosModal(){
   const el=document.getElementById('mp-prazos-lista');
   if(!pz.length){el.innerHTML='<div class="empty-state" style="padding:20px"><p>Nenhum prazo.</p></div>';return;}
   el.innerHTML=[...pz].sort((a,b)=>a.data.localeCompare(b.data)).map((z,i)=>{
-    const d=diasParaPrazo(z.data);const cl=z.status==='concluido';
-    const cls=cl?'pv-done':d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
+    const d=diasParaPrazo(z.data);const cl=z.status==='concluido';const sug=z.status==='sugestao';
+    const cls=cl?'pv-done':sug?'pv-sugestao':d<0?'pv-venc':d<=3?'pv-crit':d<=10?'pv-alert':'pv-ok';
     const ri=pz.indexOf(z);
-    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${z.tipo}</div>${z.desc?`<div style="font-size:12px;color:var(--text2)">${z.desc}</div>`:''}<div style="font-size:11px;color:var(--text2)">📅 ${z.data?new Date(z.data+'T12:00').toLocaleDateString('pt-BR'):''}</div></div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px;flex-wrap:wrap">${!cl?`<button class="btn btn-success btn-xs" onclick="concluirPrazoM(${ri})">✅</button><button class="btn btn-xs" style="background:#8e44ad;color:#fff" onclick="agendarDePrazoModal(${ri},'audiencia')" title="Criar Audiência">🎤</button><button class="btn btn-xs" style="background:#1a6fa8;color:#fff" onclick="agendarDePrazoModal(${ri},'pericia')" title="Criar Perícia">🔬</button>`:''}<button class="btn btn-danger btn-xs" onclick="excluirPrazoM(${ri})">🗑</button></div></div>`;
+    const acoes=cl?'':sug
+      ?`<button class="btn btn-success btn-xs" onclick="confirmarPrazoSugeridoM(${ri})">✅ Confirmar</button>`
+      :`<button class="btn btn-success btn-xs" onclick="concluirPrazoM(${ri})">✅</button><button class="btn btn-xs" style="background:#8e44ad;color:#fff" onclick="agendarDePrazoModal(${ri},'audiencia')" title="Criar Audiência">🎤</button><button class="btn btn-xs" style="background:#1a6fa8;color:#fff" onclick="agendarDePrazoModal(${ri},'pericia')" title="Criar Perícia">🔬</button>`;
+    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${sug?'🤖 ':''}${z.tipo}</div>${z.desc?`<div style="font-size:12px;color:var(--text2)">${z.desc}</div>`:''}<div style="font-size:11px;color:var(--text2)">📅 ${z.data?new Date(z.data+'T12:00').toLocaleDateString('pt-BR'):''}</div></div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px;flex-wrap:wrap">${acoes}<button class="btn btn-danger btn-xs" onclick="excluirPrazoM(${ri})">🗑</button></div></div>`;
   }).join('');
 }
 function concluirPrazoM(i){processos[procEditIdx].prazos[i].status='concluido';salvarProc();renderPrazosModal();renderDashProc();atualizarBadgeProc();}
+function confirmarPrazoSugeridoM(i){processos[procEditIdx].prazos[i].status='pendente';salvarProc();renderPrazosModal();renderDashProc();atualizarBadgeProc();t('✅ Prazo confirmado!');}
 function excluirPrazoM(i){processos[procEditIdx].prazos.splice(i,1);salvarProc();renderPrazosModal();renderDashProc();atualizarBadgeProc();}
 function adicionarAndamento(){
   if(procEditIdx<0)return;
   const d=document.getElementById('anda-desc').value.trim();
-  if(!d){alerta('⚠️ Descrição obrigatória!',false);return;}
+  if(!d){t('⚠️ Descrição obrigatória!',false);return;}
   if(!processos[procEditIdx].andamentos)processos[procEditIdx].andamentos=[];
   processos[procEditIdx].andamentos.unshift({id:Date.now(),tipo:document.getElementById('anda-tipo').value,data:document.getElementById('anda-data').value||new Date().toISOString().split('T')[0],desc:d});
-  salvarProc();document.getElementById('anda-desc').value='';document.getElementById('anda-data').value='';document.getElementById('add-anda-form').classList.remove('show');renderAndamentosModal();alerta('✅ Andamento registrado!');
+  salvarProc();document.getElementById('anda-desc').value='';document.getElementById('anda-data').value='';document.getElementById('add-anda-form').classList.remove('show');renderAndamentosModal();t('✅ Andamento registrado!');
 }
 function renderAndamentosModal(){
   if(procEditIdx<0)return;
@@ -4317,7 +4344,7 @@ function renderAndamentosModal(){
   if(!an.length){el.innerHTML='<div class="empty-state" style="padding:20px"><p>Nenhum andamento.</p></div>';return;}
   el.innerHTML=an.map((a,i)=>`<div class="anda-item"><div class="anda-dot">${ANDA_IC[a.tipo]||'📝'}</div><div class="anda-body"><div class="anda-tipo">${a.tipo}</div><div class="anda-data">${a.data?new Date(a.data+'T12:00').toLocaleDateString('pt-BR'):''}</div><div class="anda-desc">${a.desc}</div></div><button class="btn btn-danger btn-xs" onclick="excluirAndamento(${i})">🗑</button></div>`).join('');
 }
-function excluirAndamento(i){processos[procEditIdx].andamentos.splice(i,1);salvarProc();renderAndamentosModal();alerta('🗑 Removido.');}
+function excluirAndamento(i){processos[procEditIdx].andamentos.splice(i,1);salvarProc();renderAndamentosModal();t('🗑 Removido.');}
 function atualizarBadgeProc(){
   const b=document.getElementById('b-proc');if(!b)return;
   const u=processos.reduce((a,p)=>a+(p.prazos||[]).filter(pz=>pz.status!=='concluido'&&diasParaPrazo(pz.data)!==null&&diasParaPrazo(pz.data)<=3).length,0);
@@ -4525,11 +4552,13 @@ function buscarDJE(forcaHoje){
       carregarDJE();
       const existIds=new Set(intimacoesDJE.map(function(i){return i.id;}));
       const novas=res.intimacoes.filter(function(i){return !existIds.has(i.id);});
+      let prazosAuto=0;
+      novas.forEach(function(item){autoSugerirPrazoDJE(item);if(item.status==='prazo_sugerido')prazosAuto++;});
       intimacoesDJE=novas.concat(intimacoesDJE);
       salvarDJE();
       renderDJE();
       badges();
-      if(novas.length>0)t('✅ '+novas.length+' nova(s) intimação(ões) encontrada(s)!');
+      if(novas.length>0)t('✅ '+novas.length+' nova(s) intimação(ões)'+(prazosAuto?' — '+prazosAuto+' prazo(s) sugerido(s) pela IA, confirme na aba Prazos':'')+'!');
       else t('Nenhuma intimação nova para '+dataBr);
     })
     .catch(function(){if(lista)lista.innerHTML='<div class="dje-loading"><p style="color:var(--red)">⚠️ Erro ao conectar. Verifique a conexão.</p></div>';});
@@ -4544,7 +4573,7 @@ function renderDJE(){
   if(filtStatus)lista=lista.filter(function(i){return i.status===filtStatus;});
   const total=intimacoesDJE.length;
   const novas=intimacoesDJE.filter(function(i){return i.status==='nova';}).length;
-  const prazos=intimacoesDJE.filter(function(i){return i.status==='prazo_criado';}).length;
+  const prazos=intimacoesDJE.filter(function(i){return i.status==='prazo_criado'||i.status==='prazo_sugerido';}).length;
   const vistas=intimacoesDJE.filter(function(i){return i.status==='vista';}).length;
   const kT=document.getElementById('dje-total');if(kT)kT.textContent=total;
   const kN=document.getElementById('dje-novas');if(kN)kN.textContent=novas;
@@ -4556,17 +4585,21 @@ function renderDJE(){
     return;
   }
   el.innerHTML=lista.map(function(i){
-    const cls='dje-item'+(i.status==='nova'?' dje-nova':i.status==='prazo_criado'?' dje-prazo':i.status==='vista'?' dje-vista':'');
+    const cls='dje-item'+(i.status==='nova'?' dje-nova':i.status==='prazo_sugerido'?' dje-sugerido':i.status==='prazo_criado'?' dje-prazo':i.status==='vista'?' dje-vista':'');
     const badge=i.status==='nova'
       ?'<span style="background:var(--gold);color:#fff;font-size:10px;font-weight:700;border-radius:4px;padding:2px 7px;margin-left:6px">NOVA</span>'
-      :i.status==='prazo_criado'
-        ?'<span style="background:var(--green);color:#fff;font-size:10px;font-weight:700;border-radius:4px;padding:2px 7px;margin-left:6px">PRAZO ✅</span>'
-        :'<span style="background:#aaa;color:#fff;font-size:10px;font-weight:700;border-radius:4px;padding:2px 7px;margin-left:6px">VISTA</span>';
+      :i.status==='prazo_sugerido'
+        ?'<span style="background:#8e44ad;color:#fff;font-size:10px;font-weight:700;border-radius:4px;padding:2px 7px;margin-left:6px">🤖 PRAZO SUGERIDO</span>'
+        :i.status==='prazo_criado'
+          ?'<span style="background:var(--green);color:#fff;font-size:10px;font-weight:700;border-radius:4px;padding:2px 7px;margin-left:6px">PRAZO ✅</span>'
+          :'<span style="background:#aaa;color:#fff;font-size:10px;font-weight:700;border-radius:4px;padding:2px 7px;margin-left:6px">VISTA</span>';
     const btnPrazo=i.status==='nova'?'<button class="btn btn-primary btn-sm" onclick="criarPrazoDJE(\''+i.id+'\')">⏰ Criar Prazo</button>':'';
     const btnVista=i.status!=='vista'?'<button class="btn btn-gray btn-sm" onclick="marcarDJEVista(\''+i.id+'\')">👁 Vista</button>':'';
     const conteudoHtml=i.conteudo?'<div style="font-size:12px;color:var(--text2);border-left:3px solid var(--gold);padding-left:10px;line-height:1.6;margin-top:6px">'+(i.conteudo.length>500?i.conteudo.substring(0,500)+'…':i.conteudo)+'</div>':'';
     const cadernoHtml=i.caderno?'<div style="font-size:11px;color:var(--text2);margin-top:6px">Caderno: '+i.caderno+(i.pagina?' — Pág. '+i.pagina:'')+'</div>':'';
     const procHtml=i.processo?'<span style="font-size:12px;color:var(--text)">📁 <strong>'+i.processo+'</strong></span>':'';
+    const sp=i.sugestaoPrazo;
+    const sugestaoHtml=sp&&sp.dataFinal?'<div style="margin-top:6px;background:#f3e9ff;border-radius:6px;padding:6px 10px;font-size:12px;color:#5b2a86">🤖 <strong>Sugestão IA:</strong> '+sp.tipo+' — '+sp.dias+' dia(s) '+(sp.diasContados==='corridos'?'corridos':'úteis')+' — vence '+new Date(sp.dataFinal+'T12:00').toLocaleDateString('pt-BR')+(sp.confianca==='baixa'?' <em>(confirme nos autos)</em>':'')+(i.processo&&i.status==='nova'?' · cadastre o processo para vincular automaticamente':'')+'</div>':'';
     return '<div class="'+cls+'">'
       +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:8px">'
         +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
@@ -4577,31 +4610,59 @@ function renderDJE(){
         +'<div style="display:flex;gap:6px">'+btnPrazo+btnVista+'</div>'
       +'</div>'
       +'<div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:4px">'+(i.tipo||'Intimação')+'</div>'
-      +conteudoHtml+cadernoHtml
+      +conteudoHtml+cadernoHtml+sugestaoHtml
     +'</div>';
   }).join('');
+}
+
+// Tenta vincular automaticamente a sugestão de prazo da IA a um processo já
+// cadastrado (por número). Roda assim que uma intimação nova chega da busca.
+// Sempre cria status 'sugestao' — precisa de confirmação do advogado.
+function autoSugerirPrazoDJE(item){
+  const sp=item.sugestaoPrazo;
+  if(!sp||!sp.dataFinal)return;
+  carregarProc();
+  const procIdx=item.processo?processos.findIndex(function(p){return p.numero===item.processo;}):-1;
+  if(procIdx<0)return;
+  if(!processos[procIdx].prazos)processos[procIdx].prazos=[];
+  processos[procIdx].prazos.push({
+    id:Date.now()+Math.random().toString(36).slice(2,7),
+    tipo:sp.tipo,
+    data:sp.dataFinal,
+    desc:'🤖 Sugestão IA — '+(sp.baseLegal||'')+(sp.observacao?' · '+sp.observacao:'')+' · '+sp.dias+' dia(s) '+(sp.diasContados==='corridos'?'corridos':'úteis')+' · origem: DJE '+item.tribunal,
+    status:'sugestao',
+    origemDjeId:item.id
+  });
+  salvarProc();
+  item.status='prazo_sugerido';
 }
 
 function criarPrazoDJE(id){
   carregarDJE();
   const item=intimacoesDJE.find(function(i){return i.id===id;});
   if(!item)return;
-  const parts=item.data.split('/');
-  const dataBase=new Date(parts[2]+'-'+parts[1]+'-'+parts[0]+'T12:00');
-  dataBase.setDate(dataBase.getDate()+15);
-  const dataIso=dataBase.toISOString().split('T')[0];
   carregarProc();
   const procIdx=item.processo?processos.findIndex(function(p){return p.numero===item.processo;}):-1;
-  const desc='[DJE '+item.tribunal+'] '+item.tipo+(item.processo?' — '+item.processo:'');
-  if(procIdx>=0){
-    if(!processos[procIdx].prazos)processos[procIdx].prazos=[];
-    processos[procIdx].prazos.push({data:dataIso,tipo:'Intimação',descricao:desc,status:'pendente',criadoPor:'DJE',criadoEm:new Date().toISOString()});
-    salvarProc();
-    t('✅ Prazo criado no processo '+processos[procIdx].numero+'!');
+  if(procIdx<0){t('⚠️ Processo '+(item.processo||'')+' não encontrado. Cadastre-o em Processos para criar o prazo.',false);return;}
+  const sp=item.sugestaoPrazo;
+  let dataIso,tipo,desc;
+  if(sp&&sp.dataFinal){
+    dataIso=sp.dataFinal;
+    tipo=sp.tipo;
+    desc='🤖 Sugestão IA — '+(sp.baseLegal||'')+(sp.observacao?' · '+sp.observacao:'')+' · '+sp.dias+' dia(s) '+(sp.diasContados==='corridos'?'corridos':'úteis')+' · origem: DJE '+item.tribunal;
   } else {
-    t('⚠️ Processo não encontrado. Acesse Processos para criar o prazo manualmente.',false);
+    const parts=item.data.split('/');
+    const dataBase=new Date(parts[2]+'-'+parts[1]+'-'+parts[0]+'T12:00');
+    dataBase.setDate(dataBase.getDate()+15);
+    dataIso=dataBase.toISOString().split('T')[0];
+    tipo='Intimação';
+    desc='[DJE '+item.tribunal+'] '+item.tipo+(item.processo?' — '+item.processo:'');
   }
-  item.status='prazo_criado';
+  if(!processos[procIdx].prazos)processos[procIdx].prazos=[];
+  processos[procIdx].prazos.push({id:Date.now()+Math.random().toString(36).slice(2,7),tipo:tipo,data:dataIso,desc:desc,status:'sugestao',origemDjeId:item.id});
+  salvarProc();
+  t('✅ Prazo sugerido criado no processo '+processos[procIdx].numero+' — confirme na aba Prazos.');
+  item.status='prazo_sugerido';
   salvarDJE();
   renderDJE();
   badges();
