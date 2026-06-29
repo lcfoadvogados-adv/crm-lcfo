@@ -1506,7 +1506,7 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="pdt-content" id="pdt-prazos">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <strong style="color:var(--navy)">Prazos do Processo</strong>
-          <button class="btn btn-primary btn-sm" onclick="document.getElementById('add-prazo-form').classList.toggle('show')">➕ Prazo</button>
+          <button class="btn btn-primary btn-sm" onclick="abrirFormPrazo()">➕ Prazo</button>
         </div>
         <div class="add-prazo-form" id="add-prazo-form">
           <div class="fg">
@@ -1515,8 +1515,8 @@ tbody tr:last-child td{border-bottom:none;}
             <div class="ff" style="grid-column:1/-1"><label>Descrição</label><input type="text" id="prazo-desc" placeholder="Detalhes..."></div>
           </div>
           <div style="display:flex;gap:8px;margin-top:10px">
-            <button class="btn btn-success btn-sm" onclick="adicionarPrazo()">✅ Salvar</button>
-            <button class="btn btn-gray btn-sm" onclick="document.getElementById('add-prazo-form').classList.remove('show')">Cancelar</button>
+            <button class="btn btn-success btn-sm" id="prazo-form-btn" onclick="adicionarPrazo()">✅ Salvar</button>
+            <button class="btn btn-gray btn-sm" onclick="cancelarFormPrazo()">Cancelar</button>
           </div>
         </div>
         <div id="mp-prazos-lista"></div>
@@ -4141,6 +4141,7 @@ document.getElementById('tp-data').textContent=new Date().toLocaleDateString('pt
 const KEY_PROC='proc_lcfo_v1';
 let processos=[];
 let procEditIdx=-1;
+let prazoEditRi=-1;
 
 const FASE_COR={'Inicial':'#3498db','Citação':'#9b59b6','Contestação':'#e67e22','Instrução':'#f39c12','Audiência':'#e74c3c','Sentença':'#27ae60','Recurso':'#2980b9','Execução':'#8e44ad','Encerrado':'#95a5a6'};
 const STATUS_COR={'Ativo':'#27ae60','Suspenso':'#e67e22','Recurso':'#2980b9','Encerrado':'#95a5a6','Ganho':'#1abc9c','Perdido':'#e74c3c'};
@@ -4244,7 +4245,7 @@ function renderTodosPrazos(){
     const acoes=cl?'':sug
       ?`<button class="btn btn-success btn-xs" onclick="confirmarPrazoSugerido(${pi},${zi});event.stopPropagation()">✅ Confirmar</button><button class="btn btn-danger btn-xs" onclick="descartarPrazoSugerido(${pi},${zi});event.stopPropagation()">🗑</button>`
       :`<button class="btn btn-success btn-xs" onclick="concluirPrazo(${pi},${zi});event.stopPropagation()">✅</button><button class="btn btn-xs" style="background:#8e44ad;color:#fff" onclick="agendarDePrazo(${pi},${zi},'audiencia');event.stopPropagation()" title="Criar Audiência">🎤</button><button class="btn btn-xs" style="background:#1a6fa8;color:#fff" onclick="agendarDePrazo(${pi},${zi},'pericia');event.stopPropagation()" title="Criar Perícia">🔬</button>`;
-    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${sug?'🤖 ':''}${pz.tipo}${pz.desc?` — ${pz.desc}`:''}</div><div style="font-size:12px;color:var(--text2)">⚖️ ${p.cliente||p.numero}</div>${pz.data?`<div style="font-size:11px;color:var(--text2)">📅 ${new Date(pz.data+'T12:00').toLocaleDateString('pt-BR')}</div>`:''}</div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px;flex-wrap:wrap">${acoes}<button class="btn btn-gray btn-xs" onclick="abrirModalProc(${pi})">Ver</button></div></div>`;
+    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${sug?'🤖 ':''}${pz.tipo}${pz.desc?` — ${pz.desc}`:''}</div><div style="font-size:12px;color:var(--text2)">⚖️ ${p.cliente||p.numero}</div>${pz.data?`<div style="font-size:11px;color:var(--text2)">📅 ${new Date(pz.data+'T12:00').toLocaleDateString('pt-BR')}</div>`:''}</div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px;flex-wrap:wrap">${acoes}<button class="btn btn-gray btn-xs" onclick="editarPrazoDireto(${pi},${zi});event.stopPropagation()" title="Editar">✏️</button><button class="btn btn-gray btn-xs" onclick="abrirModalProc(${pi})">Ver</button></div></div>`;
   }).join('');
 }
 function confirmarPrazoSugerido(pi,zi){
@@ -4303,13 +4304,52 @@ function salvarEdicaoProc(){
   salvarProc();fecharModalProc();renderProcessos();t('✅ Processo atualizado!');
 }
 function excluirProcesso(){if(!confirm('Excluir permanentemente?'))return;processos.splice(procEditIdx,1);salvarProc();fecharModalProc();renderProcessos();t('🗑 Processo excluído.');}
+function abrirFormPrazo(){
+  prazoEditRi=-1;
+  document.getElementById('prazo-tipo').value='Contestação';
+  document.getElementById('prazo-data').value='';
+  document.getElementById('prazo-desc').value='';
+  const btn=document.getElementById('prazo-form-btn');if(btn)btn.textContent='✅ Salvar';
+  document.getElementById('add-prazo-form').classList.add('show');
+}
+function cancelarFormPrazo(){
+  prazoEditRi=-1;
+  document.getElementById('add-prazo-form').classList.remove('show');
+}
+function editarPrazoM(i){
+  if(procEditIdx<0||!processos[procEditIdx].prazos||!processos[procEditIdx].prazos[i])return;
+  const z=processos[procEditIdx].prazos[i];
+  prazoEditRi=i;
+  document.getElementById('prazo-tipo').value=z.tipo||'Outro';
+  document.getElementById('prazo-data').value=z.data||'';
+  document.getElementById('prazo-desc').value=z.desc||'';
+  const btn=document.getElementById('prazo-form-btn');if(btn)btn.textContent='✏️ Atualizar';
+  const form=document.getElementById('add-prazo-form');
+  form.classList.add('show');
+  form.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function editarPrazoDireto(pi,zi){
+  abrirModalProc(pi);
+  trocarPdt('pdt-prazos',document.querySelectorAll('.pdt')[1]);
+  editarPrazoM(zi);
+}
 function adicionarPrazo(){
   if(procEditIdx<0)return;
   const dt=document.getElementById('prazo-data').value;
   if(!dt){t('⚠️ Informe a data!',false);return;}
   if(!processos[procEditIdx].prazos)processos[procEditIdx].prazos=[];
-  processos[procEditIdx].prazos.push({id:Date.now(),tipo:document.getElementById('prazo-tipo').value,data:dt,desc:document.getElementById('prazo-desc').value,status:'pendente'});
-  salvarProc();document.getElementById('prazo-data').value='';document.getElementById('prazo-desc').value='';document.getElementById('add-prazo-form').classList.remove('show');renderPrazosModal();renderDashProc();atualizarBadgeProc();t('✅ Prazo adicionado!');
+  const tipo=document.getElementById('prazo-tipo').value;
+  const desc=document.getElementById('prazo-desc').value;
+  if(prazoEditRi>=0&&processos[procEditIdx].prazos[prazoEditRi]){
+    const z=processos[procEditIdx].prazos[prazoEditRi];
+    z.tipo=tipo;z.data=dt;z.desc=desc;
+    t('✅ Prazo atualizado!');
+  } else {
+    processos[procEditIdx].prazos.push({id:Date.now()+Math.random().toString(36).slice(2,7),tipo,data:dt,desc,status:'pendente'});
+    t('✅ Prazo adicionado!');
+  }
+  prazoEditRi=-1;
+  salvarProc();document.getElementById('prazo-data').value='';document.getElementById('prazo-desc').value='';document.getElementById('add-prazo-form').classList.remove('show');renderPrazosModal();renderDashProc();atualizarBadgeProc();renderTodosPrazos();
 }
 function renderPrazosModal(){
   if(procEditIdx<0)return;
@@ -4323,7 +4363,7 @@ function renderPrazosModal(){
     const acoes=cl?'':sug
       ?`<button class="btn btn-success btn-xs" onclick="confirmarPrazoSugeridoM(${ri})">✅ Confirmar</button>`
       :`<button class="btn btn-success btn-xs" onclick="concluirPrazoM(${ri})">✅</button><button class="btn btn-xs" style="background:#8e44ad;color:#fff" onclick="agendarDePrazoModal(${ri},'audiencia')" title="Criar Audiência">🎤</button><button class="btn btn-xs" style="background:#1a6fa8;color:#fff" onclick="agendarDePrazoModal(${ri},'pericia')" title="Criar Perícia">🔬</button>`;
-    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${sug?'🤖 ':''}${z.tipo}</div>${z.desc?`<div style="font-size:12px;color:var(--text2)">${z.desc}</div>`:''}<div style="font-size:11px;color:var(--text2)">📅 ${z.data?new Date(z.data+'T12:00').toLocaleDateString('pt-BR'):''}</div></div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px;flex-wrap:wrap">${acoes}<button class="btn btn-danger btn-xs" onclick="excluirPrazoM(${ri})">🗑</button></div></div>`;
+    return `<div class="prazo-item ${cls}"><div style="flex:1"><div style="font-weight:600;color:var(--navy)">${sug?'🤖 ':''}${z.tipo}</div>${z.desc?`<div style="font-size:12px;color:var(--text2)">${z.desc}</div>`:''}<div style="font-size:11px;color:var(--text2)">📅 ${z.data?new Date(z.data+'T12:00').toLocaleDateString('pt-BR'):''}</div></div>${prazoDaysHtml(d,cl)}<div style="display:flex;gap:5px;flex-wrap:wrap">${acoes}<button class="btn btn-gray btn-xs" onclick="editarPrazoM(${ri})" title="Editar">✏️</button><button class="btn btn-danger btn-xs" onclick="excluirPrazoM(${ri})">🗑</button></div></div>`;
   }).join('');
 }
 function concluirPrazoM(i){processos[procEditIdx].prazos[i].status='concluido';salvarProc();renderPrazosModal();renderDashProc();atualizarBadgeProc();}
