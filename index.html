@@ -1273,6 +1273,7 @@ tbody tr:last-child td{border-bottom:none;}
           <input type="date" id="dje-data-input" style="padding:7px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit">
           <button class="btn btn-primary" onclick="buscarDJE()">🔍 Buscar</button>
           <button class="btn btn-gray" onclick="buscarDJE(true)">📅 Hoje</button>
+          <button class="btn btn-gray" onclick="recuperarDJE(30)" title="Busca os últimos 30 dias úteis e importa intimações que o sistema ainda não salvou">🔄 Recuperar</button>
         </div>
       </div>
 
@@ -4602,6 +4603,43 @@ function buscarDJE(forcaHoje){
       else t('Nenhuma intimação nova para '+dataBr);
     })
     .catch(function(){if(lista)lista.innerHTML='<div class="dje-loading"><p style="color:var(--red)">⚠️ Erro ao conectar. Verifique a conexão.</p></div>';});
+}
+
+async function recuperarDJE(dias){
+  dias=dias||30;
+  const lista=document.getElementById('dje-lista');
+  // Build list of business days in the last `dias` calendar days
+  const dates=[];
+  for(let i=dias;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    if(d.getDay()===0||d.getDay()===6)continue;
+    const dd=String(d.getDate()).padStart(2,'0');
+    const mm=String(d.getMonth()+1).padStart(2,'0');
+    dates.push(dd+'/'+mm+'/'+d.getFullYear());
+  }
+  carregarDJE();
+  const existIds=new Set(intimacoesDJE.map(function(x){return x.id;}));
+  const todasNovas=[];
+  for(let idx=0;idx<dates.length;idx++){
+    const dataBr=dates[idx];
+    if(lista)lista.innerHTML='<div class="dje-loading"><div style="font-size:24px;margin-bottom:8px">⏳</div><p>Verificando '+dataBr+'… ('+( idx+1)+'/'+dates.length+')</p></div>';
+    try{
+      const r=await fetch('/api/dje-busca?data='+encodeURIComponent(dataBr)+'&email=0');
+      const res=await r.json();
+      if(res.ok&&res.intimacoes){
+        const novas=res.intimacoes.filter(function(x){return !existIds.has(x.id);});
+        novas.forEach(function(item){existIds.add(item.id);autoSugerirPrazoDJE(item);todasNovas.push(item);});
+      }
+    }catch(e){}
+    await new Promise(function(r){setTimeout(r,150);});
+  }
+  if(todasNovas.length>0){
+    carregarDJE();
+    intimacoesDJE=todasNovas.concat(intimacoesDJE);
+    salvarDJE();badges();
+  }
+  renderDJE();
+  t(todasNovas.length>0?'✅ '+todasNovas.length+' intimação(ões) recuperadas dos últimos '+dias+' dias!':'Nenhuma intimação nova nos últimos '+dias+' dias.');
 }
 
 function renderDJE(){
