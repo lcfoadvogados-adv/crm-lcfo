@@ -2371,7 +2371,7 @@ function renderBot(){
   const cl=document.getElementById('bot-contagem-label');
   if(cl)cl.textContent=ativos+' lead'+(ativos!==1?'s':'')+' monitorado'+(ativos!==1?'s':'');
   const bb=document.getElementById('b-bot');
-  if(bb){bb.textContent=ativos;bb.style.display=ativos?'inline':'none';}
+  if(bb){const botOn=botCfg&&botCfg.ativo;bb.textContent=ativos;bb.style.display=(ativos&&botOn)?'inline':'none';}
 }
 function renderBotMonitor(){
   carregarBotConfig();
@@ -2478,7 +2478,7 @@ function verificarBots(){
   if(mudou){salvar();badges();}
 }
 // Roda verificação a cada 5 minutos
-setInterval(function(){verificarBots();const bb=document.getElementById('b-bot');if(bb){const n=leads.filter(l=>l.etapa==='Leads de Entrada'&&l.bot_inicio&&!l.bot_pausado).length;bb.textContent=n;bb.style.display=n?'inline':'none';}},300000);
+setInterval(function(){verificarBots();const bb=document.getElementById('b-bot');if(bb){carregarBotConfig();const botOn=botCfg&&botCfg.ativo;const n=leads.filter(l=>l.etapa==='Leads de Entrada'&&l.bot_inicio&&!l.bot_pausado).length;bb.textContent=n;bb.style.display=(n&&botOn)?'inline':'none';}},300000);
 
 // ── Documentos ────────────────────────────────────────────────────────────────
 const KEY_REPO='lcfo_docs_rep_v1';let docsRepo=[];
